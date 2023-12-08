@@ -1,0 +1,22 @@
+version: '3.0'
+services:
+  velero-api-stack:
+    container_name: velero-api
+    image: velero-api:develop
+    restart: always
+    network_mode: bridge
+    command: ["python3", '-u', "main.py"]
+    working_dir: /app
+    volumes:
+      - velero_api_config:/app/config
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+    - K8S_IN_CLUSTER_MODE=False
+    - KUBE_CONFIG_FILE=./config/config.yaml
+    - VELERO_NAMESPACE=velero
+    - ORIGINS=["http://localhost:3000", "http://127.0.0.1:3000"]
+    ports:
+    - "8001:8001"
+volumes:
+  velero_api_config:
+    external: true

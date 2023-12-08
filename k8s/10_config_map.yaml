@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: velero-api-env
+data:
+    DEBUG_LEVEL: "info"
+    VELERO_CLI_VERSION: "v1.12.2"
+    K8S_IN_CLUSTER_MODE: "True"
+    K8S_VELERO_NAMESPACE: "velero"
+    ORIGINS: '["http://localhost:3000", "http://127.0.0.1:3000", "http://10.10.0.15"]'
+    API_ENDPOINT_PORT: "8001"
+    API_ENDPOINT_URL: "0.0.0.0"
+    VELERO_CLI_DEST_PATH: "/usr/local/bin"
+    VELERO_CLI_PATH: "./velero-client"

@@ -1,0 +1,6 @@
+fastapi==0.104.1
+kubernetes==27.2.0
+python-dotenv==1.0.0
+uvicorn==0.24.0.post1
+websocket-client==1.6.4
+wsproto==1.2.0
