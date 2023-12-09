@@ -38,17 +38,17 @@ class UtilsV1:
                'from_schedule_count': scheduled_count,
                'stats': [{'label': 'Completed',
                           'count': completed_count,
-                          'perc': round(100 * completed_count/count, 2),
+                          'perc': round(100 * completed_count/count if count > 0 else 0 , 2),
                           'color': 'green'
                           },
                          {'label': 'Partial Failed',
                           'count': partial_failed_count,
-                          'perc': round(100 * partial_failed_count / count, 2),
+                          'perc': round(100 * partial_failed_count / count  if count > 0 else 0, 2),
                           'color': 'orange'
                           },
                          {'label': 'Failed',
                           'count': failed_count,
-                          'perc': round(100 * failed_count / count, 2),
+                          'perc': round(100 * failed_count / count  if count > 0 else 0, 2),
                           'color': 'red'
                           }]
                }
@@ -69,16 +69,15 @@ class UtilsV1:
                'stats': [
                    {'label': 'Unpaused',
                     'count': unpaused_count,
-                    'perc': round(100 * unpaused_count / count, 2),
+                    'perc': round(100 * unpaused_count / count if count > 0 else 0, 2),
                     'color': 'green'
                     },
                    {'label': 'Paused',
                     'count': paused_count,
-                    'perc': round(100 * paused_count/count, 2),
+                    'perc': round(100 * paused_count/count if count > 0 else 0, 2),
                     'color': 'red'
                     }]
                }
-
         return res
 
     @handle_exceptions_instance_method
