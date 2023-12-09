@@ -4,6 +4,7 @@ metadata:
   name: velero-api-lb
 spec:
   type: LoadBalancer
+  loadBalancerIP : 10.10.0.15
   selector:
     app: velero-api
     layer: api
