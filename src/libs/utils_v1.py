@@ -19,7 +19,7 @@ k8s = K8sV1()
 class UtilsV1:
 
     @handle_exceptions_instance_method
-    def _resources_stats(self, resources):
+    def _resources_stats(self, resources, count_from_schedule=False):
         count = len(resources)
 
         completed = [x for x in resources if 'status' in x and 'phase' in x['status'] and x['status']['phase'] == 'Completed']
@@ -35,7 +35,7 @@ class UtilsV1:
         scheduled_count = len(scheduled)
 
         res = {'count': count,
-               'from_schedule_count': scheduled_count,
+               # 'from_schedule_count': scheduled_count,
                'stats': [{'label': 'Completed',
                           'count': completed_count,
                           'perc': round(100 * completed_count/count if count > 0 else 0 , 2),
@@ -52,6 +52,8 @@ class UtilsV1:
                           'color': 'red'
                           }]
                }
+        if count_from_schedule:
+            res['from_schedule_count'] = scheduled_count
         return res
 
     @handle_exceptions_instance_method
@@ -100,7 +102,7 @@ class UtilsV1:
     async def stats(self):
 
         backups = await backup.get(json_response=False)
-        all_backups_stats = self._resources_stats(backups['items'])
+        all_backups_stats = self._resources_stats(backups['items'], count_from_schedule=True)
 
         last_backup = await backup.get(only_last_for_schedule=True, json_response=False)
         last_schedule_backup_stats = self._resources_stats(last_backup['items'])

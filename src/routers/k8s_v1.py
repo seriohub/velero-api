@@ -12,3 +12,15 @@ k8s = K8sV1()
 @handle_exceptions_async_method
 async def k8s_ns_get():
     return k8s.get_ns()
+
+
+@router.get('/k8s/credential/get')
+@handle_exceptions_async_method
+async def get_credential(secret_name=None, secret_key=None):
+    return await k8s.get_credential(secret_name, secret_key)
+
+
+@router.get('/k8s/credential/default/get')
+@handle_exceptions_async_method
+async def get_default_credential():
+    return await k8s.get_default_credential()

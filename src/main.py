@@ -47,7 +47,7 @@ if __name__ == "__main__":
     uvicorn.run("app:app",
                 host=endpoint_url,
                 port=int(endpoint_port),
-                reload=False,
+                reload=True,
                 log_level=log_level,
                 workers=1,
                 limit_concurrency=int(limit_concurrency),
