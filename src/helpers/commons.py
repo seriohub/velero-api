@@ -125,7 +125,7 @@ def parse_create_parameters(info):
 
     if 'schedule' in info['values'] and len(info['values']['schedule']) > 0:
         cmd.append('--schedule')
-        cmd.append('"' + info['values']['schedule'] + '"')
+        cmd.append(info['values']['schedule'])
 
     return cmd
 

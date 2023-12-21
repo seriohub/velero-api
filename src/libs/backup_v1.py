@@ -1,3 +1,6 @@
+import os
+from kubernetes import client, config
+
 import json
 from fastapi.responses import JSONResponse
 
@@ -14,6 +17,17 @@ snapshotLocation = SnapshotLocationV1()
 
 
 class BackupV1:
+
+    def __init__(self):
+
+        if os.getenv('K8S_IN_CLUSTER_MODE').lower() == 'true':
+            config.load_incluster_config()
+        else:
+            self.kube_config_file = os.getenv('KUBE_CONFIG_FILE')
+            config.load_kube_config(config_file=self.kube_config_file)
+
+        self.v1 = client.CoreV1Api()
+        self.client = client.CustomObjectsApi()
 
     @handle_exceptions_instance_method
     def _filter_last_backup_for_every_schedule(self, data):
@@ -169,4 +183,91 @@ class BackupV1:
                               'description': f"Backup {info['backupName']} created!",
                               'type': 'info'
                               }]
+                }
+
+    @handle_exceptions_instance_method
+    def check_ttl(self, ttl):
+        # check ttl format
+        pattern = re.compile(r'^\d+h\d+m\d+s$')
+        return bool(pattern.match(ttl))
+
+    @handle_exceptions_instance_method
+    def check_expiration(self, expiration):
+        pattern = re.compile(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$')
+        return bool(pattern.match(expiration))
+
+    @handle_exceptions_async_method
+    async def update_expiration(self, backup_name, expiration):
+        if not backup_name or not expiration:
+            return {'error': {'title': 'Error',
+                              'description': 'Backup name and expiration are required'
+                              }
+                    }
+
+        if not self.check_expiration(expiration):
+            return {'error': {'title': 'Error',
+                              'description': 'Check expiration format'
+                              }
+                    }
+
+        api_instance = self.client
+
+        # params
+        namespace = "velero"
+        resource = "backups"
+
+        # get backup object
+        backup = api_instance.get_namespaced_custom_object(
+            group="velero.io",
+            version="v1",
+            namespace=namespace,
+            plural=resource,
+            name=backup_name,
+        )
+
+        # edit ttl field
+        backup['status']['expiration'] = expiration
+
+        # update ttl field
+        api_instance.replace_namespaced_custom_object(
+            group="velero.io",
+            version="v1",
+            namespace=namespace,
+            plural=resource,
+            name=backup_name,
+            body=backup,
+        )
+
+        return {'messages': [{'title': 'TTL Updated',
+                              'description': f"Backup {backup_name} expiration updated!",
+                              'type': 'info'
+                              }]
+                }
+
+    @handle_exceptions_async_method
+    async def get_expiration(self, backup_name):
+        if not backup_name:
+            return {'error': {'title': 'Error',
+                              'description': 'Backup name is required'
+                              }
+                    }
+
+        api_instance = self.client
+
+        # params
+        namespace = "velero"
+        resource = "backups"
+
+        # get backup object
+        backup = api_instance.get_namespaced_custom_object(
+            group="velero.io",
+            version="v1",
+            namespace=namespace,
+            plural=resource,
+            name=backup_name,
+        )
+
+        return {'data': {'payload':
+                         {'expiration': backup['status']['expiration']}
+                         }
                 }

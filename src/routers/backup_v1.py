@@ -53,3 +53,15 @@ async def create(info: Request):
 async def create_from_schedule(info: Request):
     req_info = await info.json()
     return await backup.create_from_schedule(req_info)
+
+
+@router.get('/backup/get-expiration')
+@handle_exceptions_async_method
+async def get_expiration(backup_name=None):
+    return await backup.get_expiration(backup_name)
+
+
+@router.get('/backup/update-expiration')
+@handle_exceptions_async_method
+async def update_expiration(backup_name=None, expiration=None):
+    return await backup.update_expiration(backup_name, expiration)
