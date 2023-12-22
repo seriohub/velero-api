@@ -3,10 +3,19 @@ pipeline {
 
     environment {
         // Environment variables
-        evGit_Source_Code = 'https://github.com/seriohub/velero-api'            // Source code repository
-        evDocker_HUB = "${env.DEFAULT_DOCKER_REGISTRY}"                         // Default docker registry  (Global environment variable setting)
-        evDocker_Project = "${env.DOCKER_AUTHOR}"                               // Author name
-        evDocker_HUB_Credentials = credentials('DEFAULT_DOCKER_CREDENTIALS')    // Credential stored in Jenkins Credential for logging in the HUB
+
+        // Source code repository
+        evGit_Source_Code = 'https://github.com/seriohub/velero-api'
+
+        // Default docker registry  (Global environment variable setting)
+        evDocker_HUB = "${env.DEFAULT_DOCKER_REGISTRY}"
+
+        // Author name
+        evDocker_Project = "${env.DOCKER_AUTHOR}"
+
+        // Credential stored in Jenkins Credential for logging in the HUB
+        evDocker_HUB_Credentials = credentials('DEFAULT_DOCKER_CREDENTIALS')
+
         evTarget = 'velero-api'
         evLatestTag = ''
         evCommitChangeset = ''
@@ -15,11 +24,10 @@ pipeline {
         stage('Clone Git Repository') {
             steps {
                 script {
-                    // Clone the GitHub repository
-                    checkout([$class: 'GitSCM', branches: [[name: '*/main']], userRemoteConfigs: [[url: evGit_Source_Code]]])
+                    echo 'Clone Git repository...'
 
-                    // Set the latest tag as an environment variable for later use
-                    GIT_TAG = 'dev'
+                    // Clone the GitHub repository
+                    checkout([$class: "GitSCM", branches: [[name: "*/main"]], userRemoteConfigs: [[url: evGit_Source_Code]]])
 
                     // Get commit changes
                     evCommitChangeset = sh(returnStdout: true, script: "git log -1 --pretty='%s'").trim()
@@ -30,9 +38,13 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
+                    echo 'Build Docker Image...'
+
                     // Path to your Dockerfile within the project directory
                     def dockerfilePath = 'docker/Dockerfile'
-                    def dockerHubProject = '$evDocker_Project/$evTarget'
+                    def dockerHubProject = "${evDocker_Project}/${evTarget}"
+
+                    GIT_TAG = 'dev'
 
                     // Build the Docker image, specifying the Dockerfile path
                     sh "docker build --target ${evTarget} -t ${dockerHubProject}:${GIT_TAG} -t ${dockerHubProject}:latest  -f ${dockerfilePath} ."
@@ -47,16 +59,17 @@ pipeline {
                     def pushTo = ''
                     if (evDocker_HUB != null) {
                         if (evDocker_HUB != '' && !evDocker_HUB.contains('null')) {
-                            pushTo = '$evDocker_HUB'
+                            pushTo = "$evDocker_HUB"
                         }
                     }
 
-                    sh 'echo $evDocker_HUB_Credentials_PSW | docker login -u $evDocker_HUB_Credentials_USR --password-stdin ${pushTo}'
-                    def dockerImageName = '$evDocker_Project/$evTarget'
+                    sh "echo ${evDocker_HUB_Credentials_PSW} | docker login -u ${evDocker_HUB_Credentials_USR} --password-stdin ${pushTo}"
+
+                    def dockerImageName = "$evDocker_Project/$evTarget"
 
                     if (evDocker_HUB != null) {
                         if (evDocker_HUB != '' && !evDocker_HUB.contains('null')) {
-                            dockerImageName = '$evDocker_HUB/$evDocker_Project/$evTarget'
+                            dockerImageName = "$evDocker_HUB/$evDocker_Project/$evTarget"
                         }
                     }
 
@@ -71,11 +84,12 @@ pipeline {
     post {
         always {
             script {
+                echo 'Post always...'
                 def pipelineName = currentBuild.fullProjectName
-                def message
+                def message = ''
 
                 if (currentBuild.resultIsBetterOrEqualTo('SUCCESS')) {
-                    message = "Jenkins Pipeline ${pipelineName} : Your image version ${evLatestTag} has been successfully pushed to the Docker Registry.\nCommit changes:\n ${evCommitChangeset}"
+                    message = "Jenkins Pipeline ${pipelineName}: Your developer image version has been successfully pushed to the Docker Registry.\nCommit changes:\n ${evCommitChangeset}"
                 } else {
                     message = "Jenkins Pipeline ${pipelineName}: Build failed"
                 }
