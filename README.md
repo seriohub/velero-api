@@ -137,8 +137,11 @@ Clone the repository:
    
    8. Create the Service:
 
+      >   [!WARNING]  
+      Customizes the 40_service.yaml file before applying it according to your environment.
+
        ``` bash
-        kubectl apply -f 40_servoce.yaml -n velero-api
+        kubectl apply -f 40_service.yaml -n velero-api
        ```
 
 ## Test Environment
