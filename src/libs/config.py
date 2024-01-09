@@ -5,7 +5,6 @@ import os
 from helpers.handle_exceptions import handle_exceptions_instance_method
 
 
-
 class LimiterRequestConfig:
     def __init__(self, level=1, seconds=60, request=10):
         self._level = level
@@ -103,8 +102,6 @@ class ConfigEnv:
     def get_path_db(self):
         res = self.load_key('SECURITY_PATH_DATABASE', '///./data.db')
         return res
-
-
 
     @staticmethod
     def get_endpoint_url():
@@ -226,7 +223,3 @@ class ConfigEnv:
                                 limiter[f'CUS_{data[0]}_{data[1]}'] = level
 
         return limiter
-
-
-
-
