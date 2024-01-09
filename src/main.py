@@ -1,18 +1,10 @@
-# import uvicorn
-#
-# if __name__ == "__main__":
-#     uvicorn.run("app:app",
-#                 host="0.0.0.0",
-#                 port=8001,
-#                 reload=False,
-#                 log_level="debug",
-#                 workers=1,
-#                 limit_concurrency=100,
-#                 )
 import uvicorn
+
+
 from libs.binary_velero_client import BinaryVeleroClient
-from libs.config import ConfigEnv
+
 from helpers.printer_helper import PrintHelper
+from libs.config import ConfigEnv
 
 print_ls = PrintHelper('main')
 print_ls.info("start")

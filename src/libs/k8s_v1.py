@@ -6,6 +6,7 @@ from kubernetes import client, config
 from dotenv import load_dotenv
 
 from helpers.handle_exceptions import *
+from datetime import datetime
 
 load_dotenv()
 
@@ -93,7 +94,8 @@ class K8sV1:
                         velero_resource['spec']['template']['labelSelector'] = {}
                     if 'matchLabels' not in velero_resource['spec']['template']['labelSelector']:
                         velero_resource['spec']['template']['labelSelector'] = {}
-                    velero_resource['spec']['template']['labelSelector']['matchLabels'] = {new_data['backupLabel']: new_data['selector']}
+                    velero_resource['spec']['template']['labelSelector']['matchLabels'] = {
+                        new_data['backupLabel']: new_data['selector']}
 
             # execute update data
             self.client.replace_namespaced_custom_object(
@@ -163,3 +165,21 @@ class K8sV1:
             return {'data': self.parse_config_string(decoded_value.decode("utf-8"))}
         else:
             return json.dumps({"error": "Secret key not found"}, indent=2)
+
+    async def get_k8s_online(self):
+        body = {
+            "metadata": {
+                "labels": {
+                    "foo": "bar",
+                    "baz": None}
+            }
+        }
+        ret = False
+        try:
+            # Listing the cluster nodes
+            node_list = self.v1.list_node()
+            if node_list is not None:
+                ret = True
+        except Exception as Ex:
+            ret = False
+        return {'status': ret, 'timestamp': datetime.utcnow()}

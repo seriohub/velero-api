@@ -9,14 +9,18 @@ services:
     working_dir: /app
     volumes:
       - velero_api_config:/app/config
+      - velero_api_data:/app/data
       - /etc/localtime:/etc/localtime:ro
     environment:
     - K8S_IN_CLUSTER_MODE=False
     - KUBE_CONFIG_FILE=./config/config.yaml
     - VELERO_NAMESPACE=velero
     - ORIGINS=["http://localhost:3000", "http://127.0.0.1:3000"]
+    - SECURITY_TOKEN_KEY= "<your-token-key>"
     ports:
     - "8001:8001"
 volumes:
   velero_api_config:
     external: true
+  velero_api_data:
+      external: true
