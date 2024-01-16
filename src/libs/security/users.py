@@ -26,9 +26,9 @@ secret_key = config_app.get_security_token_key()
 algorithm = config_app.get_security_algorithm()
 
 path_db = config_app.get_path_db()
-print_ls.info(f"Users database {path_db}")
 # SQLite database initialization
-DATABASE_URL = f"sqlite:{path_db}"
+DATABASE_URL = f"sqlite:///./{path_db}/data.db"
+print_ls.info(f"Users database {DATABASE_URL}")
 
 Base = declarative_base()
 

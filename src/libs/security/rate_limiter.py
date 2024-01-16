@@ -16,7 +16,16 @@ class LimiterRequests:
         self.api_limiter = config.get_api_limiter(tags)
 
     def get_limiter_cust(self, key):
+        bCustom_tags = False
         complete_key = f"CUS_{self.tags}_{key}"
+        if (self.api_limiter is not None and
+                len(self.api_limiter) > 0):
+            if complete_key in self.api_limiter:
+                bCustom_tags = True
+
+        if not bCustom_tags:
+            complete_key = f"CUS_{self.tags}_xxx"
+
         limiter = self.get_limiter(complete_key)
 
         self.print_ls.info(f" limiter tags:{self.tags} key:/{key.replace('_', '/')} "

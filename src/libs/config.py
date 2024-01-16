@@ -100,7 +100,16 @@ class ConfigEnv:
 
     @handle_exceptions_instance_method
     def get_path_db(self):
-        res = self.load_key('SECURITY_PATH_DATABASE', '///./data.db')
+        res = self.load_key('SECURITY_PATH_DATABASE',
+                            './')
+        if len(res) > 1:
+            if res.startswith("/"):
+                res = res[1:]
+
+            if res.endswith("/"):
+                res = res[0:-1]
+        else:
+            res = './'
         return res
 
     @staticmethod

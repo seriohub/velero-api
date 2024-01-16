@@ -110,8 +110,9 @@ app.include_router(snapshot_location_v1.router,
                    prefix="/api/v1")
 
 
-@app.websocket("/ws",
-               dependencies=[Depends(get_current_active_user)])
+# @app.websocket("/ws",
+#                dependencies=[Depends(get_current_active_user)])
+@app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     await manager.send_personal_message("Connection READY!", websocket=websocket)
