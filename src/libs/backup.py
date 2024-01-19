@@ -4,19 +4,19 @@ from kubernetes import client, config
 import json
 from fastapi.responses import JSONResponse
 
-from libs.process_v1 import *
-from libs.k8s_v1 import K8sV1
-from libs.backup_location_v1 import BackupLocationV1
-from libs.snapshot_location_v1 import SnapshotLocationV1
+from libs.process import *
+from libs.k8s import K8s
+from libs.backup_location import BackupLocation
+from libs.snapshot_location import SnapshotLocation
 
 from helpers.commons import *
 
-k8sv1 = K8sV1()
-backupLocation = BackupLocationV1()
-snapshotLocation = SnapshotLocationV1()
+k8sv1 = K8s()
+backupLocation = BackupLocation()
+snapshotLocation = SnapshotLocation()
 
 
-class BackupV1:
+class Backup:
 
     def __init__(self):
 
@@ -213,13 +213,13 @@ class BackupV1:
         api_instance = self.client
 
         # params
-        namespace = "velero"
-        resource = "backups"
+        namespace = 'velero'
+        resource = 'backups'
 
         # get backup object
         backup = api_instance.get_namespaced_custom_object(
-            group="velero.io",
-            version="v1",
+            group='velero.io',
+            version='v1',
             namespace=namespace,
             plural=resource,
             name=backup_name,
@@ -230,8 +230,8 @@ class BackupV1:
 
         # update ttl field
         api_instance.replace_namespaced_custom_object(
-            group="velero.io",
-            version="v1",
+            group='velero.io',
+            version='v1',
             namespace=namespace,
             plural=resource,
             name=backup_name,
@@ -255,8 +255,8 @@ class BackupV1:
         api_instance = self.client
 
         # params
-        namespace = "velero"
-        resource = "backups"
+        namespace = 'velero'
+        resource = 'backups'
 
         # get backup object
         backup = api_instance.get_namespaced_custom_object(

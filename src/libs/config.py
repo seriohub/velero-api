@@ -18,7 +18,7 @@ class LimiterRequestConfig:
 
     @property
     def seconds(self):
-        """The seconds property."""
+        """The seconds' property."""
         return self._seconds
 
     @property
@@ -96,17 +96,17 @@ class ConfigEnv:
     @handle_exceptions_instance_method
     def internal_debug_enable(self):
         res = self.load_key('DEBUG', 'False')
-        return True if res.lower() == "true" or res.lower() == "1" else False
+        return True if res.lower() == 'true' or res.lower() == '1' else False
 
     @handle_exceptions_instance_method
     def get_path_db(self):
         res = self.load_key('SECURITY_PATH_DATABASE',
                             './')
         if len(res) > 1:
-            if res.startswith("/"):
+            if res.startswith('/'):
                 res = res[1:]
 
-            if res.endswith("/"):
+            if res.endswith('/'):
                 res = res[0:-1]
         else:
             res = './'
@@ -202,7 +202,7 @@ class ConfigEnv:
             if res is None or len(res) == 0:
                 break
             else:
-                data = res.split(":")
+                data = res.split(':')
                 if len(data) == 2:
                     if data[0].isdigit() and data[1].isdigit():
                         sec = int(data[0])
@@ -221,7 +221,7 @@ class ConfigEnv:
             if res is None or len(res) == 0:
                 break
             else:
-                data = res.split(":")
+                data = res.split(':')
                 if len(data) == 4:
                     if (len(path_to_load) > 0 and data[0] in path_to_load) or len(path_to_load) == 0:
                         if data[2].isdigit() and data[3].isdigit():

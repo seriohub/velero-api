@@ -20,7 +20,7 @@ def filter_in_progress(data):
         if 'completionTimestamp' in item['status']:
             has_completion_timestamp = True
             datetime_completion_timestamp = datetime.strptime(item['status']['completionTimestamp'],
-                                                              "%Y-%m-%dT%H:%M:%SZ")
+                                                              '%Y-%m-%dT%H:%M:%SZ')
             now = datetime.utcnow()
             diff_in_seconds = (now - datetime_completion_timestamp).total_seconds()
 
@@ -30,7 +30,7 @@ def filter_in_progress(data):
                   or (has_completion_timestamp and diff_in_seconds < 180))) or
                 ('status' in item and not item['status'])):
             if has_completion_timestamp:
-                item['status']['completionTimestamp'] = datetime_completion_timestamp.strftime("%Y-%m-%dT%H:%M:%SZ")
+                item['status']['completionTimestamp'] = datetime_completion_timestamp.strftime('%Y-%m-%dT%H:%M:%SZ')
             result.append(item)
     return result
 
@@ -47,7 +47,7 @@ def logs_string_to_list(input_string):
 
     """
 
-    pattern = re.compile(r'(\w+)=(?:"(.*?)"|([^ ]*))')
+    pattern = re.compile(r"(\w+)=(?:'(.*?)'|([^ ]*))")
     input_lines = input_string.split('\n')
 
     result_list = []
@@ -113,7 +113,7 @@ def parse_create_parameters(info):
     if 'backup' in info['values'] and 'selector' in info['values'] and len(info['values']['backupLabel']) > 0 and len(
             info['values']['selector']) > 0:
         cmd.append('--selector')
-        cmd.append(info['values']['backupLabel'] + "=" + info['values']['selector'])
+        cmd.append(info['values']['backupLabel'] + '=' + info['values']['selector'])
 
     if 'backupLocation' in info['values'] and len(info['values']['backupLocation']) > 0:
         cmd.append('--storage-location')

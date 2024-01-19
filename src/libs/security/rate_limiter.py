@@ -28,7 +28,7 @@ class LimiterRequests:
 
         limiter = self.get_limiter(complete_key)
 
-        self.print_ls.info(f" limiter tags:{self.tags} key:/{key.replace('_', '/')} "
+        self.print_ls.info(f"limiter tags:{self.tags} key:/{key.replace('_', '/')} "
                            f"max request: {limiter.max_request} interval: {limiter.seconds} seconds")
         return limiter
 
@@ -91,7 +91,7 @@ class RateLimiter:
                     self.print_ls.debug_if(self.debug,
                                            f"limit client ip {client_ip} Too Many Requests")
 
-                    raise HTTPException(status_code=429, detail="too many requests")
+                    raise HTTPException(status_code=429, detail='too many requests')
 
                 self._add_time_slot(client_ip, current_time)
 

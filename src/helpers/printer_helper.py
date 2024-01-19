@@ -47,7 +47,7 @@ class LLogger:
                                 level=level)
             self.logger = logging.getLogger(key)
             if save_to_file:
-                print("INFO    logger folder files {0}".format(filename))
+                print('INFO    logger folder files {0}'.format(filename))
                 file_to_log = os.path.join(destination_folder, filename)
                 handler = RotatingFileHandler(file_to_log,
                                               maxBytes=max_file_size,
@@ -124,7 +124,7 @@ class PrintHelper:
                                             message=msg)
             self.logger.debug(message)
         else:
-            title = "DEBUG:"
+            title = 'DEBUG:'
             self.__composer_str__(color=BColors.OK_CYAN,
                                   title=title,
                                   message=msg,
@@ -137,7 +137,7 @@ class PrintHelper:
                                             message=msg)
             self.logger.info(message)
         else:
-            title = "INFO:"
+            title = 'INFO:'
             self.__composer_str__(color=BColors.OK_GREEN,
                                   title=title,
                                   message=msg,
@@ -160,7 +160,7 @@ class PrintHelper:
                                             message=msg)
             self.logger.info(message)
         else:
-            title = "INFO:"
+            title = 'INFO:'
             self.__composer_str__(color=None,
                                   title=title,
                                   message=msg,
@@ -173,7 +173,7 @@ class PrintHelper:
                                             message=msg)
             self.logger.warning(message)
         else:
-            title = "WARNING:"
+            title = 'WARNING:'
             self.__composer_str__(color=BColors.WARNING,
                                   title=title,
                                   message=msg,
@@ -186,7 +186,7 @@ class PrintHelper:
                                             message=msg)
             self.logger.fatal(message)
         else:
-            title = "ALERT:"
+            title = 'ALERT:'
             self.__composer_str__(color=BColors.BOLD,
                                   title=title,
                                   message=msg,
@@ -199,7 +199,7 @@ class PrintHelper:
                                             message=msg)
             self.logger.error(message)
         else:
-            title = "ERROR:"
+            title = 'ERROR:'
             self.__composer_str__(color=BColors.FAIL,
                                   title=title,
                                   message=msg,
@@ -216,7 +216,7 @@ class PrintHelper:
                                             message=f"{procedure_name} {msg}")
             self.logger.error(message)
         else:
-            title = "ERROR:"
+            title = 'ERROR:'
             self.__composer_str__(color=BColors.FAIL,
                                   title=title,
                                   message=msg,

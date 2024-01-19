@@ -1,22 +1,22 @@
 import re
 from fastapi.responses import JSONResponse
 
-from libs.backup_v1 import BackupV1
-from libs.restore_v1 import RestoreV1
-from libs.schedule_v1 import ScheduleV1
-from libs.k8s_v1 import K8sV1
-from libs.process_v1 import *
+from libs.backup import Backup
+from libs.restore import Restore
+from libs.schedule import Schedule
+from libs.k8s import K8s
+from libs.process import *
 
 from helpers.handle_exceptions import *
 
 
-backup = BackupV1()
-restore = RestoreV1()
-schedule = ScheduleV1()
-k8s = K8sV1()
+backup = Backup()
+restore = Restore()
+schedule = Schedule()
+k8s = K8s()
 
 
-class UtilsV1:
+class Utils:
 
     @handle_exceptions_instance_method
     def _resources_stats(self, resources, count_from_schedule=False):

@@ -51,5 +51,5 @@ class UserOut(BaseModel):
 
 
 class Settings(BaseSettings):
-    app_name: str = "FastAPI"
+    app_name: str = 'FastAPI'
     admin_email: str

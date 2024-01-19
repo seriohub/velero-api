@@ -26,14 +26,16 @@ secret_key = config_app.get_security_token_key()
 algorithm = config_app.get_security_algorithm()
 
 path_db = config_app.get_path_db()
+
 # SQLite database initialization
 DATABASE_URL = f"sqlite:///./{path_db}/data.db"
 print_ls.info(f"Users database {DATABASE_URL}")
 
 Base = declarative_base()
 
+
 class User(Base):
-    __tablename__ = "users"
+    __tablename__ = 'users'
     id = Column(GUID(), primary_key=True, default=uuid.uuid4)
     username = Column(String, unique=True)
     full_name = Column(String)
@@ -44,10 +46,17 @@ class User(Base):
     time_created = Column(DateTimeA(timezone=True), server_default=func.now())
     time_updated = Column(DateTimeA(timezone=True), onupdate=func.now())
 
+    def toJSON(self):
+        return {'username': self.username,
+                'is_admin': self.is_admin,
+                'is_default': self.is_default,
+                'is_disabled': self.is_disabled
+                }
+
 
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False}
+    connect_args={'check_same_thread': False}
 )
 
 Base.metadata.create_all(bind=engine)
@@ -73,7 +82,7 @@ def verify_password(plain_password, hashed_password):
 
 def rate_password_strength(password):
     if disable_password_rate:
-        return "NoCheck"
+        return 'NoCheck'
     else:
         # Define a dictionary of regex patterns and their corresponding complexity scores
         complexity_patterns = {
@@ -93,11 +102,11 @@ def rate_password_strength(password):
 
         # Rate the password based on the complexity score
         if complexity_score <= 1:
-            return "Weak"
+            return 'Weak'
         elif complexity_score <= 3:
-            return "Medium"
+            return 'Medium'
         else:
-            return "Strong"
+            return 'Strong'
 
 
 def control_data(user_id: uuid.UUID = None,
@@ -106,7 +115,7 @@ def control_data(user_id: uuid.UUID = None,
                  db: SessionLocal = None):
     # password rate
     if rate_password_strength(password) == 'Weak':
-        raise HTTPException(status_code=403, detail="The password is weak")
+        raise HTTPException(status_code=403, detail='The password is weak')
     if len(username) > 0:
         if user_id is not None:
             # unique username
@@ -115,7 +124,7 @@ def control_data(user_id: uuid.UUID = None,
             user = db.query(User).filter(User.id != user_id, User.username == username).first()
 
         if user:
-            raise HTTPException(status_code=403, detail="The username is not unique")
+            raise HTTPException(status_code=403, detail='The username is not unique')
 
     if user_id is not None:
         hashed_password = hash_password(password)
@@ -125,9 +134,9 @@ def control_data(user_id: uuid.UUID = None,
             res = verify_password(plain_password=password,
                                   hashed_password=user.password)
             if res:
-                raise HTTPException(status_code=403, detail="The old password is equal to the new password")
+                raise HTTPException(status_code=403, detail={'error': {'title': 'Forbidden', 'description': 'The old password is equal to the new password'}})
         else:
-            raise HTTPException(status_code=403, detail="The user is deleted")
+            raise HTTPException(status_code=403, detail='The user is deleted')
     return True
 
 
@@ -167,21 +176,21 @@ def delete_user(user_id: uuid.UUID, db: SessionLocal):
     db_user = db.query(User).filter(User.id == user_id).first()
     if db_user:
         if db_user.is_default:
-            raise HTTPException(status_code=403, detail="Cannot delete the default user")
+            raise HTTPException(status_code=403, detail='Cannot delete the default user')
         db.delete(db_user)
         db.commit()
-        return {"message": "User deleted successfully"}
+        return {"message": 'User deleted successfully'}
     else:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail='User not found')
 
 
 def create_default_user(db: SessionLocal):
-    default_user = db.query(User).filter(User.username == "admin").first()
+    default_user = db.query(User).filter(User.username == 'admin').first()
     if not default_user:
-        default_password = "admin"  # Change this to your desired default password
+        default_password = 'admin'  # Change this to your desired default password
         hashed_default_password = hash_password(default_password)
-        new_default_user = User(username="admin",
-                                full_name="administrator",
+        new_default_user = User(username='admin',
+                                full_name='administrator',
                                 password=hashed_default_password,
                                 is_default=True,
                                 is_admin=True,
@@ -194,12 +203,12 @@ def disable_user(user_id: uuid.UUID, db: SessionLocal):
     db_user = db.query(User).filter(User.id == user_id).first()
     if db_user:
         if db_user.is_default:
-            raise HTTPException(status_code=403, detail="Cannot disable the default user")
+            raise HTTPException(status_code=403, detail='Cannot disable the default user')
         db_user.is_disabled = True
         db.commit()
-        return {"message": "User disabled successfully"}
+        return {'message': 'User disabled successfully'}
     else:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail='User not found')
 
 
 def update_user(user_id: uuid.UUID, full_name: str, password: str, db: SessionLocal):
@@ -214,9 +223,9 @@ def update_user(user_id: uuid.UUID, full_name: str, password: str, db: SessionLo
             db_user.password = hash_password(password)
 
             db.commit()
-            return {"message": "User updates successfully"}
+            return {'messages': [{'title': 'Update Password', 'description': 'User updates successfully!'}]}
         else:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise HTTPException(status_code=404, detail='User not found')
 
 
 def authenticate_user(db, username: str, password: str):
@@ -249,12 +258,12 @@ async def get_current_user(token: str = Depends(oauth2_scheme),
                            db: Session = Depends(get_db)) -> UserOut:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
+        detail='Could not validate credentials',
+        headers={'WWW-Authenticate': 'Bearer'},
     )
     try:
         payload = jwt.decode(token, secret_key, algorithms=[algorithm])
-        username: str = payload.get("sub")
+        username: str = payload.get('sub')
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username)
@@ -270,5 +279,5 @@ async def get_current_user(token: str = Depends(oauth2_scheme),
 
 async def get_current_active_user(current_user: User = Depends(get_current_user)):
     if current_user.is_disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise HTTPException(status_code=400, detail='Inactive user')
     return current_user
