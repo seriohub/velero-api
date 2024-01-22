@@ -1,13 +1,13 @@
 import json
 from fastapi.responses import JSONResponse
 
-from libs.process_v1 import *
+from libs.process import *
 
 from helpers.commons import *
 from helpers.handle_exceptions import *
 
 
-class BackupLocationV1:
+class BackupLocation:
 
     @handle_exceptions_async_method
     async def get(self, json_response=True):

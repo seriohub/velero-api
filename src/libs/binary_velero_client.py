@@ -14,7 +14,7 @@ class BinaryVeleroClient:
         self.__init_velero_cli__(version)
 
     @handle_exceptions_instance_method
-    def __get_file_version__(self, folder_path, extension=".tar.gz", filename=None):
+    def __get_file_version__(self, folder_path, extension='.tar.gz', filename=None):
         # Check if the destination folder exists
         if not os.path.exists(folder_path):
             self.print_ls.error(f"Source folder '{folder_path}' does not exist.")
@@ -85,13 +85,13 @@ class BinaryVeleroClient:
         self.print_ls.info(f'client-version :{version}')
         file_to_extract = self.__get_file_version__(folder_path=self.binary_path, filename=version)
         if file_to_extract is None:
-            self.print_ls.error(f" No valid (None) tarball file.")
+            self.print_ls.error(f"No valid (None) tarball file.")
             return False
         else:
             self.print_ls.info(f'file :{file_to_extract}')
 
         if self.destination_path is None:
-            self.print_ls.error(f" No valid (None) destination folder")
+            self.print_ls.error(f"No valid (None) destination folder")
             return False
 
         ret = self.__extract_tarball__(file_to_extract, self.destination_path)

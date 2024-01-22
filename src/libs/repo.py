@@ -1,12 +1,12 @@
 import json
 from fastapi.responses import JSONResponse
 
-from libs.process_v1 import *
+from libs.process import *
 
 from helpers.commons import *
 
 
-class RepoV1:
+class Repo:
 
     @handle_exceptions_async_method
     async def get(self, json_response=True):
@@ -23,6 +23,6 @@ class RepoV1:
 
         res = {'data': {'payload': repos}}
         if json_response:
-            return JSONResponse(content=res, status_code=201, headers={'X-Custom-Header': 'header-value'})
+            return JSONResponse(content=res, status_code=201)
         else:
             return repos

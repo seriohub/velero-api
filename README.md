@@ -11,21 +11,39 @@ This Python project is designed to communicate with the velero client in the Kub
 
 ## Configuration
 
-| FIELD                  | TYPE   | DEFAULT                   | DESCRIPTION                                                  |
-|------------------------|--------|---------------------------|--------------------------------------------------------------|
-| `K8S_INCLUSTER_MODE`   | Bool   |                           | Enable in cluster mode                                       |
-| `K8S_VELERO_NAMESPACE` | String |                           | K8s velero namespace                                         |
-| `KUBE_CONFIG_FILE`     | String |                           | Path to your kubeconfig file to access cluster               |
-| `DEBUG_LEVEL`          | String |                           | Debug level                                                  |
-| `ORIGINS`              | String |                           | Array as string containing url origins allowed               |
-| `API_ENDPOINT_URL`     | String | 0.0.0.0                   | Bind socket to this host                                     |
-| `API_ENDPOINT_PORT`    | Int    | 8001                      | Bind socket to this port                                     |
-| `VELERO_CLI_DEST_PATH` | String | /usr/local/bin            | Path where to extract the velero executable file             |
-| `VELERO_CLI_PATH`      | String | /app/velero-client        | path where the compressed velero client archives are located |
-| `VELERO_CLI_VERSION` * | String | latest available in image | name of the velero client release to be used                 |
+| FIELD                             | TYPE      | DEFAULT                   | DESCRIPTION                                                                                                       |
+|-----------------------------------|-----------|---------------------------|-------------------------------------------------------------------------------------------------------------------|
+| `CONTAINER_MODE`                  | Bool      | False                     | Enable in is deployed in a container                                                                              |
+| `K8S_INCLUSTER_MODE`              | Bool      | False                     | Enable if is deployed in a cluster                                                                                |
+| `K8S_VELERO_NAMESPACE`            | String    |                           | K8s velero namespace                                                                                              |
+| `DEBUG_LEVEL`                     | String    |                           | Debug level                                                                                                       |
+| `ORIGINS`                         | String    |                           | Array as string containing url origins allowed                                                                    |
+| `API_ENDPOINT_URL`                | String    | 0.0.0.0                   | Bind socket to this host                                                                                          |
+| `API_ENDPOINT_PORT`               | Int       | 8001                      | Bind socket to this port                                                                                          |
+| `VELERO_CLI_DEST_PATH`            | String    | /usr/local/bin            | Path where to extract the velero executable file                                                                  |
+| `VELERO_CLI_PATH`                 | String    | /app/velero-client        | Path where the compressed velero client archives are located                                                      |
+| `VELERO_CLI_VERSION` *            | String    | latest available in image | Name of the velero client release to be used                                                                      |
+| `API_ENABLE_DOCUMENTATION`        | BOOL      | True                      | Enable/Disable the fastapi documentation user interfaces                                                          |   
+| `API_TOKEN_EXPIRATION_MIN`        | Int       | 30                        | Token validity after the creation (minutes)                                                                       |   
+| `SECURITY_PATH_DATABASE`          | String    | /app/data                 | Path where create the SQL-Lite database used for storing the users credentials                                    |   
+| `SECURITY_TOKEN_KEY` **           | String    |                           | Secret key used for JWT creation                                                                                  |   
+| `SECURITY_DISABLE_USERS_PWD_RATE` | Bool      | False                     | If True user can have a weak password, otherwise is required a strong password                                    |   
+| `API_RATE_LIMITER_L1`             | String    | 60:10                     | Rate limiter: 60 seconds  max requests 10                                                                         |    
+| `API_RATE_LIMITER_L2`             | String    | 60:120                    | Rate limiter: 60 seconds  max requests 120                                                                        |   
+| `API_RATE_LIMITER_L3`             | String    | 60:300                    | Rate limiter: 60 seconds  max requests 300                                                                        |   
+| `API_RATE_LIMITER_L4`             | String    | 60:500                    | Rate limiter: 60 seconds  max requests 500                                                                        |   
+| `API_RATE_LIMITER_L5`             | String    | 60:1000                   | Rate limiter: 60 seconds  max requests 1000                                                                       |   
+| `API_RATE_LIMITER_CUSTOM_L1` ***  | String    | Info:info:60:500          | Rate limiter for specific tag/endpoint: Info (tag) info (endpoint) 60 seconds  max requests 500                   |
+| `API_RATE_LIMITER_CUSTOM_L2` ***  | String    | Info:xxx:60:500           | Rate limiter for specific tag/endpoint: Info (tag) xxx (all endpoints under the tag) 60 seconds  max requests 500 |
 
 
-*Currently in the image are the archives of binaries v1.11.1, v1.12.1, v1.12.2. Binaries of different releases can be cmq manually loaded within the container.
+* *Currently, the docker image contains the binaries v1.11.1, v1.12.1 and v1.12.2. Different binaries releases can be manually loaded within the container.
+
+* **To generate a secure random secret key use the command: 
+  ``` bash
+   openssl rand -hex 32
+    ```
+* ***You can define up to 100 custom limiters (tag or tag/endpoint).  
 
 
 ## Installation
@@ -48,6 +66,7 @@ Clone the repository:
 
 2. Dependencies installation:
 
+3. 
     ``` bash
     pip install -r requirements.txt
     ```
@@ -143,6 +162,17 @@ Clone the repository:
        ``` bash
         kubectl apply -f 40_service.yaml -n velero-api
        ```
+## Test the api with the fastapi interface tool
+
+1. Check if the parameter "API_ENABLE_DOCUMENTATION" is set to 1
+2. Open the browser and navigate to the api endpoint url/docs (example http://127.0.0.1/docs)
+3. Click the button "Authorize"
+   4. The default credential are:
+      5. Username: admin
+      6. password: admin
+
+   >   [!WARNING]  
+      Disable the documentation if is not needed.
 
 ## Test Environment
 

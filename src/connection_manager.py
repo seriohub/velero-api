@@ -1,10 +1,9 @@
-
 from typing import List
 from fastapi import WebSocket
 from helpers.handle_exceptions import *
 
 
-# socket
+# socket manager
 class ConnectionManager:
     def __init__(self):
         self.active_connections: List[WebSocket] = []

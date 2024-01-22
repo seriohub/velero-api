@@ -6,11 +6,12 @@ from kubernetes import client, config
 from dotenv import load_dotenv
 
 from helpers.handle_exceptions import *
+from datetime import datetime
 
 load_dotenv()
 
 
-class K8sV1:
+class K8s:
 
     def __init__(self):
 
@@ -36,24 +37,24 @@ class K8sV1:
     @handle_exceptions_instance_method
     def get_resources(self):
         # TODO: not working yet, get all resource type name for populate multiselect in front end
-        resource_list = self.client.get_api_resources(group="*", version="*")
+        resource_list = self.client.get_api_resources(group='*', version='*')
         return resource_list
 
     @handle_exceptions_async_method
     async def update_velero_schedule(self, new_data):
 
-        namespace = os.getenv("K8S_VELERO_NAMESPACE")
+        namespace = os.getenv('K8S_VELERO_NAMESPACE')
 
         velero_resource_name = new_data['oldName']
 
         try:
             # get resource velero
             velero_resource = self.client.get_namespaced_custom_object(
-                group="velero.io",
-                version="v1",
+                group='velero.io',
+                version='v1',
                 name=velero_resource_name,
                 namespace=namespace,
-                plural="schedules",
+                plural='schedules',
             )
 
             # update field
@@ -93,15 +94,16 @@ class K8sV1:
                         velero_resource['spec']['template']['labelSelector'] = {}
                     if 'matchLabels' not in velero_resource['spec']['template']['labelSelector']:
                         velero_resource['spec']['template']['labelSelector'] = {}
-                    velero_resource['spec']['template']['labelSelector']['matchLabels'] = {new_data['backupLabel']: new_data['selector']}
+                    velero_resource['spec']['template']['labelSelector']['matchLabels'] = {
+                        new_data['backupLabel']: new_data['selector']}
 
             # execute update data
             self.client.replace_namespaced_custom_object(
-                group="velero.io",
-                version="v1",
+                group='velero.io',
+                version='v1',
                 name=velero_resource_name,
                 namespace=namespace,
-                plural="schedules",
+                plural='schedules',
                 body=velero_resource,
             )
 
@@ -127,8 +129,8 @@ class K8sV1:
 
         # crete dict
         result = {
-            "aws_access_key_id": aws_access_key_id,
-            "aws_secret_access_key": aws_secret_access_key
+            'aws_access_key_id': aws_access_key_id,
+            'aws_secret_access_key': aws_secret_access_key
         }
 
         return result
@@ -146,13 +148,13 @@ class K8sV1:
         if secret.data and secret_key in secret.data:
             value = secret.data[secret_key]
             decoded_value = base64.b64decode(value)
-            return {'data': self.parse_config_string(decoded_value.decode("utf-8"))}
+            return {'data': self.parse_config_string(decoded_value.decode('utf-8'))}
         else:
-            return json.dumps({"error": "Secret key not found"}, indent=2)
+            return json.dumps({'error': 'Secret key not found'}, indent=2)
 
     @handle_exceptions_async_method
     async def get_default_credential(self):
-        label_selector = "app.kubernetes.io/name=velero"
+        label_selector = 'app.kubernetes.io/name=velero'
         api_instance = self.v1
 
         secret = api_instance.list_namespaced_secret('velero', label_selector=label_selector)
@@ -160,6 +162,21 @@ class K8sV1:
         if secret.items[0].data:
             value = secret.items[0].data['cloud']
             decoded_value = base64.b64decode(value)
-            return {'data': self.parse_config_string(decoded_value.decode("utf-8"))}
+            return {'data': self.parse_config_string(decoded_value.decode('utf-8'))}
         else:
-            return json.dumps({"error": "Secret key not found"}, indent=2)
+            return json.dumps({'error': 'Secret key not found'}, indent=2)
+
+    @handle_exceptions_async_method
+    async def get_k8s_online(self):
+        ret = False
+        try:
+            # Listing the cluster nodes
+            node_list = self.v1.list_node()
+            if node_list is not None:
+                ret = True
+        except Exception as Ex:
+            ret = False
+        return {'error': {
+            'status': ret,
+            'timestamp': datetime.utcnow()}
+        }

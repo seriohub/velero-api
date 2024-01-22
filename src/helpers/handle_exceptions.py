@@ -13,13 +13,13 @@ def handle_exceptions_instance_method(fn):
         except Exception as Ex:
             _, _, tb = sys.exc_info()
             exc_type, exc_obj, exc_tb = sys.exc_info()
-            print("E=%s, F=%s, L=%s" % (
+            print('E=%s, F=%s, L=%s' % (
                 str(Ex), traceback.extract_tb(exc_tb)[-1][0], traceback.extract_tb(exc_tb)[-1][1]))
 
-            return {'error': {"description": str(Ex),
-                              "file": traceback.extract_tb(exc_tb)[-1][0],
-                              "fn name": fn.__name__,
-                              "line": traceback.extract_tb(exc_tb)[-1][1]
+            return {'error': {'description': str(Ex),
+                              'file': traceback.extract_tb(exc_tb)[-1][0],
+                              'fn name': fn.__name__,
+                              'line': traceback.extract_tb(exc_tb)[-1][1]
                               }
                     }
         finally:
@@ -39,13 +39,13 @@ def handle_exceptions_static_method(fn):
         except Exception as Ex:
             _, _, tb = sys.exc_info()
             exc_type, exc_obj, exc_tb = sys.exc_info()
-            print("E=%s, F=%s, L=%s" % (
+            print('E=%s, F=%s, L=%s' % (
                 str(Ex), traceback.extract_tb(exc_tb)[-1][0], traceback.extract_tb(exc_tb)[-1][1]))
 
-            return {'error': {"description": str(Ex),
-                              "file": traceback.extract_tb(exc_tb)[-1][0],
-                              "fn name": fn.__name__,
-                              "line": traceback.extract_tb(exc_tb)[-1][1]
+            return {'error': {'description': str(Ex),
+                              'file': traceback.extract_tb(exc_tb)[-1][0],
+                              'fn name': fn.__name__,
+                              'line': traceback.extract_tb(exc_tb)[-1][1]
                               }
                     }
         finally:
@@ -63,13 +63,13 @@ def handle_exceptions_async_method(fn):
         except Exception as Ex:
             _, _, tb = sys.exc_info()
             exc_type, exc_obj, exc_tb = sys.exc_info()
-            print("E=%s, F=%s, L=%s" % (
+            print('E=%s, F=%s, L=%s' % (
                 str(Ex), traceback.extract_tb(exc_tb)[-1][0], traceback.extract_tb(exc_tb)[-1][1]))
 
-            return {'error': {"description": str(Ex),
-                              "file": traceback.extract_tb(exc_tb)[-1][0],
-                              "fn name": fn.__name__,
-                              "line": traceback.extract_tb(exc_tb)[-1][1]
+            return {'error': {'description': str(Ex),
+                              'file': traceback.extract_tb(exc_tb)[-1][0],
+                              'fn name': fn.__name__,
+                              'line': traceback.extract_tb(exc_tb)[-1][1]
                               }
                     }
         finally:

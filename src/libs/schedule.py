@@ -1,17 +1,17 @@
 import json
 from fastapi.responses import JSONResponse
 
-from libs.k8s_v1 import K8sV1
-from libs.process_v1 import *
+from libs.k8s import K8s
+from libs.process import *
 
 from helpers.commons import *
 from helpers.handle_exceptions import *
 
 
-k8sv1 = K8sV1()
+k8sv1 = K8s()
 
 
-class ScheduleV1:
+class Schedule:
 
     @handle_exceptions_async_method
     async def get(self, json_response=True):
@@ -26,7 +26,7 @@ class ScheduleV1:
         res = {'data': {'payload': schedules}}
 
         if json_response:
-            return JSONResponse(content=res, status_code=201, headers={'X-Custom-Header': 'header-value'})
+            return JSONResponse(content=res, status_code=201)
         else:
             return schedules
 

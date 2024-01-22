@@ -2,13 +2,13 @@ import json
 import shlex
 from fastapi.responses import JSONResponse
 
-from libs.process_v1 import *
+from libs.process import *
 
 from helpers.commons import *
 from helpers.handle_exceptions import *
 
 
-class RestoreV1:
+class Restore:
 
     @handle_exceptions_async_method
     async def get(self, json_response=True, in_progress=False, publish_message=True):
@@ -36,8 +36,8 @@ class RestoreV1:
     @handle_exceptions_instance_method
     async def create(self, req_info):
 
-        resource_type = req_info["resource_type"]
-        backup_name = req_info["resource_name"]
+        resource_type = req_info['resource_type']
+        backup_name = req_info['resource_name']
 
         if backup_name == '':
             res = {'error': 'Invalid request. You can only provide a backup name.'}
@@ -56,8 +56,8 @@ class RestoreV1:
             return output
 
         return {
-            "messages": [{
-                'title': f"Restore",
+            'messages': [{
+                'title': 'Restore',
                 'description': f"Restore from {resource_type} {backup_name} created successfully",
                 'type': 'info'}
             ]
@@ -76,7 +76,7 @@ class RestoreV1:
             return output
 
         res = {'data': {'payload': logs_string_to_list(output['data'])}}
-        return JSONResponse(content=res, status_code=201, headers={'X-Custom-Header': 'header-value'})
+        return JSONResponse(content=res, status_code=201)
 
     @handle_exceptions_instance_method
     async def describe(self, restore_name):

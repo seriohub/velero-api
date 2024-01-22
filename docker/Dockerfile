@@ -12,6 +12,12 @@ RUN apt-get -y install python3-pip
 
 RUN pip install --upgrade pip
 
+RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+RUN chmod +x ./kubectl
+RUN mv ./kubectl /usr/local/bin
+
+
+
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 
@@ -26,18 +32,23 @@ COPY /src /app
 
 # Exclude specific files or directories from the project
 # Add more `--exclude` arguments as needed
-#RUN find . -type f -name "tmp" -exec rm -rf {} +
-#RUN find . -type f -name "*.yaml" -exec rm -f {} +
-#RUN find . -type f -name "__pycache__" -exec rm -rf {} +
-#RUN find . -type f -name "*.env" -exec rm -f {} +
+RUN find . -type f -name "tmp" -exec rm -rf {} +
+RUN find . -type f -name "*.yaml" -exec rm -f {} +
+RUN find . -type f -name "*.db" -exec rm -f {} +
+RUN find . -type f -name "__pycache__" -exec rm -rf {} +
+RUN find . -type f -name "*.env" -exec rm -f {} +
 
 #RUN rm -rf /app/tmp /app/__pycache__
+
+RUN mkdir /app/data
 
 RUN mkdir /app/velero-client
 COPY ../velero-client /app/velero-client
 
 # expose port
 EXPOSE 8001
+# Expose a volume the database
+VOLUME /app/data
 
 WORKDIR /app/
 RUN echo "Ready!"
