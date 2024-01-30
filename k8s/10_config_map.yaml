@@ -7,15 +7,15 @@ data:
     VELERO_CLI_VERSION: "v1.12.2"
     K8S_IN_CLUSTER_MODE: "True"
     K8S_VELERO_NAMESPACE: "velero"
-    ORIGINS: '["http://localhost:3000", "http://127.0.0.1:3000", "http://10.10.0.16"]'
+    ORIGINS: '["http://localhost:3000", "http://127.0.0.1:3000", "http://10.10.0.30"]'
     API_ENDPOINT_PORT: "8001"
     API_ENDPOINT_URL: "0.0.0.0"
     VELERO_CLI_DEST_PATH: "/usr/local/bin"
     VELERO_CLI_PATH: "./velero-client"
     API_ENABLE_DOCUMENTATION: "1"
     API_TOKEN_EXPIRATION_MIN: "10"
-    SECURITY_PATH_DATABASE: "./test"
-    SECURITY_TOKEN_KEY: "<your-token-key>"
+    SECURITY_PATH_DATABASE: "./data"
+    SECURITY_TOKEN_KEY: "<your-token>"
     SECURITY_DISABLE_USERS_PWD_RATE: "1"
     API_RATE_LIMITER_L1: "60:10"
     API_RATE_LIMITER_L2: "60:120"
