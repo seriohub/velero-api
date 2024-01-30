@@ -31,10 +31,3 @@ spec:
           ports:
             - containerPort: 8001
               name: api
-          volumeMounts:
-            - name: db-data
-              mountPath: /app/data
-      volumes:
-        - name: db-data
-          persistentVolumeClaim:
-            claimName: pvc-db-velero-api
