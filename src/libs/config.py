@@ -111,6 +111,7 @@ class ConfigEnv:
         res = self.load_key('SECURITY_PATH_DATABASE',
                             './')
         if len(res) > 1:
+            # TODO: check, not working for absolute path
             if res.startswith('/'):
                 res = res[1:]
 
