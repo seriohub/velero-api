@@ -116,7 +116,7 @@ class Utils:
         last_backup_sorted = sorted(backups['items'], key=self.get_completion_timestamp, reverse=True)[:5]
 
         scheduled_namespace = self._get_all_scheduled_namespace(schedules['items'])
-        all_ns = k8s.get_ns()
+        all_ns = await k8s.get_ns()
         unscheduled_ns = list(set(all_ns) - set(scheduled_namespace))
 
         res = {'payload': {

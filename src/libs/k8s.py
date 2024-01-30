@@ -5,11 +5,34 @@ import configparser
 from kubernetes import client, config
 from dotenv import load_dotenv
 
+from connection_manager import manager
 from helpers.handle_exceptions import *
 from datetime import datetime
 
 load_dotenv()
 
+
+# def trace_k8s_async_method(fn, description=None):
+#     @wraps(fn)
+#     async def wrapper(*args, **kw):
+#         message = f"k8s command {fn.__name__} {description}"
+#         print(message)
+#         await manager.broadcast(message)
+#         return await fn(*args, **kw)
+#
+#     return wrapper
+def trace_k8s_async_method(description):
+    def decorator(fn):
+        @wraps(fn)
+        async def wrapper(*args, **kw):
+            message = f"k8s {description}"
+            print(message)
+            await manager.broadcast(message)
+            return await fn(*args, **kw)
+
+        return wrapper
+
+    return decorator
 
 class K8s:
 
@@ -23,9 +46,12 @@ class K8s:
 
         self.v1 = client.CoreV1Api()
         self.client = client.CustomObjectsApi()
+        self.client_cs = client.StorageV1Api()
 
-    @handle_exceptions_instance_method
-    def get_ns(self):
+    # @handle_exceptions_instance_method
+    @handle_exceptions_async_method
+    @trace_k8s_async_method(description="get namespaces")
+    async def get_ns(self):
 
         # Get namespaces list
         namespace_list = self.v1.list_namespace()
@@ -35,12 +61,14 @@ class K8s:
         return namespaces
 
     @handle_exceptions_instance_method
+    @trace_k8s_async_method(description="get resources")
     def get_resources(self):
         # TODO: not working yet, get all resource type name for populate multiselect in front end
         resource_list = self.client.get_api_resources(group='*', version='*')
         return resource_list
 
     @handle_exceptions_async_method
+    @trace_k8s_async_method(description="update velero schedule")
     async def update_velero_schedule(self, new_data):
 
         namespace = os.getenv('K8S_VELERO_NAMESPACE')
@@ -135,7 +163,24 @@ class K8s:
 
         return result
 
+    def __get_storage_classes__(self):
+        st_cla = {}
+        sc_list = self.client_cs.list_storage_class()
+
+        if sc_list is not None:
+            for st in sc_list.items:
+                v_class = {'name': st.metadata.name,
+                           'provisioner': st.provisioner,
+                           'parameters': st.parameters,
+                           }
+
+                st_cla[st.metadata.name] = v_class
+            return st_cla
+        else:
+            return json.dumps({'error': 'Storage classes return data'}, indent=2)
+
     @handle_exceptions_async_method
+    @trace_k8s_async_method(description="get credential")
     async def get_credential(self, secret_name, secret_key):
         if not secret_name or not secret_key:
             return {'error': {'title': 'Error',
@@ -153,6 +198,7 @@ class K8s:
             return json.dumps({'error': 'Secret key not found'}, indent=2)
 
     @handle_exceptions_async_method
+    @trace_k8s_async_method(description="get default credential")
     async def get_default_credential(self):
         label_selector = 'app.kubernetes.io/name=velero'
         api_instance = self.v1
@@ -167,6 +213,7 @@ class K8s:
             return json.dumps({'error': 'Secret key not found'}, indent=2)
 
     @handle_exceptions_async_method
+    @trace_k8s_async_method(description="get ks8 alive")
     async def get_k8s_online(self):
         ret = False
         try:
@@ -180,3 +227,8 @@ class K8s:
             'status': ret,
             'timestamp': datetime.utcnow()}
         }
+
+    @handle_exceptions_async_method
+    @trace_k8s_async_method(description="get storage classes")
+    async def get_k8s_storage_classes(self):
+        return self.__get_storage_classes__()
