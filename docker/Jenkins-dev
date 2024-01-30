@@ -47,7 +47,7 @@ pipeline {
                     GIT_TAG = 'dev'
 
                     // Build the Docker image, specifying the Dockerfile path
-                    sh "docker build --target ${evTarget} -t ${dockerHubProject}:${GIT_TAG} -t ${dockerHubProject}:latest  -f ${dockerfilePath} ."
+                    sh "docker build --target ${evTarget} -t ${dockerHubProject}:${GIT_TAG} -f ${dockerfilePath} ."
                 }
             }
         }
