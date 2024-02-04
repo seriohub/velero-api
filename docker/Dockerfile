@@ -1,6 +1,12 @@
 FROM python:3.10 as velero-api
 LABEL mantainer="DS"
 
+ARG VERSION
+ARG BUILD_DATE
+
+ENV BUILD_VERSION=$VERSION
+ENV BUILD_DATE=$BUILD_DATE
+
 # Update packages and install basics
 RUN apt-get update && apt-get install -y \
 	wget \
