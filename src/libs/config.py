@@ -241,3 +241,15 @@ class ConfigEnv:
                                 limiter[f'CUS_{data[0]}_{data[1]}'] = level
 
         return limiter
+
+    @staticmethod
+    def get_build_version():
+        return os.getenv('BUILD_VERSION', 'dev')
+
+    @staticmethod
+    def get_date_build():
+        return os.getenv('BUILD_DATE', '-')
+
+    @staticmethod
+    def get_admin_email():
+        return os.getenv('ADMIN_EMAIL', 'not set')
