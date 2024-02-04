@@ -48,7 +48,7 @@ class Backup:
 
     @handle_exceptions_instance_method
     async def get_settings_create(self):
-        namespaces = k8sv1.get_ns()
+        namespaces = await k8sv1.get_ns()
         backup_location = await backupLocation.get(json_response=False)
         snapshot_location = await snapshotLocation.get(json_response=False)
         backup_location_list = [item['metadata']['name'] for item in backup_location['items'] if 'metadata' in item and 'name' in item['metadata']]

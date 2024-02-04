@@ -45,9 +45,10 @@ pipeline {
                     def dockerHubProject = "${evDocker_Project}/${evTarget}"
 
                     GIT_TAG = 'dev'
+                    def now=new Date()
 
                     // Build the Docker image, specifying the Dockerfile path
-                    sh "docker build --target ${evTarget} -t ${dockerHubProject}:${GIT_TAG} -f ${dockerfilePath} ."
+                    sh "docker build --build-arg VERSION=dev --build-arg BUILD_DATE='${now.format('yyyy-MM-dd HH:mm', TimeZone.getTimeZone('UTC'))}' --target ${evTarget} -t ${dockerHubProject}:${GIT_TAG} -f ${dockerfilePath} ."
                 }
             }
         }

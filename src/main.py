@@ -1,5 +1,5 @@
 import uvicorn
-from utils.app_data import __version__,__app_name__
+from utils.app_data import __version__, __app_name__
 
 from libs.binary_velero_client import BinaryVeleroClient
 

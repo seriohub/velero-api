@@ -28,7 +28,7 @@ async def info():
             'app_name': __app_name__,
             'app_description': __app_description__,
             'admin_email': __admin_email__,
-            'release_version': f"release {__version__}",
+            'release_version': f"{__version__}",
             'release_date': f"{__date__}",
         }
     }
