@@ -84,6 +84,7 @@ async def get_storages_classes_map():
 class StorageClassMap(BaseModel):
     maps: dict
 
+
 @router.post('/k8s/velero/change-storage-classes-config-map/set',
              tags=['K8s'],
              summary='Set change storage classes config map',

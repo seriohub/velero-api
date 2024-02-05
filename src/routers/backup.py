@@ -6,7 +6,6 @@ from libs.backup import Backup
 from fastapi import Request
 from libs.security.rate_limiter import RateLimiter, LimiterRequests
 
-
 router = APIRouter()
 
 backup = Backup()
@@ -137,11 +136,14 @@ async def update_expiration(backup_name=None, expiration=None):
     return await backup.update_expiration(backup_name, expiration)
 
 
+limiter_storage_classes = endpoint_limiter.get_limiter_cust('backup_get_storage_classes')
+
+
 @router.get('/backup/get-storage-classes',
             tags=['Backup'],
             summary='Get backup storage classes',
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_expiration.seconds,
-                                              max_requests=limiter_expiration.max_request))])
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_storage_classes.seconds,
+                                              max_requests=limiter_storage_classes.max_request))])
 @handle_exceptions_async_method
 async def get_backup_storage_classes(backup_name=None):
     return await backup.get_backup_storage_classes(backup_name)

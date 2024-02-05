@@ -252,11 +252,15 @@ class K8s:
             print(f"Error reading ConfigMap '{config_map_name}' in namespace '{namespace}': {e}")
             return []
 
+    @handle_exceptions_instance_method
+    @trace_k8s_async_method(description="set storage classes map")
     async def set_storages_classes_map(self,
                                        namespace='velero',
                                        config_map_name='change-storage-classes-config',
-                                       data_list={}):
+                                       data_list=None):
 
+        if data_list is None:
+            data_list = {}
         try:
             # Create an instance of the Kubernetes core API
             core_v1 = self.v1
