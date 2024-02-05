@@ -175,7 +175,7 @@ class K8s:
                            }
 
                 st_cla[st.metadata.name] = v_class
-            return st_cla
+            return {'data': st_cla}
         else:
             return json.dumps({'error': 'Storage classes return data'}, indent=2)
 
@@ -232,3 +232,65 @@ class K8s:
     @trace_k8s_async_method(description="get storage classes")
     async def get_k8s_storage_classes(self):
         return self.__get_storage_classes__()
+
+    async def get_storages_classes_map(self, config_map_name='change-storage-classes-config-map', namespace='velero'):
+        try:
+            # Create an instance of the Kubernetes core API
+            core_v1 = self.v1 #client.CoreV1Api()
+
+            # Get the ConfigMap
+            config_map = core_v1.read_namespaced_config_map(name=config_map_name, namespace=namespace)
+
+            # Extract data from the ConfigMap
+            data = config_map.data or {}
+
+            # Convert data to a list of dictionaries
+            data_list = [{"key": key, "value": value} for key, value in data.items()]
+
+            return {'data': data_list}
+        except Exception as e:
+            print(f"Error reading ConfigMap '{config_map_name}' in namespace '{namespace}': {e}")
+            return []
+
+    async def set_storages_classes_map(self,
+                                       namespace='velero',
+                                       config_map_name='change-storage-classes-config',
+                                       data_list={}):
+
+        try:
+            # Create an instance of the Kubernetes core API
+            core_v1 = self.v1
+
+            # ConfigMap metadata
+            config_map_metadata = client.V1ObjectMeta(
+                name=config_map_name,
+                namespace=namespace,
+                labels={
+                    "velero.io/plugin-config": "",
+                    "velero.io/change-storage-class": "RestoreItemAction"
+                }
+            )
+
+            # Check if the ConfigMap already exists
+            try:
+                existing_config_map = core_v1.read_namespaced_config_map(name=config_map_name,
+                                                                         namespace=namespace)
+
+                # If it exists, update the ConfigMap
+                existing_config_map.data = data_list
+                core_v1.replace_namespaced_config_map(name=config_map_name, namespace=namespace,
+                                                      body=existing_config_map)
+                print("ConfigMap 'change-storage-class-config' in namespace 'velero' updated successfully.")
+            except client.rest.ApiException as e:
+                # If it doesn't exist, create the ConfigMap
+                if e.status == 404:
+                    config_map_body = client.V1ConfigMap(
+                        metadata=config_map_metadata,
+                        data=data_list
+                    )
+                    core_v1.create_namespaced_config_map(namespace=namespace, body=config_map_body)
+                    print("ConfigMap 'change-storage-class-config' in namespace 'velero' created successfully.")
+                else:
+                    raise e
+        except Exception as e:
+            print(f"Error writing ConfigMap 'change-storage-class-config' in namespace 'velero': {e}")

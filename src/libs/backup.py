@@ -1,6 +1,6 @@
 import os
 from kubernetes import client, config
-
+import shutil
 import json
 from fastapi.responses import JSONResponse
 
@@ -271,3 +271,60 @@ class Backup:
                          {'expiration': backup['status']['expiration']}
                          }
                 }
+
+    @handle_exceptions_async_method
+    async def get_backup_storage_classes(self, backup_name):
+        if not backup_name:
+            return {'error': {'title': 'Error',
+                              'description': 'Backup name is required'
+                              }
+                    }
+
+        # get tmp folder
+        tmp_folder = 'tmp'
+        if not (os.path.exists(tmp_folder)):
+            os.mkdir(tmp_folder)
+        # delete if exists old data in tmp folder
+        path = os.path.join('.', tmp_folder, backup_name + '-data.tar.gz')
+        if os.path.exists(path):
+            os.remove(path)
+        path = os.path.join('.', tmp_folder, backup_name)
+        if os.path.exists(path):
+            shutil.rmtree(path)
+
+        # download all kubenretes manifests for a backup
+        cmd = ['velero', 'backup', 'download',  backup_name]
+        output = await run_process_check_output(cmd, cwd=tmp_folder)
+        if 'error' in output:
+            return output
+
+        # extract manifests from tar.gz
+        path = extract_path(output['data'])
+        filename = os.path.basename(path)
+        if 'error' in output:
+            return output
+
+        os.mkdir(os.path.join('.', tmp_folder, backup_name))
+        cmd = ['tar', 'xf', filename, '-C', backup_name]
+        output = await run_process_check_output(cmd, cwd=tmp_folder)
+        if 'error' in output:
+            return output
+
+        # extract pvc data
+        persistent_volume_claims = os.path.join('.', tmp_folder, backup_name, 'resources', 'persistentvolumeclaims', 'namespaces')
+
+        backup_storage_classes = []
+        for folder_name in os.listdir(persistent_volume_claims):
+            folder_path = os.path.join(persistent_volume_claims, folder_name)
+            # Check if the current item is a directory
+            if os.path.isdir(folder_path):
+                for filename in os.listdir(folder_path):
+                    f = os.path.join(persistent_volume_claims, folder_name, filename)
+                    # checking if it is a file
+                    if os.path.isfile(f):
+                        f = open(f)
+                        data = json.load(f)
+                        backup_storage_classes.append(json.loads(data['metadata']['annotations']['kubectl.kubernetes.io/last-applied-configuration']))
+                        f.close()
+
+        return {'data': backup_storage_classes}

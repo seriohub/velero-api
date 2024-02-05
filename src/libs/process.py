@@ -16,12 +16,12 @@ async def send_message(message):
 
 
 @handle_exceptions_async_method
-async def run_process_check_output(cmd, publish_message=True):
+async def run_process_check_output(cmd, publish_message=True, cwd= './'):
     try:
         if publish_message:
             await send_message(' '.join(cmd))
         output = subprocess.check_output(
-            cmd, stderr=subprocess.PIPE).decode('utf-8')
+            cmd, stderr=subprocess.PIPE, cwd=cwd).decode('utf-8')
         if output.startswith('An error occurred'):
             return {'error': {'title': 'Error',
                               'description': f"{output} {'.'.join(cmd)}"}
