@@ -69,27 +69,3 @@ limiter_def_cg = endpoint_limiter.get_limiter_cust('k8s_credential_default_get')
 @handle_exceptions_async_method
 async def get_default_credential():
     return await k8s.get_default_credential()
-
-
-@router.get('/k8s/velero/change-storage-classes-config-map/get',
-            tags=['K8s'],
-            summary='Get change storage classes config map',
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_def_cg.seconds,
-                                              max_requests=limiter_def_cg.max_request))])
-@handle_exceptions_async_method
-async def get_storages_classes_map():
-    return await k8s.get_storages_classes_map()
-
-
-class StorageClassMap(BaseModel):
-    maps: dict
-
-
-@router.post('/k8s/velero/change-storage-classes-config-map/set',
-             tags=['K8s'],
-             summary='Set change storage classes config map',
-             dependencies=[Depends(RateLimiter(interval_seconds=limiter_def_cg.seconds,
-                                               max_requests=limiter_def_cg.max_request))])
-@handle_exceptions_async_method
-async def set_storages_classes_map(items: StorageClassMap):
-    return await k8s.set_storages_classes_map(data_list=items.maps)

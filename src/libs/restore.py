@@ -38,6 +38,7 @@ class Restore:
 
         resource_type = req_info['resource_type']
         backup_name = req_info['resource_name']
+        mapping_namespaces = req_info['mapping_namespaces']
 
         if backup_name == '':
             res = {'error': 'Invalid request. You can only provide a backup name.'}
@@ -49,6 +50,12 @@ class Restore:
 
         optional_parameters = req_info['parameters']
         cmd = ['velero', 'restore', 'create', '--from-backup', backup_name]
+        if len(mapping_namespaces)>0:
+            print("mapping namespaecs")
+            dict_str = ",".join(":".join([key, str(value)])
+                                 for key, value in mapping_namespaces.items())
+            print(dict_str)
+            cmd += ['--namespace-mappings', dict_str]
         cmd.extend(shlex.split(optional_parameters or ''))
 
         output = await run_process_check_output(cmd)

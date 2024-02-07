@@ -1,6 +1,7 @@
 import re
 from datetime import datetime
 from helpers.handle_exceptions import *
+from connection_manager import manager
 
 
 @handle_exceptions_instance_method
@@ -152,3 +153,17 @@ def extract_path(log_string):
     else:
         # Return None if no match is found
         return None
+
+
+def trace_k8s_async_method(description):
+    def decorator(fn):
+        @wraps(fn)
+        async def wrapper(*args, **kw):
+            message = f"k8s {description}"
+            print(message)
+            await manager.broadcast(message)
+            return await fn(*args, **kw)
+
+        return wrapper
+
+    return decorator
