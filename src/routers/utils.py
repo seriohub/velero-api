@@ -82,3 +82,13 @@ async def health():
 @handle_exceptions_async_method
 async def k8s_nodes_status():
     return await k8s.get_k8s_online()
+
+
+@router.get('/setup/get-config',
+            tags=['Setup'],
+            summary='Get all env variables',
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_status.seconds,
+                                              max_requests=limiter_status.max_request))])
+@handle_exceptions_async_method
+async def app_config():
+    return await utils.get_env()

@@ -1,6 +1,6 @@
 import json
-
-from dotenv import load_dotenv
+from dotenv.main import dotenv_values
+from dotenv import load_dotenv, find_dotenv
 import os
 from helpers.handle_exceptions import handle_exceptions_instance_method
 
@@ -241,6 +241,18 @@ class ConfigEnv:
                                 limiter[f'CUS_{data[0]}_{data[1]}'] = level
 
         return limiter
+
+    @staticmethod
+    def get_env_variables():
+        data = dotenv_values(find_dotenv())
+        kv = {}
+        for k, v in data.items():
+            if k.startswith('SECURITY_TOKEN_KEY'):
+                v = v[1].ljust(len(v) - 1, '*')
+                # print(temp)
+                # v = temp
+            kv[k] = v
+        return kv
 
     @staticmethod
     def get_build_version():
