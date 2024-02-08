@@ -23,6 +23,7 @@ class SCMapping:
         self.client = client.CustomObjectsApi()
         self.client_cs = client.StorageV1Api()
 
+    @trace_k8s_async_method(description="get storage class config map")
     async def get_storages_classes_map(self, config_map_name='change-storage-classes-config', namespace='velero',
                                        json_response=True):
         try:
@@ -50,7 +51,7 @@ class SCMapping:
             return []
 
     @handle_exceptions_instance_method
-    @trace_k8s_async_method(description="update storage classes map")
+    @trace_k8s_async_method(description="Set storage class map")
     async def set_storages_classes_map(self,
                                        namespace='velero',
                                        config_map_name='change-storage-classes-config',
@@ -124,7 +125,7 @@ class SCMapping:
                     }
 
     @handle_exceptions_instance_method
-    @trace_k8s_async_method(description="delete storage classes map")
+    @trace_k8s_async_method(description="Delete storage classes map")
     async def delete_storages_classes_mapping(self,
                                               data_list=None):
         if data_list is not None:

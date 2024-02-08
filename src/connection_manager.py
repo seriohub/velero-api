@@ -28,7 +28,8 @@ class ConnectionManager:
             try:
                 await connection.send_text(message)
             except Exception as Ex:
-                print("error", Ex)
+                # print("error", Ex)
+                pass
 
 
 manager = ConnectionManager()
