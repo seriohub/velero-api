@@ -23,7 +23,7 @@ velero_cli_version = config_app.get_velero_version()
 velero_cli_source = config_app.get_velero_version_folder()
 velero_cli_destination = config_app.get_velero_dest_folder()
 
-app_reload = config_app.unicorn_reload_update()
+app_reload = config_app.uvicorn_reload_update()
 print_ls.info(f"start :{__app_name__} -version={__version__}")
 
 print_ls.info(f"run server at url:{endpoint_url}-port={endpoint_port}")

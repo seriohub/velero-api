@@ -90,8 +90,8 @@ class ConfigEnv:
         return self.load_key('LOG_LEVEL', 10)
 
     @handle_exceptions_instance_method
-    def unicorn_reload_update(self):
-        return self.load_key('UNICORN_RELOAD', 'False').lower() == 'true'
+    def uvicorn_reload_update(self):
+        return self.load_key('UVICORN_RELOAD', 'False').lower() == 'true'
 
     @handle_exceptions_instance_method
     def container_mode(self):
