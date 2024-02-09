@@ -8,7 +8,6 @@ from libs.security.users import *
 from helpers.printer_helper import PrintHelper
 from libs.config import ConfigEnv
 
-
 config = ConfigEnv()
 token_expires_minutes = config.get_security_token_expiration()
 print_ls = PrintHelper('routes.authentication')
@@ -27,7 +26,7 @@ router = APIRouter()
 
 @router.post('/token',
              tags=['Security'],
-             summary='Release o renew token',
+             summary='Release a new token',
              dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
                                                max_requests=limiter.max_request))],
              response_model=Token)
@@ -48,6 +47,28 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
         access_token_expires = timedelta(minutes=token_expires_minutes)
         access_token = create_access_token(
             data={'sub': user.username}, expires_delta=access_token_expires
+        )
+        return {'access_token': access_token, 'token_type': 'bearer'}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Username o password not passed',
+            headers={'WWW-Authenticate': 'Bearer'},
+        )
+
+
+@router.post('/token-renew',
+             tags=['Security'],
+             summary='Renew the token',
+             dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
+                                               max_requests=limiter.max_request))],
+             response_model=Token)
+async def renew_token(current_user: User = Depends(get_current_active_user)):
+    print_ls.info(f"User:{current_user.username}")
+    if len(current_user.username) > 1 and not current_user.is_disabled:
+        access_token_expires = timedelta(minutes=token_expires_minutes)
+        access_token = create_access_token(
+            data={'sub': current_user.username}, expires_delta=access_token_expires
         )
         return {'access_token': access_token, 'token_type': 'bearer'}
     else:
@@ -143,6 +164,7 @@ if enable_users:
         else:
             raise HTTPException(status_code=403,
                                 detail='You are not authorized. Permission denied')
+
 
     @router.put('/users/{user_id}/disable',
                 tags=['Security'],
