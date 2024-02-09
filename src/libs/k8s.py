@@ -234,3 +234,27 @@ class K8s:
     @trace_k8s_async_method(description="get storage classes")
     async def get_k8s_storage_classes(self):
         return self.__get_storage_classes__()
+
+    def get_config_map(self):
+        # Create a Kubernetes API client
+        core_api = self.v1
+
+        # Specify the namespace and the name of the ConfigMap you want to read
+        namespace = 'velero'
+        configmap_name = 'velero-api-env'
+
+        try:
+            # Retrieve the ConfigMap
+            configmap = core_api.read_namespaced_config_map(name=configmap_name, namespace=namespace)
+
+            # Access the data in the ConfigMap
+            data = configmap.data
+            kv = {}
+            # Print out the data
+            for key, value in data.items():
+                if key.startswith('SECURITY_TOKEN_KEY'):
+                    value = value[1].ljust(len(value) - 1, '*')
+                kv[key] = value
+            return kv
+        except client.exceptions.ApiException as e:
+            print(f"Exception when calling CoreV1Api->read_namespaced_config_map: {e}")

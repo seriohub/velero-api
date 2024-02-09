@@ -3,6 +3,9 @@ from dotenv.main import dotenv_values
 from dotenv import load_dotenv, find_dotenv
 import os
 from helpers.handle_exceptions import handle_exceptions_instance_method
+from libs.k8s import K8s
+
+k8s = K8s()
 
 
 class LimiterRequestConfig:
@@ -244,15 +247,19 @@ class ConfigEnv:
 
     @staticmethod
     def get_env_variables():
-        data = dotenv_values(find_dotenv())
-        kv = {}
-        for k, v in data.items():
-            if k.startswith('SECURITY_TOKEN_KEY'):
-                v = v[1].ljust(len(v) - 1, '*')
-                # print(temp)
-                # v = temp
-            kv[k] = v
-        return kv
+        if os.getenv('K8S_IN_CLUSTER_MODE').lower() == 'true':
+            kv = k8s.get_config_map()
+            return kv
+        else:
+            data = dotenv_values(find_dotenv())
+            kv = {}
+            for k, v in data.items():
+                if k.startswith('SECURITY_TOKEN_KEY'):
+                    v = v[1].ljust(len(v) - 1, '*')
+                    # print(temp)
+                    # v = temp
+                kv[k] = v
+            return kv
 
     @staticmethod
     def get_build_version():
