@@ -240,7 +240,7 @@ class K8s:
         core_api = self.v1
 
         # Specify the namespace and the name of the ConfigMap you want to read
-        namespace = 'velero'
+        namespace = 'velero-api'
         configmap_name = 'velero-api-env'
 
         try:
