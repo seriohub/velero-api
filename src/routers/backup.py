@@ -17,10 +17,12 @@ endpoint_limiter = LimiterRequests(debug=False,
                                    default_key='L1')
 limiter = endpoint_limiter.get_limiter_cust('backup_get')
 
+tag_name = "Backup"
 
 @router.get('/backup/get',
-            tags=['Backup'],
+            tags=[tag_name],
             summary='Get backups list',
+            description=f"Rate limiter key: {tag_name}:backup_get",
             dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
                                               max_requests=limiter.max_request))])
 @handle_exceptions_async_method
@@ -34,8 +36,9 @@ limiter_logs = endpoint_limiter.get_limiter_cust('backup_logs')
 
 
 @router.get('/backup/logs',
-            tags=['Backup'],
+            tags=[tag_name],
             summary='Get backups logs',
+            description=f"Rate limiter key: {tag_name}:backup_logs",
             dependencies=[Depends(RateLimiter(interval_seconds=limiter_logs.seconds,
                                               max_requests=limiter_logs.max_request))])
 @handle_exceptions_async_method
@@ -47,8 +50,9 @@ limiter_des = endpoint_limiter.get_limiter_cust('backup_describe')
 
 
 @router.get('/backup/describe',
-            tags=['Backup'],
+            tags=[tag_name],
             summary='Get backups detail',
+            description=f"Rate limiter key: {tag_name}:backup_describe",
             dependencies=[Depends(RateLimiter(interval_seconds=limiter_des.seconds,
                                               max_requests=limiter_des.max_request))])
 @handle_exceptions_async_method
@@ -60,8 +64,9 @@ limiter_del = endpoint_limiter.get_limiter_cust('backup_delete')
 
 
 @router.get('/backup/delete',
-            tags=['Backup'],
+            tags=[tag_name],
             summary='Delete a backup',
+            description=f"Rate limiter key: {tag_name}:backup_delete",
             dependencies=[Depends(RateLimiter(interval_seconds=limiter_del.seconds,
                                               max_requests=limiter_del.max_request))])
 @handle_exceptions_async_method
@@ -73,8 +78,9 @@ limiter_setting = endpoint_limiter.get_limiter_cust('backup_create_settings')
 
 
 @router.get('/backup/create/settings',
-            tags=['Backup'],
+            tags=[tag_name],
             summary='Create a setting for a backup',
+            description=f"Rate limiter key: {tag_name}:backup_create_settings",
             dependencies=[Depends(RateLimiter(interval_seconds=limiter_setting.seconds,
                                               max_requests=limiter_setting.max_request))])
 @handle_exceptions_async_method
@@ -86,8 +92,9 @@ limiter_create = endpoint_limiter.get_limiter_cust('backup_create')
 
 
 @router.post('/backup/create',
-             tags=['Backup'],
+             tags=[tag_name],
              summary='Create a backup',
+             description=f"Rate limiter key: {tag_name}:backup_create",
              dependencies=[Depends(RateLimiter(interval_seconds=limiter_create.seconds,
                                                max_requests=limiter_create.max_request))])
 @handle_exceptions_async_method
@@ -100,8 +107,9 @@ limiter_create_from_schedule = endpoint_limiter.get_limiter_cust('backup_crete_f
 
 
 @router.post('/backup/create-from-schedule',
-             tags=['Backup'],
+             tags=[tag_name],
              summary='Create a backup from a schedule',
+             description=f"Rate limiter key: {tag_name}:backup_create_from_schedule",
              dependencies=[Depends(RateLimiter(interval_seconds=limiter_create_from_schedule.seconds,
                                                max_requests=limiter_create_from_schedule.max_request))])
 @handle_exceptions_async_method
@@ -116,6 +124,7 @@ limiter_expiration = endpoint_limiter.get_limiter_cust('backup_get_expiration')
 @router.get('/backup/get-expiration',
             tags=['Backup'],
             summary='Get expiration time for a specific backup',
+            description=f"Rate limiter key: {tag_name}:backup_get_expiration",
             dependencies=[Depends(RateLimiter(interval_seconds=limiter_expiration.seconds,
                                               max_requests=limiter_expiration.max_request))])
 @handle_exceptions_async_method
@@ -129,6 +138,7 @@ limiter_update_expiration = endpoint_limiter.get_limiter_cust('backup_update_exp
 @router.get('/backup/update-expiration',
             tags=['Backup'],
             summary='Update expiration date for a backup',
+            description=f"Rate limiter key: {tag_name}:backup_update_expiration",
             dependencies=[Depends(RateLimiter(interval_seconds=limiter_update_expiration.seconds,
                                               max_requests=limiter_update_expiration.max_request))])
 @handle_exceptions_async_method
@@ -142,6 +152,7 @@ limiter_storage_classes = endpoint_limiter.get_limiter_cust('backup_get_storage_
 @router.get('/backup/get-storage-classes',
             tags=['Backup'],
             summary='Get backup storage classes',
+            description=f"Rate limiter key: {tag_name}:backup_get_storage_classes",
             dependencies=[Depends(RateLimiter(interval_seconds=limiter_storage_classes.seconds,
                                               max_requests=limiter_storage_classes.max_request))])
 @handle_exceptions_async_method

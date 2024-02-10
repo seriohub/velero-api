@@ -57,11 +57,14 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
         )
 
 
+limiter_tr = endpoint_limiter.get_limiter_cust('token_renew')
+
+
 @router.post('/token-renew',
              tags=['Security'],
              summary='Renew the token',
-             dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                               max_requests=limiter.max_request))],
+             dependencies=[Depends(RateLimiter(interval_seconds=limiter_tr.seconds,
+                                               max_requests=limiter_tr.max_request))],
              response_model=Token)
 async def renew_token(current_user: User = Depends(get_current_active_user)):
     print_ls.info(f"User:{current_user.username}")
@@ -79,24 +82,27 @@ async def renew_token(current_user: User = Depends(get_current_active_user)):
         )
 
 
-limiter = endpoint_limiter.get_limiter_cust('users_me')
+limiter_meinfo = endpoint_limiter.get_limiter_cust('users_me_info')
 
 
 @router.get('/users/me/info',
             tags=['Security'],
             summary='Get information about the user authenticated',
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                              max_requests=limiter.max_request))],
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_meinfo.seconds,
+                                              max_requests=limiter_meinfo.max_request))],
             response_model=UserOut)
 async def read_current_user(current_user: User = Depends(get_current_active_user)):
     return JSONResponse(content={'data': current_user.toJSON()}, status_code=201)
 
 
+limiter_me_pwd = endpoint_limiter.get_limiter_cust('users_me_pwd')
+
+
 @router.put('/users/me/update/pwd',
             tags=['Security'],
             summary='Update user password',
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                              max_requests=limiter.max_request))], )
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_me_pwd.seconds,
+                                              max_requests=limiter_me_pwd.max_request))], )
 def update_current_user(user: UserUPDPassword,
                         current_user: User = Depends(get_current_active_user),
                         db: Session = Depends(get_db)):
@@ -108,12 +114,14 @@ def update_current_user(user: UserUPDPassword,
 
 
 if enable_users:
+    limiter_add = endpoint_limiter.get_limiter_cust('users_create')
+
     # Routes for user management
-    @router.post('/users/',
+    @router.post('/users/create',
                  tags=['Security'],
                  summary='Create new user',
-                 dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                                   max_requests=limiter.max_request))],
+                 dependencies=[Depends(RateLimiter(interval_seconds=limiter_add.seconds,
+                                                   max_requests=limiter_add.max_request))],
                  response_model=UserOut)
     def create_new_user(user: UserCreate,
                         current_user: User = Depends(get_current_active_user),
@@ -126,21 +134,27 @@ if enable_users:
                                 detail='You are not authorized.Permission denied')
 
 
+    limiter_us = endpoint_limiter.get_limiter_cust('users')
+
+
     @router.get('/users/',
                 tags=['Security'],
                 summary='Get all user registered',
-                dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                                  max_requests=limiter.max_request))],
+                dependencies=[Depends(RateLimiter(interval_seconds=limiter_us.seconds,
+                                                  max_requests=limiter_us.max_request))],
                 response_model=List[UserOut])
     def read_users(db: Session = Depends(get_db)):
         return get_all_users(db)
 
 
+    limiter_uid = endpoint_limiter.get_limiter_cust('users_user_id')
+
+
     @router.get('/users/{user_id}',
                 tags=['Security'],
                 summary='Get user data',
-                dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                                  max_requests=limiter.max_request))],
+                dependencies=[Depends(RateLimiter(interval_seconds=limiter_uid.seconds,
+                                                  max_requests=limiter_uid.max_request))],
                 response_model=UserOut)
     def read_user(user_id: uuid.UUID, db: Session = Depends(get_db)):
         user = get_user(user_id=user_id,
@@ -150,11 +164,14 @@ if enable_users:
         return user
 
 
-    @router.delete('/users/{user_id}',
+    limiter_delid = endpoint_limiter.get_limiter_cust('users_user_id_delete')
+
+
+    @router.delete('/users/{user_id}/delete',
                    tags=['Security'],
                    summary='Delete user',
-                   dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                                     max_requests=limiter.max_request))], )
+                   dependencies=[Depends(RateLimiter(interval_seconds=limiter_delid.seconds,
+                                                     max_requests=limiter_delid.max_request))], )
     def delete_existing_user(user_id: uuid.UUID,
                              current_user: User = Depends(get_current_active_user),
                              db: Session = Depends(get_db)):
@@ -166,11 +183,14 @@ if enable_users:
                                 detail='You are not authorized. Permission denied')
 
 
+    limiter_udis = endpoint_limiter.get_limiter_cust('users_user_id_disable')
+
+
     @router.put('/users/{user_id}/disable',
                 tags=['Security'],
                 summary='Disable user',
-                dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                                  max_requests=limiter.max_request))], )
+                dependencies=[Depends(RateLimiter(interval_seconds=limiter_udis.seconds,
+                                                  max_requests=limiter_udis.max_request))], )
     def disable_existing_user(user_id: uuid.UUID,
                               current_user: User = Depends(get_current_active_user),
                               db: Session = Depends(get_db)):

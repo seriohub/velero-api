@@ -12,7 +12,7 @@ router = APIRouter()
 endpoint_limiter = LimiterRequests(debug=False,
                                    printer=print_ls,
                                    tags="Info",
-                                   default_key='L5')
+                                   default_key='L1')
 limiter = endpoint_limiter.get_limiter_cust('info')
 
 

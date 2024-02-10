@@ -61,7 +61,7 @@ endpoint_limiter_st = LimiterRequests(debug=False,
                                       printer=print_ls,
                                       tags='Status',
                                       default_key='L1')
-limiter_status = endpoint_limiter.get_limiter_cust('utilis_status')
+limiter_status = endpoint_limiter.get_limiter_cust('utilis_health')
 
 
 @router.get('/utils/health',
@@ -74,21 +74,27 @@ async def health():
     return {'timestamp': datetime.utcnow()}
 
 
+limiter_status_h = endpoint_limiter.get_limiter_cust('utilis_health_k8s')
+
+
 @router.get('/utils/health-k8s',
             tags=['Status'],
             summary='Get K8s connection an api status',
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_status.seconds,
-                                              max_requests=limiter_status.max_request))])
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_status_h.seconds,
+                                              max_requests=limiter_status_h.max_request))])
 @handle_exceptions_async_method
 async def k8s_nodes_status():
     return await k8s.get_k8s_online()
 
 
+limiter_status_c = endpoint_limiter.get_limiter_cust('setup_get_config')
+
+
 @router.get('/setup/get-config',
             tags=['Setup'],
             summary='Get all env variables',
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_status.seconds,
-                                              max_requests=limiter_status.max_request))])
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_status_c.seconds,
+                                              max_requests=limiter_status_c.max_request))])
 @handle_exceptions_async_method
 async def app_config():
     return await utils.get_env()
