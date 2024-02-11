@@ -225,7 +225,7 @@ class ConfigEnv:
                             limiter[f'L{x}'] = level
 
         if limiter is None:
-            level = LimiterRequestConfig(level=1, seconds=60, request=120)
+            level = LimiterRequestConfig(level=1, seconds=60, request=20)
             limiter = {'L1': level}
 
         for x in range(1, 100, 1):

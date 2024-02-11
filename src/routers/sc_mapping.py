@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Depends
+
+from helpers.commons import route_description
 from helpers.handle_exceptions import *
 from helpers.printer_helper import PrintHelper
 
@@ -10,10 +12,10 @@ router = APIRouter()
 
 scMapping = SCMapping()
 print_ls = PrintHelper('routes.k8s_v1')
-
+tag_name = 'Storage Class Mapping'
 endpoint_limiter = LimiterRequests(debug=False,
                                    printer=print_ls,
-                                   tags='k8s',
+                                   tags=tag_name,
                                    default_key='L1')
 
 limiter_sc_mapping = endpoint_limiter.get_limiter_cust('sc_change_storage_classes_config_map_get')
@@ -23,9 +25,16 @@ class StorageClassMap(BaseModel):
     storageClassMapping: dict
 
 
-@router.get('/sc/change-storage-classes-config-map/get',
-            tags=['Storage Class Mapping'],
+route = '/sc/change-storage-classes-config-map/get'
+
+
+@router.get(path=route,
+            tags=[tag_name],
             summary='Get change storage classes config map',
+            description=route_description(tag=tag_name,
+                                          route=route,
+                                          limiter_calls=limiter_sc_mapping.max_request,
+                                          limiter_seconds=limiter_sc_mapping.seconds),
             dependencies=[Depends(RateLimiter(interval_seconds=limiter_sc_mapping.seconds,
                                               max_requests=limiter_sc_mapping.max_request))])
 @handle_exceptions_async_method
@@ -34,11 +43,16 @@ async def get_storages_classes_map():
 
 
 limiter_sc_create = endpoint_limiter.get_limiter_cust('sc_change_storage_classes_config_map_create')
+route = '/sc/change-storage-classes-config-map/create'
 
 
-@router.post('/sc/change-storage-classes-config-map/create',
-             tags=['Storage Class Mapping'],
+@router.post(path=route,
+             tags=[tag_name],
              summary='Create storage classes config map',
+             description=route_description(tag=tag_name,
+                                           route=route,
+                                           limiter_calls=limiter_sc_create.max_request,
+                                           limiter_seconds=limiter_sc_create.seconds),
              dependencies=[Depends(RateLimiter(interval_seconds=limiter_sc_create.seconds,
                                                max_requests=limiter_sc_create.max_request))])
 @handle_exceptions_async_method
@@ -48,11 +62,16 @@ async def create_storages_classes_map(items: StorageClassMap):
 
 
 limiter_sc_update = endpoint_limiter.get_limiter_cust('sc_change_storage_classes_config_map_update')
+route = '/sc/change-storage-classes-config-map/update'
 
 
-@router.patch('/sc/change-storage-classes-config-map/update',
-              tags=['Storage Class Mapping'],
+@router.patch(path=route,
+              tags=[tag_name],
               summary='Update storage classes config map',
+              description=route_description(tag=tag_name,
+                                            route=route,
+                                            limiter_calls=limiter_sc_update.max_request,
+                                            limiter_seconds=limiter_sc_update.seconds),
               dependencies=[Depends(RateLimiter(interval_seconds=limiter_sc_update.seconds,
                                                 max_requests=limiter_sc_update.max_request))])
 @handle_exceptions_async_method
@@ -61,11 +80,16 @@ async def update_storages_classes_map(items: StorageClassMap):
 
 
 limiter_sc_delete = endpoint_limiter.get_limiter_cust('sc_change_storage_classes_config_map_delete')
+route = '/sc/change-storage-classes-config-map/delete'
 
 
-@router.delete('/sc/change-storage-classes-config-map/delete',
-               tags=['Storage Class Mapping'],
+@router.delete(path=route,
+               tags=[tag_name],
                summary='Delete storage classes mapping in config map',
+               description=route_description(tag=tag_name,
+                                             route=route,
+                                             limiter_calls=limiter_sc_delete.max_request,
+                                             limiter_seconds=limiter_sc_delete.seconds),
                dependencies=[Depends(RateLimiter(interval_seconds=limiter_sc_delete.seconds,
                                                  max_requests=limiter_sc_delete.max_request))])
 @handle_exceptions_async_method

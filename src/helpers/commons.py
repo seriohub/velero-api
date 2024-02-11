@@ -4,6 +4,7 @@ from helpers.handle_exceptions import *
 from connection_manager import manager
 
 
+
 @handle_exceptions_instance_method
 def is_valid_name(name):
     regex = r"[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
@@ -55,7 +56,6 @@ def logs_string_to_list(input_string):
 
     # Iterate through the rows and apply the pattern to each
     for line in input_lines:
-
         matches = pattern.findall(line)
         result_dict = {field[0]: field[1] if field[1] else field[2] for field in matches}
         result_list.append(result_dict)
@@ -167,3 +167,20 @@ def trace_k8s_async_method(description):
         return wrapper
 
     return decorator
+
+
+def route_description(tag='',
+                      route='',
+                      limiter_calls=0,
+                      limiter_seconds=0):
+    remove_char = ["/", "_", "-", "{", "}"]
+    route_des = route[1:]
+    for myChar in remove_char:
+        route_des = route_des.replace(myChar, "_")
+
+    key = f"{tag}:{route_des}"
+
+    description = (f"Rate limiter key: {key} <br>Setup"
+                   f": "
+                   f"max {limiter_calls} calls for {limiter_seconds} seconds ")
+    return description
