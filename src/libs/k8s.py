@@ -289,7 +289,7 @@ class K8s:
         except Exception as Ex:
             ret = False
 
-        return {'payload': {
+        return {'data': {
             'cluster_online': ret,
             'nodes':
                 {'total': total_nodes,

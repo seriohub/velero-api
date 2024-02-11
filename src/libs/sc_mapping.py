@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from helpers.commons import *
 from helpers.handle_exceptions import *
 from fastapi.responses import JSONResponse
+from kubernetes.client.exceptions import ApiException
 
 load_dotenv()
 
@@ -29,12 +30,26 @@ class SCMapping:
         try:
             # Create an instance of the Kubernetes core API
             core_v1 = self.v1  # client.CoreV1Api()
-
+            data = {}
             # Get the ConfigMap
-            config_map = core_v1.read_namespaced_config_map(name=config_map_name, namespace=namespace)
-
-            # Extract data from the ConfigMap
-            data = config_map.data or {}
+            try:
+                config_map = core_v1.read_namespaced_config_map(name=config_map_name, namespace=namespace)# Extract data from the ConfigMap
+                data = config_map.data or {}
+            except ApiException as e:
+                if e.status == 404:
+                    err_msg = f"ConfigMap '{config_map_name}' not found in namespace '{namespace}'"
+                    print(err_msg)
+                    # err = {'error': {'description': err_msg}}
+                    if json_response:
+                        raise Exception(err_msg)
+                    # return JSONResponse(content=err, status_code=404, headers={'X-Custom-Header': 'header-value'})
+                else:
+                    err_msg = f"Error reading ConfigMap '{config_map_name}' in namespace '{namespace}': {e}"
+                    print(err_msg)
+                    # err = {'error': {'description': err_msg}}
+                    if json_response:
+                        raise Exception(err_msg)
+                    # return JSONResponse(content=err, status_code=422, headers={'X-Custom-Header': 'header-value'})
 
             # Convert data to a list of dictionaries
             # data_list = [{"key": key, "value": value} for key, value in data.items()]
@@ -48,7 +63,10 @@ class SCMapping:
 
         except Exception as e:
             print(f"Error reading ConfigMap '{config_map_name}' in namespace '{namespace}': {e}")
-            return []
+            err = {'error': {
+                'description': f"Error reading ConfigMap '{config_map_name}' in namespace '{namespace}': {e}"}
+            }
+            return JSONResponse(content=err, status_code=422, headers={'X-Custom-Header': 'header-value'})
 
     @handle_exceptions_instance_method
     @trace_k8s_async_method(description="Set storage class map")

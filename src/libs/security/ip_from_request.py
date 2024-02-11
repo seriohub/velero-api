@@ -1,5 +1,5 @@
 # import secrets
-from fastapi import  Request
+from fastapi import Request
 from helpers.printer_helper import PrintHelper
 import sys
 

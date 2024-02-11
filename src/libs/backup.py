@@ -169,18 +169,18 @@ class Backup:
     @handle_exceptions_async_method
     async def create_from_schedule(self, info):
 
-        if not info['name'] or info['name'] == '':
+        if not info['scheduleName'] or info['scheduleName'] == '':
             return {'error': {'title': 'Error',
                               'description': 'Schedule name name is required'
                               }
                     }
-        cmd = ['velero', 'backup', 'create', '--from-schedule', info['name']]
+        cmd = ['velero', 'backup', 'create', '--from-schedule', info['scheduleName']]
         output = await run_process_check_call(cmd)
         if 'error' in output:
             return output
 
         return {'messages': [{'title': 'Create backup',
-                              'description': f"Backup {info['backupName']} created!",
+                              'description': f"Backup from schedule {info['scheduleName']} created!",
                               'type': 'info'
                               }]
                 }
