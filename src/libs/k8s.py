@@ -6,8 +6,10 @@ from kubernetes import client, config
 from dotenv import load_dotenv
 
 from connection_manager import manager
+from helpers.commons import *
 from helpers.handle_exceptions import *
 from datetime import datetime
+from fastapi.responses import JSONResponse
 
 load_dotenv()
 
@@ -21,18 +23,18 @@ load_dotenv()
 #         return await fn(*args, **kw)
 #
 #     return wrapper
-def trace_k8s_async_method(description):
-    def decorator(fn):
-        @wraps(fn)
-        async def wrapper(*args, **kw):
-            message = f"k8s {description}"
-            print(message)
-            await manager.broadcast(message)
-            return await fn(*args, **kw)
-
-        return wrapper
-
-    return decorator
+# def trace_k8s_async_method(description):
+#     def decorator(fn):
+#         @wraps(fn)
+#         async def wrapper(*args, **kw):
+#             message = f"k8s {description}"
+#             print(message)
+#             await manager.broadcast(message)
+#             return await fn(*args, **kw)
+#
+#         return wrapper
+#
+#     return decorator
 
 class K8s:
 
@@ -163,6 +165,67 @@ class K8s:
 
         return result
 
+    async def __get_node_list__(self, only_problem=False):
+        """
+        Obtain K8S nodes
+        :param only_problem:
+        :return: List of nodes
+        """
+        try:
+            total_nodes = 0
+            retrieved_nodes = 0
+            add_node = True
+            nodes = {}
+            active_context = ''
+            # Listing the cluster nodes
+            node_list = self.v1.list_node()
+            for node in node_list.items:
+                total_nodes += 1
+                node_details = {}
+
+                node_details['context'] = active_context
+                node_details['name'] = node.metadata.name
+                if 'kubernetes.io/role' in node.metadata.labels:
+                    node_details['role'] = node.metadata.labels['kubernetes.io/role']
+
+                    node_details['role'] = 'control-plane'
+                version = node.status.node_info.kube_proxy_version
+                node_details['version'] = version
+
+                node_details['architecture'] = node.status.node_info.architecture
+
+                node_details['operating_system'] = node.status.node_info.operating_system
+
+                node_details['kernel_version'] = node.status.node_info.kernel_version
+
+                node_details['os_image'] = node.status.node_info.os_image
+
+                node_details['addresses'] = node.status.addresses
+                condition = {}
+                for detail in node.status.conditions:
+                    condition[detail.reason] = detail.status
+
+                    if only_problem:
+                        if add_node:
+                            if detail.reason == 'KubeletReady':
+                                if not bool(detail.status):
+                                    add_node = False
+                            else:
+                                if bool(detail.status):
+                                    add_node = False
+                    else:
+                        add_node = True
+                node_details['conditions'] = condition
+
+                if add_node:
+                    retrieved_nodes += 1
+                    nodes[node.metadata.name] = node_details
+
+            return total_nodes, retrieved_nodes, nodes
+
+        except Exception as err:
+            return 0, 0, None
+
     def __get_storage_classes__(self):
         st_cla = {}
         sc_list = self.client_cs.list_storage_class()
@@ -175,7 +238,7 @@ class K8s:
                            }
 
                 st_cla[st.metadata.name] = v_class
-            return st_cla
+            return {'data': st_cla}
         else:
             return json.dumps({'error': 'Storage classes return data'}, indent=2)
 
@@ -216,15 +279,23 @@ class K8s:
     @trace_k8s_async_method(description="get ks8 alive")
     async def get_k8s_online(self):
         ret = False
+        total_nodes = 0
+        retr_nodes = 0
         try:
-            # Listing the cluster nodes
-            node_list = self.v1.list_node()
-            if node_list is not None:
+            total_nodes, retr_nodes, nodes = await self.__get_node_list__(only_problem=True)
+            if nodes is not None:
                 ret = True
+
         except Exception as Ex:
             ret = False
-        return {'error': {
-            'status': ret,
+
+        return {'data': {
+            'cluster_online': ret,
+            'nodes':
+                {'total': total_nodes,
+                 'in_error': retr_nodes
+                 },
+
             'timestamp': datetime.utcnow()}
         }
 
@@ -232,3 +303,27 @@ class K8s:
     @trace_k8s_async_method(description="get storage classes")
     async def get_k8s_storage_classes(self):
         return self.__get_storage_classes__()
+
+    def get_config_map(self):
+        # Create a Kubernetes API client
+        core_api = self.v1
+
+        # Specify the namespace and the name of the ConfigMap you want to read
+        namespace = 'velero-api'
+        configmap_name = 'velero-api-env'
+
+        try:
+            # Retrieve the ConfigMap
+            configmap = core_api.read_namespaced_config_map(name=configmap_name, namespace=namespace)
+
+            # Access the data in the ConfigMap
+            data = configmap.data
+            kv = {}
+            # Print out the data
+            for key, value in data.items():
+                if key.startswith('SECURITY_TOKEN_KEY'):
+                    value = value[1].ljust(len(value) - 1, '*')
+                kv[key] = value
+            return kv
+        except client.exceptions.ApiException as e:
+            print(f"Exception when calling CoreV1Api->read_namespaced_config_map: {e}")

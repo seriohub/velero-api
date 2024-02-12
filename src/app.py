@@ -20,6 +20,7 @@ from routers import repo
 from routers import backup_location
 from routers import snapshot_location
 from routers import authentications
+from routers import sc_mapping
 
 from utils.app_data import __version__, __app_name__, __app_description__, __app_summary__
 from libs.security.users import get_current_active_user, create_default_user, SessionLocal
@@ -106,6 +107,9 @@ app.include_router(backup_location.router,
                    dependencies=[Depends(get_current_active_user)],
                    prefix='/api/v1')
 app.include_router(snapshot_location.router,
+                   dependencies=[Depends(get_current_active_user)],
+                   prefix='/api/v1')
+app.include_router(sc_mapping.router,
                    dependencies=[Depends(get_current_active_user)],
                    prefix='/api/v1')
 

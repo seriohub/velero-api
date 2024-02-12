@@ -2,20 +2,21 @@ from typing import Annotated
 from fastapi import APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
+
+from helpers.commons import route_description
 from libs.security.model import Token, UserUPDPassword
 from libs.security.rate_limiter import LimiterRequests, RateLimiter
 from libs.security.users import *
 from helpers.printer_helper import PrintHelper
 from libs.config import ConfigEnv
 
-
 config = ConfigEnv()
 token_expires_minutes = config.get_security_token_expiration()
 print_ls = PrintHelper('routes.authentication')
-
+tag_name = 'Security'
 endpoint_limiter = LimiterRequests(debug=False,
                                    printer=print_ls,
-                                   tags='Security',
+                                   tags=tag_name,
                                    default_key='L1')
 
 limiter = endpoint_limiter.get_limiter_cust('token')
@@ -23,11 +24,16 @@ limiter = endpoint_limiter.get_limiter_cust('token')
 enable_users = config.get_security_manage_users()
 
 router = APIRouter()
+route = '/token'
 
 
-@router.post('/token',
-             tags=['Security'],
-             summary='Release o renew token',
+@router.post(path=route,
+             tags=[tag_name],
+             summary='Release a new token',
+             description=route_description(tag=tag_name,
+                                           route=route,
+                                           limiter_calls=limiter.max_request,
+                                           limiter_seconds=limiter.seconds),
              dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
                                                max_requests=limiter.max_request))],
              response_model=Token)
@@ -58,24 +64,67 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
         )
 
 
-limiter = endpoint_limiter.get_limiter_cust('users_me')
+limiter_tr = endpoint_limiter.get_limiter_cust('token_renew')
+route = '/token-renew'
 
 
-@router.get('/users/me/info',
-            tags=['Security'],
+@router.post(path=route,
+             tags=[tag_name],
+             summary='Renew the token',
+             description=route_description(tag=tag_name,
+                                           route=route,
+                                           limiter_calls=limiter_tr.max_request,
+                                           limiter_seconds=limiter_tr.seconds),
+             dependencies=[Depends(RateLimiter(interval_seconds=limiter_tr.seconds,
+                                               max_requests=limiter_tr.max_request))],
+             response_model=Token)
+async def renew_token(current_user: User = Depends(get_current_active_user)):
+    print_ls.info(f"User:{current_user.username}")
+    if len(current_user.username) > 1 and not current_user.is_disabled:
+        access_token_expires = timedelta(minutes=token_expires_minutes)
+        access_token = create_access_token(
+            data={'sub': current_user.username}, expires_delta=access_token_expires
+        )
+        return {'access_token': access_token, 'token_type': 'bearer'}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Username o password not passed',
+            headers={'WWW-Authenticate': 'Bearer'},
+        )
+
+
+limiter_meinfo = endpoint_limiter.get_limiter_cust('users_me_info')
+route = '/users/me/info'
+
+
+@router.get(path=route,
+            tags=[tag_name],
             summary='Get information about the user authenticated',
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                              max_requests=limiter.max_request))],
+            description=route_description(tag=tag_name,
+                                          route=route,
+                                          limiter_calls=limiter_meinfo.max_request,
+                                          limiter_seconds=limiter_meinfo.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_meinfo.seconds,
+                                              max_requests=limiter_meinfo.max_request))],
             response_model=UserOut)
 async def read_current_user(current_user: User = Depends(get_current_active_user)):
     return JSONResponse(content={'data': current_user.toJSON()}, status_code=201)
 
 
-@router.put('/users/me/update/pwd',
-            tags=['Security'],
+limiter_me_pwd = endpoint_limiter.get_limiter_cust('users_me_pwd')
+route = '/users/me/update/pwd'
+
+
+@router.put(path=route,
+            tags=[tag_name],
             summary='Update user password',
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                              max_requests=limiter.max_request))], )
+            description=route_description(tag=tag_name,
+                                          route=route,
+                                          limiter_calls=limiter_me_pwd.max_request,
+                                          limiter_seconds=limiter_me_pwd.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_me_pwd.seconds,
+                                              max_requests=limiter_me_pwd.max_request))], )
 def update_current_user(user: UserUPDPassword,
                         current_user: User = Depends(get_current_active_user),
                         db: Session = Depends(get_db)):
@@ -87,12 +136,20 @@ def update_current_user(user: UserUPDPassword,
 
 
 if enable_users:
+    limiter_add = endpoint_limiter.get_limiter_cust('users_create')
     # Routes for user management
-    @router.post('/users/',
-                 tags=['Security'],
+    route = '/users/create'
+
+
+    @router.post(path=route,
+                 tags=[tag_name],
                  summary='Create new user',
-                 dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                                   max_requests=limiter.max_request))],
+                 description=route_description(tag=tag_name,
+                                               route=route,
+                                               limiter_calls=limiter_add.max_request,
+                                               limiter_seconds=limiter_add.seconds),
+                 dependencies=[Depends(RateLimiter(interval_seconds=limiter_add.seconds,
+                                                   max_requests=limiter_add.max_request))],
                  response_model=UserOut)
     def create_new_user(user: UserCreate,
                         current_user: User = Depends(get_current_active_user),
@@ -105,21 +162,36 @@ if enable_users:
                                 detail='You are not authorized.Permission denied')
 
 
-    @router.get('/users/',
-                tags=['Security'],
+    limiter_us = endpoint_limiter.get_limiter_cust('users')
+    route = '/users/'
+
+
+    @router.get(path=route,
+                tags=[tag_name],
                 summary='Get all user registered',
-                dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                                  max_requests=limiter.max_request))],
+                description=route_description(tag=tag_name,
+                                              route=route,
+                                              limiter_calls=limiter_us.max_request,
+                                              limiter_seconds=limiter_us.seconds),
+                dependencies=[Depends(RateLimiter(interval_seconds=limiter_us.seconds,
+                                                  max_requests=limiter_us.max_request))],
                 response_model=List[UserOut])
     def read_users(db: Session = Depends(get_db)):
         return get_all_users(db)
 
 
-    @router.get('/users/{user_id}',
-                tags=['Security'],
+    limiter_uid = endpoint_limiter.get_limiter_cust('users_user_id')
+    route = '/users/{user_id}'
+
+    @router.get(path=route,
+                tags=[tag_name],
                 summary='Get user data',
-                dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                                  max_requests=limiter.max_request))],
+                description=route_description(tag=tag_name,
+                                              route=route,
+                                              limiter_calls=limiter_uid.max_request,
+                                              limiter_seconds=limiter_uid.seconds),
+                dependencies=[Depends(RateLimiter(interval_seconds=limiter_uid.seconds,
+                                                  max_requests=limiter_uid.max_request))],
                 response_model=UserOut)
     def read_user(user_id: uuid.UUID, db: Session = Depends(get_db)):
         user = get_user(user_id=user_id,
@@ -129,11 +201,18 @@ if enable_users:
         return user
 
 
-    @router.delete('/users/{user_id}',
-                   tags=['Security'],
+    limiter_delid = endpoint_limiter.get_limiter_cust('users_user_id_delete')
+    route = '/users/{user_id}/delete'
+
+    @router.delete(path=route,
+                   tags=[tag_name],
                    summary='Delete user',
-                   dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                                     max_requests=limiter.max_request))], )
+                   description=route_description(tag=tag_name,
+                                                 route=route,
+                                                 limiter_calls=limiter_delid.max_request,
+                                                 limiter_seconds=limiter_delid.seconds),
+                   dependencies=[Depends(RateLimiter(interval_seconds=limiter_delid.seconds,
+                                                     max_requests=limiter_delid.max_request))], )
     def delete_existing_user(user_id: uuid.UUID,
                              current_user: User = Depends(get_current_active_user),
                              db: Session = Depends(get_db)):
@@ -144,11 +223,19 @@ if enable_users:
             raise HTTPException(status_code=403,
                                 detail='You are not authorized. Permission denied')
 
-    @router.put('/users/{user_id}/disable',
-                tags=['Security'],
+
+    limiter_udis = endpoint_limiter.get_limiter_cust('users_user_id_disable')
+    route = '/users/{user_id}/disable'
+
+    @router.put(path=route,
+                tags=[tag_name],
                 summary='Disable user',
-                dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                                  max_requests=limiter.max_request))], )
+                description=route_description(tag=tag_name,
+                                              route=route,
+                                              limiter_calls=limiter_udis.max_request,
+                                              limiter_seconds=limiter_udis.seconds),
+                dependencies=[Depends(RateLimiter(interval_seconds=limiter_udis.seconds,
+                                                  max_requests=limiter_udis.max_request))], )
     def disable_existing_user(user_id: uuid.UUID,
                               current_user: User = Depends(get_current_active_user),
                               db: Session = Depends(get_db)):

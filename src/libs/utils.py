@@ -2,6 +2,7 @@ import re
 from fastapi.responses import JSONResponse
 
 from libs.backup import Backup
+from libs.config import ConfigEnv
 from libs.restore import Restore
 from libs.schedule import Schedule
 from libs.k8s import K8s
@@ -14,6 +15,7 @@ backup = Backup()
 restore = Restore()
 schedule = Schedule()
 k8s = K8s()
+config_app = ConfigEnv()
 
 
 class Utils:
@@ -189,5 +191,12 @@ class Utils:
             return output
 
         res = {'payload': self.parse_version_output(output['data'])}
+
+        return JSONResponse(content={'data': res}, status_code=201, headers={'X-Custom-Header': 'header-value'})
+
+    @handle_exceptions_async_method
+    async def get_env(self):
+        env_data = config_app.get_env_variables()
+        res = {'payload': env_data}
 
         return JSONResponse(content={'data': res}, status_code=201, headers={'X-Custom-Header': 'header-value'})

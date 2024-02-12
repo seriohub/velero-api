@@ -1,8 +1,11 @@
 import json
-
-from dotenv import load_dotenv
+from dotenv.main import dotenv_values
+from dotenv import load_dotenv, find_dotenv
 import os
 from helpers.handle_exceptions import handle_exceptions_instance_method
+from libs.k8s import K8s
+
+k8s = K8s()
 
 
 class LimiterRequestConfig:
@@ -90,8 +93,8 @@ class ConfigEnv:
         return self.load_key('LOG_LEVEL', 10)
 
     @handle_exceptions_instance_method
-    def unicorn_reload_update(self):
-        return self.load_key('UNICORN_RELOAD', 'False').lower() == 'true'
+    def uvicorn_reload_update(self):
+        return self.load_key('UVICORN_RELOAD', 'False').lower() == 'true'
 
     @handle_exceptions_instance_method
     def container_mode(self):
@@ -222,7 +225,7 @@ class ConfigEnv:
                             limiter[f'L{x}'] = level
 
         if limiter is None:
-            level = LimiterRequestConfig(level=1, seconds=60, request=120)
+            level = LimiterRequestConfig(level=1, seconds=60, request=20)
             limiter = {'L1': level}
 
         for x in range(1, 100, 1):
@@ -241,6 +244,22 @@ class ConfigEnv:
                                 limiter[f'CUS_{data[0]}_{data[1]}'] = level
 
         return limiter
+
+    @staticmethod
+    def get_env_variables():
+        if os.getenv('K8S_IN_CLUSTER_MODE').lower() == 'true':
+            kv = k8s.get_config_map()
+            return kv
+        else:
+            data = dotenv_values(find_dotenv())
+            kv = {}
+            for k, v in data.items():
+                if k.startswith('SECURITY_TOKEN_KEY'):
+                    v = v[1].ljust(len(v) - 1, '*')
+                    # print(temp)
+                    # v = temp
+                kv[k] = v
+            return kv
 
     @staticmethod
     def get_build_version():

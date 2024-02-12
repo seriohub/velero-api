@@ -12,7 +12,6 @@
     
     {
         "error": {
-            "code": 404,
             "message": "",
         }
     }
