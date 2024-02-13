@@ -8,12 +8,14 @@ from libs.process import *
 from libs.k8s import K8s
 from libs.backup_location import BackupLocation
 from libs.snapshot_location import SnapshotLocation
-
+from libs.config import ConfigEnv
 from helpers.commons import *
+from helpers.json_response import *
 
 k8sv1 = K8s()
 backupLocation = BackupLocation()
 snapshotLocation = SnapshotLocation()
+config_app = ConfigEnv()
 
 
 class Backup:
@@ -26,11 +28,11 @@ class Backup:
             self.kube_config_file = os.getenv('KUBE_CONFIG_FILE')
             config.load_kube_config(config_file=self.kube_config_file)
 
-        self.v1 = client.CoreV1Api()
-        self.client = client.CustomObjectsApi()
+        self.client_core_v1_api = client.CoreV1Api()
+        self.client_custom_objects_api = client.CustomObjectsApi()
 
     @handle_exceptions_instance_method
-    def _filter_last_backup_for_every_schedule(self, data):
+    def __filter_last_backup_for_every_schedule(self, data):
         result = {}
 
         for item in data:
@@ -66,12 +68,12 @@ class Backup:
     async def get(self, schedule_name=None, only_last_for_schedule=False, json_response=True, in_progress=False, publish_message=True):
         output = await run_process_check_output(['velero', 'backup', 'get', '-o', 'json'], publish_message=publish_message)
         if 'error' in output:
-            return output
+            return JSONResponse(content=output['error'].toJSON(), status_code=400)
 
         backups = json.loads(output['data'])
 
-        if backups['kind'].lower() == 'restore':
-            backups = {'items': [backups]}
+        # if backups['kind'].lower() == 'restore':
+        #     backups = {'items': [backups]}
 
         if schedule_name is not None:
             backups['items'] = [x for x in backups['items'] if
@@ -79,16 +81,18 @@ class Backup:
                                     'velero.io/schedule-name'] == schedule_name]
 
         if only_last_for_schedule:
-            backups['items'] = self._filter_last_backup_for_every_schedule(backups['items'])
+            backups['items'] = self.__filter_last_backup_for_every_schedule(backups['items'])
 
         if in_progress:
             backups['items'] = filter_in_progress(backups['items'])
 
         add_id_to_list(backups['items'])
 
-        res = {'data': {'payload': backups}}
+        response = SuccessfulRequest()
+        response.data = backups['items']
+
         if json_response:
-            return JSONResponse(content=res, status_code=201, headers={'X-Custom-Header': 'header-value'})
+            return JSONResponse(content=response.toJSON(), status_code=200)
         else:
             return backups
 
@@ -210,7 +214,7 @@ class Backup:
                               }
                     }
 
-        api_instance = self.client
+        api_instance = self.client_custom_objects_api
 
         # params
         namespace = 'velero'
@@ -252,7 +256,7 @@ class Backup:
                               }
                     }
 
-        api_instance = self.client
+        api_instance = self.client_custom_objects_api
 
         # params
         namespace = 'velero'

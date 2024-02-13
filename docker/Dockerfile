@@ -1,5 +1,5 @@
 FROM python:3.10 as velero-api
-LABEL mantainer="DS"
+LABEL maintainer="DS"
 
 ARG VERSION
 ARG BUILD_DATE

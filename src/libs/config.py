@@ -272,3 +272,7 @@ class ConfigEnv:
     @staticmethod
     def get_admin_email():
         return os.getenv('ADMIN_EMAIL', 'not set')
+
+    @staticmethod
+    def get_k8s_velero_namespace():
+        return os.getenv('K8S_VELERO_NAMESPACE', 'velero')

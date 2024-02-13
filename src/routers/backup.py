@@ -7,6 +7,10 @@ from libs.backup import Backup
 from fastapi import Request
 from libs.security.rate_limiter import RateLimiter, LimiterRequests
 
+from helpers.json_response import *
+from typing import Union
+
+
 router = APIRouter()
 tag_name = "Backup"
 backup = Backup()
@@ -28,12 +32,13 @@ route = '/backup/get'
                                           limiter_calls=limiter.max_request,
                                           limiter_seconds=limiter.seconds),
             dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                              max_requests=limiter.max_request))])
+                                              max_requests=limiter.max_request))],
+            response_model=Union[SuccessfulRequest, FailedRequest])
 @handle_exceptions_async_method
 async def backup_get(schedule_name=None, only_last_for_schedule='', in_progress=False):
     return await backup.get(schedule_name=schedule_name,
                             only_last_for_schedule=only_last_for_schedule.lower() == 'true',
-                            in_progress=in_progress)
+                            in_progress=in_progress == 'true')
 
 
 limiter_logs = endpoint_limiter.get_limiter_cust('backup_logs')

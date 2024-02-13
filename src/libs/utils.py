@@ -156,7 +156,7 @@ class Utils:
             item['id'] = i + 1
             i += 1
 
-        res2 = {'data': {'payload': res}}
+        res2 = {'data': res}
         return JSONResponse(content=res2, status_code=201, headers={'X-Custom-Header': 'header-value'})
 
     @handle_exceptions_instance_method
