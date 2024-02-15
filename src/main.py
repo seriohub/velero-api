@@ -12,6 +12,10 @@ print_ls.info('start')
 print_ls.info('load config')
 config_app = ConfigEnv()
 
+if config_app.validate_env_variables():
+    exit(200)
+
+
 # server setting
 k8s_in_cluster_mode = config_app.k8s_in_cluster_mode()
 is_in_container_mode = config_app.container_mode()
