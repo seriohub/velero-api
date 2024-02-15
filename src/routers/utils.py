@@ -74,45 +74,45 @@ async def in_progress():
     return await utils.in_progress()
 
 
-tag_name = 'Status'
-endpoint_limiter_st = LimiterRequests(debug=False,
-                                      printer=print_ls,
-                                      tags=tag_name,
-                                      default_key='L1')
-limiter_status = endpoint_limiter.get_limiter_cust('utilis_health')
-route = '/utils/health'
-
-
-@router.get(path=route,
-            tags=[tag_name],
-            summary='UTC time',
-            description=route_description(tag=tag_name,
-                                          route=route,
-                                          limiter_calls=limiter_status.max_request,
-                                          limiter_seconds=limiter_status.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_status.seconds,
-                                              max_requests=limiter_status.max_request))])
-@handle_exceptions_async_method
-async def health():
-    return {'timestamp': datetime.utcnow()}
-
-
-limiter_status_h = endpoint_limiter.get_limiter_cust('utilis_health_k8s')
-route = '/utils/health-k8s'
-
-
-@router.get(path=route,
-            tags=[tag_name],
-            summary='Get K8s connection an api status',
-            description=route_description(tag=tag_name,
-                                          route=route,
-                                          limiter_calls=limiter_status_h.max_request,
-                                          limiter_seconds=limiter_status_h.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_status_h.seconds,
-                                              max_requests=limiter_status_h.max_request))])
-@handle_exceptions_async_method
-async def k8s_nodes_status():
-    return await k8s.get_k8s_online()
+# tag_name = 'Status'
+# endpoint_limiter_st = LimiterRequests(debug=False,
+#                                       printer=print_ls,
+#                                       tags=tag_name,
+#                                       default_key='L1')
+# limiter_status = endpoint_limiter.get_limiter_cust('utilis_health')
+# route = '/utils/health'
+#
+#
+# @router.get(path=route,
+#             tags=[tag_name],
+#             summary='UTC time',
+#             description=route_description(tag=tag_name,
+#                                           route=route,
+#                                           limiter_calls=limiter_status.max_request,
+#                                           limiter_seconds=limiter_status.seconds),
+#             dependencies=[Depends(RateLimiter(interval_seconds=limiter_status.seconds,
+#                                               max_requests=limiter_status.max_request))])
+# @handle_exceptions_async_method
+# async def health():
+#     return {'timestamp': datetime.utcnow()}
+#
+#
+# limiter_status_h = endpoint_limiter.get_limiter_cust('utilis_health_k8s')
+# route = '/utils/health-k8s'
+#
+#
+# @router.get(path=route,
+#             tags=[tag_name],
+#             summary='Get K8s connection an api status',
+#             description=route_description(tag=tag_name,
+#                                           route=route,
+#                                           limiter_calls=limiter_status_h.max_request,
+#                                           limiter_seconds=limiter_status_h.seconds),
+#             dependencies=[Depends(RateLimiter(interval_seconds=limiter_status_h.seconds,
+#                                               max_requests=limiter_status_h.max_request))])
+# @handle_exceptions_async_method
+# async def k8s_nodes_status():
+#     return await k8s.get_k8s_online()
 
 
 tag_name = 'Setup'

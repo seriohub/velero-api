@@ -200,3 +200,10 @@ class Utils:
         res = {'payload': env_data}
 
         return JSONResponse(content={'data': res}, status_code=201, headers={'X-Custom-Header': 'header-value'})
+
+    @handle_exceptions_async_method
+    async def get_origins(self):
+        env_data = config_app.get_origins()
+        res = {'payload': env_data}
+
+        return JSONResponse(content={'data': env_data}, status_code=200)

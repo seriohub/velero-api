@@ -201,9 +201,9 @@ class ConfigEnv:
     @staticmethod
     def get_api_disable_documentation():
         res = os.getenv('API_ENABLE_DOCUMENTATION', '0')
-        if len(res) == 0:
-            res = '0'
-        return int(res)
+        if res == '0':
+            return False
+        return True
 
     @staticmethod
     def get_api_limiter(path_to_load):
@@ -276,3 +276,14 @@ class ConfigEnv:
     @staticmethod
     def get_k8s_velero_namespace():
         return os.getenv('K8S_VELERO_NAMESPACE', 'velero')
+
+    @staticmethod
+    def get_origins():
+        origins = []
+        for x in range(1, 100, 1):
+            res = os.getenv(f'ORIGINS_{x}', None)
+            if res is None or len(res) == 0:
+                break
+            else:
+                origins.append(res)
+        return origins

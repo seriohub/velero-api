@@ -1,29 +1,21 @@
-import os
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
-import json
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from connection_manager import *
 from helpers.printer_helper import PrintHelper
 from libs.config import ConfigEnv
+from fastapi.responses import JSONResponse
 
 
 from libs.security.middleware import add_process_time_header
-from routers import backup, app_info
-from routers import restore
-from routers import schedule
-from routers import utils
-from routers import k8s
-from routers import repo
-from routers import backup_location
-from routers import snapshot_location
-from routers import authentications
-from routers import sc_mapping
+from app_info import appInfo
 
 from utils.app_data import __version__, __app_name__, __app_description__, __app_summary__
-from libs.security.users import get_current_active_user, create_default_user, SessionLocal
+from libs.security.users import create_default_user, SessionLocal
+from v1 import v1
+
 
 load_dotenv()
 config = ConfigEnv()
@@ -31,12 +23,11 @@ config = ConfigEnv()
 # init logger engine
 print_helper = PrintHelper('app')
 
+# docs redocs
 docs_url = '/docs'
-re_docs_url = '/redocs'
-
-# if not config_app.get_api_disable_documentation():
-disable_docs = False
-if disable_docs:
+re_docs_url = '/redoc'
+enabled_docs = config.get_api_disable_documentation()
+if not enabled_docs:
     docs_url = None
     re_docs_url = None
 
@@ -68,7 +59,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-origins = json.loads(os.environ['ORIGINS'])
+origins = config.get_origins()
 
 app.add_middleware(
     CORSMiddleware,
@@ -80,38 +71,10 @@ app.add_middleware(
 
 app.middleware('http')(add_process_time_header)
 
-app.include_router(authentications.router,
-                   prefix='/api/v1')
-app.include_router(app_info.router,
-                   prefix='/api/v1')
 
-app.include_router(backup.router,
-                   dependencies=[Depends(get_current_active_user)],
-                   prefix='/api/v1')
-app.include_router(restore.router,
-                   dependencies=[Depends(get_current_active_user)],
-                   prefix='/api/v1')
-app.include_router(schedule.router,
-                   dependencies=[Depends(get_current_active_user)],
-                   prefix='/api/v1')
-app.include_router(utils.router,
-                   dependencies=[Depends(get_current_active_user)],
-                   prefix='/api/v1')
-app.include_router(k8s.router,
-                   dependencies=[Depends(get_current_active_user)],
-                   prefix='/api/v1')
-app.include_router(repo.router,
-                   dependencies=[Depends(get_current_active_user)],
-                   prefix='/api/v1')
-app.include_router(backup_location.router,
-                   dependencies=[Depends(get_current_active_user)],
-                   prefix='/api/v1')
-app.include_router(snapshot_location.router,
-                   dependencies=[Depends(get_current_active_user)],
-                   prefix='/api/v1')
-app.include_router(sc_mapping.router,
-                   dependencies=[Depends(get_current_active_user)],
-                   prefix='/api/v1')
+@app.get('/')
+async def online():
+    return JSONResponse(content={'status': 'alive'}, status_code=200)
 
 
 # @app.websocket("/ws",
@@ -121,3 +84,7 @@ app.include_router(sc_mapping.router,
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     await manager.send_personal_message('Connection READY!', websocket=websocket)
+
+
+app.mount("/api/v1", v1, "v1")
+app.mount("/info", appInfo, "appInfo")
