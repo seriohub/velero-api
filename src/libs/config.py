@@ -39,6 +39,32 @@ class ConfigEnv:
         load_dotenv()
 
     @staticmethod
+    def __validate_rate_limiter__(input_str):
+        # Regular expression pattern to match the format "string:string:int:int"
+        pattern = re.compile(r'^[^:]+:[^:]+:\d+:\d+$')
+
+        # Check if the input string matches the pattern
+        if not re.match(pattern, input_str):
+            return False
+
+        # Split the input string by colon ':'
+        parts = input_str.split(':')
+
+        # Check if the string parts are not empty
+        if not all(parts[:2]):
+            return False
+
+        # Check if the integer parts are greater than 0
+        try:
+            int_parts = map(int, parts[2:])
+            if any(i <= 0 for i in int_parts):
+                return False
+        except ValueError:
+            return False
+
+        return True
+
+    @staticmethod
     def __validate_url__(url, check_protocol=True):
         protocol_part = "(?:(?:http|ftp)s?://)?" if not check_protocol else "(?:http|ftp)s?://"
         # Regular expression for URL validation
@@ -188,6 +214,25 @@ class ConfigEnv:
               f"validation:{message.upper()}")
         if message != "OK":
             block_exec = True
+
+        # init the dict for rate limiter rules
+        rate_limiters = []
+        # origins
+        for x in range(1, 100, 1):
+            rate_limiters.append(f'API_RATE_LIMITER_CUSTOM_{x}')
+
+        for key in rate_limiters:
+            res = os.getenv(key, None)
+            if res is None or len(res) == 0:
+                break
+            else:
+                message = "OK" if self.__validate_rate_limiter__(res) else "error not a valid rate limiter "
+                print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+                      f"type:{'complex'.ljust(10, ' ')} "
+                      f"value:{res.ljust(25, ' ')} "
+                      f"validation:{message.upper()}")
+                if message != "OK":
+                    block_exec = True
 
         print(f"INFO      [Env validation] Mandatory env variables set: {not block_exec}")
         if block_exec:
