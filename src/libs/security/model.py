@@ -5,7 +5,7 @@ from pydantic.v1 import BaseSettings
 import uuid
 from helpers.printer_helper import PrintHelper
 
-print_ls = PrintHelper('lib.model')
+print_ls = PrintHelper('[lib.model]')
 
 
 class Token(BaseModel):

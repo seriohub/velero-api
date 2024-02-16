@@ -11,7 +11,7 @@ class IpClient:
 
         self.info = info
         self.debug = debug
-        self.print_ls = PrintHelper('IpClient')
+        self.print_ls = PrintHelper('[IpClient]')
 
     def extract_ip_from_request(self, request: Request):
         try:

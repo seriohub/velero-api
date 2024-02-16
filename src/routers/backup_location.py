@@ -3,22 +3,24 @@ from fastapi import APIRouter, Depends
 from helpers.commons import route_description
 from helpers.handle_exceptions import *
 from helpers.printer_helper import PrintHelper
-from libs.backup_location import BackupLocation
 
+from libs.backup_location import BackupLocation
 from libs.security.rate_limiter import RateLimiter, LimiterRequests
 
 router = APIRouter()
 backupLocation = BackupLocation()
-print_ls = PrintHelper('routes.backup_location_v1')
-tag_name = 'Backup'
+print_ls = PrintHelper('[routes.backup_location]')
+
+
+tag_name = 'Backup Location'
 endpoint_limiter = LimiterRequests(debug=False,
                                    printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')
+
+
 limiter = endpoint_limiter.get_limiter_cust('backup_location_get')
 route = '/backup-location/get'
-
-
 @router.get(path=route,
             tags=[tag_name],
             summary='Get list of the backups',

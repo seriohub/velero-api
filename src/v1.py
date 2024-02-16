@@ -23,7 +23,7 @@ load_dotenv()
 config = ConfigEnv()
 
 # init logger engine
-print_helper = PrintHelper('app')
+print_helper = PrintHelper('[app]')
 
 # docs redoc
 docs_url = '/docs'

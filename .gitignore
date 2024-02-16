@@ -6,3 +6,5 @@ __pycache__/
 *.db
 src/tmp/
 tmp/
+download/
+dl/*

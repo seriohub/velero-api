@@ -11,20 +11,25 @@ from libs.k8s import K8s
 from libs.utils import Utils
 from fastapi.responses import JSONResponse
 
+
 k8s = K8s()
 utils = Utils()
-
-print_ls = PrintHelper('routes.info')
 router = APIRouter()
+print_ls = PrintHelper('[routes.info]')
+
+
+###
+
+
 tag_name = "Info"
 endpoint_limiter = LimiterRequests(debug=False,
                                    printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')
+
+
 limiter = endpoint_limiter.get_limiter_cust('info')
 route = '/get'
-
-
 @router.get(path=route,
             tags=[tag_name],
             summary='Get app info',
@@ -49,15 +54,42 @@ async def info():
     return JSONResponse(content=res, status_code=200)
 
 
+###
+
+
+endpoint_limiter = LimiterRequests(debug=False,
+                                   printer=print_ls,
+                                   tags=tag_name,
+                                   default_key='L1')
+limiter = endpoint_limiter.get_limiter_cust('platform')
+route = '/arch'
+@router.get(path=route,
+            tags=[tag_name],
+            summary='Get app identify api architecture',
+            description=route_description(tag=tag_name,
+                                          route=route,
+                                          limiter_calls=limiter.max_request,
+                                          limiter_seconds=limiter.seconds),
+
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
+                                              max_requests=limiter.max_request))])
+@handle_exceptions_async_method
+async def identify_architecture():
+    return await utils.identify_architecture()
+
+
+###
+
+
 tag_name = 'Status'
 endpoint_limiter_st = LimiterRequests(debug=False,
                                       printer=print_ls,
                                       tags=tag_name,
                                       default_key='L1')
+
+
 limiter_status = endpoint_limiter.get_limiter_cust('info_health')
 route = '/health'
-
-
 @router.get(path=route,
             tags=[tag_name],
             summary='UTC time',
@@ -74,8 +106,6 @@ async def health():
 
 limiter_status_h = endpoint_limiter.get_limiter_cust('info_health_k8s')
 route = '/health-k8s'
-
-
 @router.get(path=route,
             tags=[tag_name],
             summary='Get K8s connection an api status',
@@ -92,8 +122,6 @@ async def k8s_nodes_status():
 
 limiter_origins = endpoint_limiter.get_limiter_cust('info_origins')
 route = '/origins'
-
-
 @router.get(path=route,
             tags=[tag_name],
             summary='Get api origins',
