@@ -46,7 +46,6 @@ if k8s_in_cluster_mode or is_in_container_mode:
                  destination_path=velero_cli_destination,
                  arch=asyncio.run(utils.identify_architecture(json_response=False)),
                  version=velero_cli_version)
-                 )
 
 
 if __name__ == '__main__':
