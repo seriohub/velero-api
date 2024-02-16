@@ -11,6 +11,7 @@ from libs.snapshot_location import SnapshotLocation
 from libs.config import ConfigEnv
 from helpers.commons import *
 from helpers.json_response import *
+from helpers.printer_helper import PrintHelper
 
 k8sv1 = K8s()
 backupLocation = BackupLocation()
@@ -30,6 +31,7 @@ class Backup:
 
         self.client_core_v1_api = client.CoreV1Api()
         self.client_custom_objects_api = client.CustomObjectsApi()
+        self.print_ls = PrintHelper('[libs/backup]')
 
     @handle_exceptions_instance_method
     def __filter_last_backup_for_every_schedule(self, data):
@@ -283,7 +285,6 @@ class Backup:
                               'description': 'Backup name is required'
                               }
                     }
-
         # get tmp folder
         tmp_folder = 'tmp'
         if not (os.path.exists(tmp_folder)):
@@ -304,6 +305,7 @@ class Backup:
 
         # extract manifests from tar.gz
         path = extract_path(output['data'])
+        self.print_ls.debug("path to extract: " + path)
         filename = os.path.basename(path)
         if 'error' in output:
             return output

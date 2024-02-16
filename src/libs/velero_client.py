@@ -47,7 +47,7 @@ class VeleroClient:
             with open(file_path, 'wb') as file:
                 file.write(response.content)
 
-            self.print_ls.info(f"Success get file path: {file_path}")
+            self.print_ls.info(f"Success download file: {file_path}")
             return file_path
         except Exception as e:
             self.print_ls.error(f"Download file error: {e}")
