@@ -173,7 +173,7 @@ class ConfigEnv:
             if res is None or len(res) == 0:
                 break
             else:
-                message = "OK" if self.__validate_url__(res, value['protocol']) else "error not a url"
+                message = "OK" if res=='*' or self.__validate_url__(res, value['protocol']) else "error not a url"
                 print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
                       f"type:{'url'.ljust(10, ' ')} "
                       f"value:{res.ljust(25, ' ')} "
