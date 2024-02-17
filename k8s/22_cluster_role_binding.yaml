@@ -18,7 +18,7 @@
   subjects:
     - kind: ServiceAccount
       name: velero-api-sa
-      namespace: velero-api
+      namespace: velero-ui
   roleRef:
     kind: ClusterRole
     name: velero-management-role

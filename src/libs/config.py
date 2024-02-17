@@ -449,10 +449,9 @@ class ConfigEnv:
 
         return limiter
 
-    @staticmethod
-    def get_env_variables():
+    def get_env_variables(self):
         if os.getenv('K8S_IN_CLUSTER_MODE').lower() == 'true':
-            kv = k8s.get_config_map()
+            kv = k8s.get_config_map(namespace=self.get_k8s_velero_ui_namespace())
             return kv
         else:
             data = dotenv_values(find_dotenv())
@@ -480,6 +479,24 @@ class ConfigEnv:
     @staticmethod
     def get_k8s_velero_namespace():
         return os.getenv('K8S_VELERO_NAMESPACE', 'velero')
+
+    @staticmethod
+    def get_k8s_velero_ui_namespace():
+        return os.getenv('K8S_VELERO_UI_NAMESPACE', 'velero-ui')
+
+    @staticmethod
+    def get_developer_mode():
+        res = os.getenv('DEVELOPER_MODE', 'false')
+        if res.lower() == 'true':
+            return True
+        return False
+
+    @staticmethod
+    def developer_mode_skip_download():
+        res = os.getenv('SKIP_DOWNLOAD', 'false')
+        if res.lower() == 'true':
+            return True
+        return False
 
     @staticmethod
     def get_origins():

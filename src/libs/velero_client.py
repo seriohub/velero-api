@@ -4,7 +4,9 @@ import requests
 
 from helpers.handle_exceptions import handle_exceptions_instance_method
 from helpers.printer_helper import PrintHelper
+from libs.config import ConfigEnv
 
+config_app = ConfigEnv()
 
 # class syntax
 class VeleroClient:
@@ -47,6 +49,7 @@ class VeleroClient:
             with open(file_path, 'wb') as file:
                 file.write(response.content)
 
+            self.print_ls.debug(f"download url: {url}, save path:{file_path}")
             self.print_ls.info(f"Success download file: {file_path}")
             return file_path
         except Exception as e:
@@ -128,8 +131,9 @@ class VeleroClient:
             self.print_ls.info(f'destination folder: {self.destination_path}')
 
             if self.version != '' and self.arch != '':
-                url = f"https://github.com/vmware-tanzu/velero/releases/download/{self.version}/velero-{self.version}-linux-{self.arch}.tar.gz"
-                self.download_file(save_path=self.source_path + '/dl', url=url)
+                if not config_app.developer_mode_skip_download():
+                    url = f"https://github.com/vmware-tanzu/velero/releases/download/{self.version}/velero-{self.version}-linux-{self.arch}.tar.gz"
+                    self.download_file(save_path=self.source_path + '/dl', url=url)
 
             if not self.check_source_folder():
                 raise 'Source folder not exist'
