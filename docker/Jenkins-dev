@@ -49,7 +49,9 @@ pipeline {
 
                     // Build the Docker image, specifying the Dockerfile path
                     // sh "docker build --build-arg VERSION=dev --build-arg BUILD_DATE=${now.format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone('UTC'))} --target ${evTarget} -t ${dockerHubProject}:${GIT_TAG} -f ${dockerfilePath} ."
-                    sh "docker buildx create --use"
+                    sh "docker context create my-context"
+                    sh "docker context use my-context"
+                    sh "docker buildx create my-context --use"
                     sh "docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 --build-arg VERSION=dev --build-arg BUILD_DATE=${now.format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone('UTC'))} --target ${evTarget} -t ${dockerHubProject}:${GIT_TAG} -f ${dockerfilePath} ."
                 }
             }
