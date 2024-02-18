@@ -1,4 +1,6 @@
 import json
+import re
+
 from dotenv.main import dotenv_values
 from dotenv import load_dotenv, find_dotenv
 import os
@@ -35,6 +37,208 @@ class ConfigEnv:
     def __init__(self, debug=False):
         self.debug_on = debug
         load_dotenv()
+
+    @staticmethod
+    def __validate_rate_limiter__(input_str):
+        # Regular expression pattern to match the format "string:string:int:int"
+        pattern = re.compile(r'^[^:]+:[^:]+:\d+:\d+$')
+
+        # Check if the input string matches the pattern
+        if not re.match(pattern, input_str):
+            return False
+
+        # Split the input string by colon ':'
+        parts = input_str.split(':')
+
+        # Check if the string parts are not empty
+        if not all(parts[:2]):
+            return False
+
+        # Check if the integer parts are greater than 0
+        try:
+            int_parts = map(int, parts[2:])
+            if any(i <= 0 for i in int_parts):
+                return False
+        except ValueError:
+            return False
+
+        return True
+
+    @staticmethod
+    def __validate_url__(url, check_protocol=True):
+        protocol_part = "(?:(?:http|ftp)s?://)?" if not check_protocol else "(?:http|ftp)s?://"
+        # Regular expression for URL validation
+        regex = re.compile(
+            rf'^{protocol_part}'  # http:// or https:// or ftp:// optionally
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
+            r'localhost|'  # localhost...
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or IP
+            r'(?::\d+)?'  # optional port
+            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+
+        return re.match(regex, url) is not None
+
+    @staticmethod
+    def __is_valid_secret_key__(token):
+        # Check if the token consists only of hexadecimal characters
+        if all(c.isdigit() or c.lower() in 'abcdef' for c in token):
+            # Check if the length of the token is within the specified range
+            if 10 <= len(token) <= 90:
+                return True
+        return False
+
+    @staticmethod
+    def __is_path_exists__(path):
+        return os.path.exists(path)
+
+    @staticmethod
+    def __check_integer_sequence__(text):
+        # Regular expression pattern to match the format with integers greater than 0
+        pattern = re.compile(r'\b([1-9]\d*):([1-9]\d*)\b')
+
+        # Check if the pattern is found in the text
+        return bool(re.search(pattern, text))
+
+    @staticmethod
+    def __validate_env_variable__(env_var_name, var_type):
+        res = True
+        env_var_value = os.getenv(env_var_name)
+        message = ""
+
+        if env_var_value is None:
+            message = f"****error is not set"
+            return None, message
+
+        try:
+            if var_type == int:
+                value = int(env_var_value)
+                if value == 0:
+                    res = False
+                    message = f"****value (0) is not valid"
+                else:
+                    message = "OK"
+
+            elif var_type == float:
+                value = float(env_var_value)
+                message = "OK"
+
+            elif var_type == str:
+                value = str(env_var_value)
+                message = "OK"
+
+            elif var_type == bool:
+                message = 'OK' if env_var_value.lower() in ['true', '1', '0', 'false'] \
+                    else '****error cast value'
+
+            else:
+                res = False
+                message = "****error invalid type specified."
+
+        except ValueError:
+            res = False
+            message = f"****error cast value"
+        finally:
+            print(f"INFO      [Env validation] key: {env_var_name.ljust(35, ' ')} "
+                  f"type:{var_type.__name__.ljust(10, ' ')} "
+                  f"value:{env_var_value.ljust(25, ' ')} "
+                  f"validation:{message.upper()}")
+            return res
+
+    def validate_env_variables(self):
+        print(f"INFO      [Env validation] Check the validity all env variables")
+        block_exec = False
+        all_env = {'UNICORN_RELOAD': {'type': bool, 'is_mandatory': False},
+                   'CONTAINER_MODE': {'type': bool, 'is_mandatory': False},
+                   'K8S_IN_CLUSTER_MODE': {'type': bool, 'is_mandatory': False},
+                   'K8S_VELERO_NAMESPACE': {'type': str, 'is_mandatory': False},
+                   'API_ENDPOINT_PORT': {'type': int, 'is_mandatory': True},
+                   'API_ENABLE_DOCUMENTATION': {'type': int, 'is_mandatory': True},
+                   'API_TOKEN_EXPIRATION_MIN': {'type': int, 'is_mandatory': True},
+                   'SECURITY_DISABLE_USERS_PWD_RATE': {'type': bool, 'is_mandatory': False},
+                   'LIMIT_CONCURRENCY': {'type': int, 'is_mandatory': False}}
+
+        for key, value in all_env.items():
+            res = self.__validate_env_variable__(key, value['type'])
+            if not res and value['is_mandatory']:
+                block_exec = True
+
+        # init the dict for url keys
+        urls = {'API_ENDPOINT_URL': {'protocol': False}}
+        # origins
+        for x in range(1, 100, 1):
+            urls[f'ORIGINS_{x}'] = {'protocol': True}
+
+        for key, value in urls.items():
+            res = os.getenv(key, None)
+            if res is None or len(res) == 0:
+                break
+            else:
+                message = "OK" if res=='*' or self.__validate_url__(res, value['protocol']) else "error not a url"
+                print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+                      f"type:{'url'.ljust(10, ' ')} "
+                      f"value:{res.ljust(25, ' ')} "
+                      f"validation:{message.upper()}")
+                if message != "OK":
+                    block_exec = True
+
+        key = 'SECURITY_TOKEN_KEY'
+        value = os.getenv(key, None)
+        message = "OK" if self.__is_valid_secret_key__(value) else "error not a valid secret key"
+        print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+              f"type:{'url'.ljust(10, ' ')} "
+              f"value:{value[:25].ljust(25, ' ')} "
+              f"validation:{message.upper()}")
+        if message != "OK":
+            block_exec = True
+
+        paths = ['VELERO_CLI_PATH',
+                 'VELERO_CLI_DEST_PATH',
+                 'SECURITY_PATH_DATABASE',
+                 'VELERO_CLI_PATH']
+        for key in paths:
+            value = os.getenv(key, None)
+            res = self.__is_path_exists__(value)
+            print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+                  f"type:{'path'.ljust(10, ' ')} "
+                  f"value:{value[:25].ljust(25, ' ')} "
+                  f"validation:{message.upper()}")
+            if not res:
+                block_exec = True
+
+        key = 'API_RATE_LIMITER_L1'
+        value = os.getenv(key, None)
+        message = "OK" if self.__check_integer_sequence__(value) else "error not a valid rate limiter sequence"
+        print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+              f"type:{'complex'.ljust(10, ' ')} "
+              f"value:{value[:25].ljust(25, ' ')} "
+              f"validation:{message.upper()}")
+        if message != "OK":
+            block_exec = True
+
+        # init the dict for rate limiter rules
+        rate_limiters = []
+        # origins
+        for x in range(1, 100, 1):
+            rate_limiters.append(f'API_RATE_LIMITER_CUSTOM_{x}')
+
+        for key in rate_limiters:
+            res = os.getenv(key, None)
+            if res is None or len(res) == 0:
+                break
+            else:
+                message = "OK" if self.__validate_rate_limiter__(res) else "error not a valid rate limiter "
+                print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+                      f"type:{'complex'.ljust(10, ' ')} "
+                      f"value:{res.ljust(25, ' ')} "
+                      f"validation:{message.upper()}")
+                if message != "OK":
+                    block_exec = True
+
+        print(f"INFO      [Env validation] Mandatory env variables set: {not block_exec}")
+        if block_exec:
+            print(f"INFO      [Env validation] !!!Warning:The application can not start. Try to update the keys in "
+                  f"errors and restart the program.")
+        return block_exec
 
     @handle_exceptions_instance_method
     def load_key(self, key, default, print_out: bool = True, mask_value: bool = False):
@@ -201,9 +405,9 @@ class ConfigEnv:
     @staticmethod
     def get_api_disable_documentation():
         res = os.getenv('API_ENABLE_DOCUMENTATION', '0')
-        if len(res) == 0:
-            res = '0'
-        return int(res)
+        if res == '0':
+            return False
+        return True
 
     @staticmethod
     def get_api_limiter(path_to_load):
@@ -245,10 +449,9 @@ class ConfigEnv:
 
         return limiter
 
-    @staticmethod
-    def get_env_variables():
+    def get_env_variables(self):
         if os.getenv('K8S_IN_CLUSTER_MODE').lower() == 'true':
-            kv = k8s.get_config_map()
+            kv = k8s.get_config_map(namespace=self.get_k8s_velero_ui_namespace())
             return kv
         else:
             data = dotenv_values(find_dotenv())
@@ -272,3 +475,36 @@ class ConfigEnv:
     @staticmethod
     def get_admin_email():
         return os.getenv('ADMIN_EMAIL', 'not set')
+
+    @staticmethod
+    def get_k8s_velero_namespace():
+        return os.getenv('K8S_VELERO_NAMESPACE', 'velero')
+
+    @staticmethod
+    def get_k8s_velero_ui_namespace():
+        return os.getenv('K8S_VELERO_UI_NAMESPACE', 'velero-ui')
+
+    @staticmethod
+    def get_developer_mode():
+        res = os.getenv('DEVELOPER_MODE', 'false')
+        if res.lower() == 'true':
+            return True
+        return False
+
+    @staticmethod
+    def developer_mode_skip_download():
+        res = os.getenv('SKIP_DOWNLOAD', 'false')
+        if res.lower() == 'true':
+            return True
+        return False
+
+    @staticmethod
+    def get_origins():
+        origins = []
+        for x in range(1, 100, 1):
+            res = os.getenv(f'ORIGINS_{x}', None)
+            if res is None or len(res) == 0:
+                break
+            else:
+                origins.append(res)
+        return origins

@@ -46,10 +46,10 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Docker Image and Push Image to Registry') {
             steps {
                 script {
-                    echo 'Build Docker Image...'
+                    echo 'Build Docker Image and Push Image to Registry'
 
                     // Path to your Dockerfile within the project directory
                     def dockerfilePath = 'docker/Dockerfile'
@@ -57,15 +57,6 @@ pipeline {
 
                     def now=new Date()
 
-                    // Build the Docker image, specifying the Dockerfile path
-                    sh "docker build --build-arg VERSION=${GIT_TAG} --build-arg BUILD_DATE=${now.format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone('UTC'))} --target ${evTarget} -t ${dockerHubProject}:${GIT_TAG} -t ${dockerHubProject}:latest  -f ${dockerfilePath} ."
-                }
-            }
-        }
-
-        stage('Push Docker Image to Registry') {
-            steps {
-                script {
                     echo "Docker registry: ${evDocker_HUB}"
                     def pushTo = ''
                     if (evDocker_HUB != null) {
@@ -84,10 +75,10 @@ pipeline {
                         }
                     }
 
-                    echo "Docker push to:- ${dockerImageName} -"
-                    sh "docker push ${dockerImageName}:${GIT_TAG}"
-                    sh "docker push ${dockerImageName}:latest"
-                    sh 'docker logout '
+                    echo "Build Docker Image ${dockerImageName} -"
+                    sh "docker context use my-context"
+                    sh "docker buildx build --platform linux/amd64,linux/arm64 --build-arg VERSION=dev --build-arg BUILD_DATE=${now.format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone('UTC'))} --target ${evTarget} -t ${dockerHubProject}:${GIT_TAG} -t ${dockerImageName}:latest-f ${dockerfilePath} --push ."
+                    sh 'docker logout'
                 }
             }
         }

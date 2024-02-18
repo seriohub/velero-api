@@ -19,7 +19,7 @@ from typing import List, Optional
 from libs.security.dependencies import pwd_context
 from helpers.database import GUID
 
-print_ls = PrintHelper('lib.users')
+print_ls = PrintHelper('[lib.users]')
 config_app = ConfigEnv()
 disable_password_rate = config_app.get_security_disable_pwd_rate()
 secret_key = config_app.get_security_token_key()

@@ -5,36 +5,13 @@ import configparser
 from kubernetes import client, config
 from dotenv import load_dotenv
 
-from connection_manager import manager
 from helpers.commons import *
 from helpers.handle_exceptions import *
 from datetime import datetime
-from fastapi.responses import JSONResponse
+
 
 load_dotenv()
 
-
-# def trace_k8s_async_method(fn, description=None):
-#     @wraps(fn)
-#     async def wrapper(*args, **kw):
-#         message = f"k8s command {fn.__name__} {description}"
-#         print(message)
-#         await manager.broadcast(message)
-#         return await fn(*args, **kw)
-#
-#     return wrapper
-# def trace_k8s_async_method(description):
-#     def decorator(fn):
-#         @wraps(fn)
-#         async def wrapper(*args, **kw):
-#             message = f"k8s {description}"
-#             print(message)
-#             await manager.broadcast(message)
-#             return await fn(*args, **kw)
-#
-#         return wrapper
-#
-#     return decorator
 
 class K8s:
 
@@ -304,13 +281,13 @@ class K8s:
     async def get_k8s_storage_classes(self):
         return self.__get_storage_classes__()
 
-    def get_config_map(self):
+    def get_config_map(self, namespace):
         # Create a Kubernetes API client
         core_api = self.v1
 
         # Specify the namespace and the name of the ConfigMap you want to read
-        namespace = 'velero-api'
-        configmap_name = 'velero-api-env'
+        # namespace = app_config.get_k8s_velero_ui_namespace()
+        configmap_name = 'velero-api-config'
 
         try:
             # Retrieve the ConfigMap

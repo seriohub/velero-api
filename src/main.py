@@ -1,16 +1,23 @@
 import uvicorn
+import asyncio
 from utils.app_data import __version__, __app_name__
 
-from libs.binary_velero_client import BinaryVeleroClient
+from libs.utils import Utils
+from libs.velero_client import VeleroClient
 
 from helpers.printer_helper import PrintHelper
 from libs.config import ConfigEnv
 
-print_ls = PrintHelper('main')
+print_ls = PrintHelper('[main]')
 print_ls.info('start')
 
 print_ls.info('load config')
 config_app = ConfigEnv()
+utils = Utils()
+
+if config_app.validate_env_variables():
+    exit(200)
+
 
 # server setting
 k8s_in_cluster_mode = config_app.k8s_in_cluster_mode()
@@ -35,9 +42,10 @@ if k8s_in_cluster_mode:
 
 # Prepare environment
 if k8s_in_cluster_mode or is_in_container_mode:
-    clCLI_version = BinaryVeleroClient(velero_cli_source,
-                                       velero_cli_destination,
-                                       velero_cli_version)
+    VeleroClient(source_path=velero_cli_source,
+                 destination_path=velero_cli_destination,
+                 arch=asyncio.run(utils.identify_architecture(json_response=False)),
+                 version=velero_cli_version)
 
 
 if __name__ == '__main__':

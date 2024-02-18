@@ -4,17 +4,22 @@ from fastapi import Request
 from helpers.commons import route_description
 from helpers.handle_exceptions import *
 from helpers.printer_helper import PrintHelper
+
 from libs.restore import Restore
 from libs.security.rate_limiter import RateLimiter, LimiterRequests
 
 router = APIRouter()
 restore = Restore()
-print_ls = PrintHelper('routes.restore_v1')
+print_ls = PrintHelper('[routes.restore]')
+
+
 tag_name = 'Restore'
 endpoint_limiter = LimiterRequests(debug=False,
                                    printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')
+
+
 limiter = endpoint_limiter.get_limiter_cust("restore_get")
 route = '/restore/get'
 

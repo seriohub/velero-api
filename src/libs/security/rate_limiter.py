@@ -61,7 +61,7 @@ class RateLimiter:
                  max_requests: int = 10
                  ):
         self.rate_limits = {}
-        self.print_ls = PrintHelper('rateLimiter')
+        self.print_ls = PrintHelper('[rateLimiter]')
         self.info = info
         self.debug = debug
         self.ip_client = IpClient(debug, info)

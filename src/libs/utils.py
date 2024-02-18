@@ -1,6 +1,6 @@
 import re
 from fastapi.responses import JSONResponse
-
+import platform
 from libs.backup import Backup
 from libs.config import ConfigEnv
 from libs.restore import Restore
@@ -9,6 +9,7 @@ from libs.k8s import K8s
 from libs.process import *
 
 from helpers.handle_exceptions import *
+from helpers.json_response import *
 
 
 backup = Backup()
@@ -156,7 +157,7 @@ class Utils:
             item['id'] = i + 1
             i += 1
 
-        res2 = {'data': {'payload': res}}
+        res2 = {'data': res}
         return JSONResponse(content=res2, status_code=201, headers={'X-Custom-Header': 'header-value'})
 
     @handle_exceptions_instance_method
@@ -200,3 +201,38 @@ class Utils:
         res = {'payload': env_data}
 
         return JSONResponse(content={'data': res}, status_code=201, headers={'X-Custom-Header': 'header-value'})
+
+    @handle_exceptions_async_method
+    async def get_origins(self):
+        env_data = config_app.get_origins()
+        res = {'payload': env_data}
+
+        return JSONResponse(content={'data': env_data}, status_code=200)
+
+    @handle_exceptions_async_method
+    async def identify_architecture(self, json_response=True):
+        architecture = platform.machine()
+
+        identify = False
+        if architecture == 'AMD64' or architecture == 'x86_64':
+            identify = True
+            arch = 'amd64'
+        elif architecture.startswith('arm'):
+            identify = True
+            arch = 'arm'
+        elif architecture.startswith('aarch64'):
+            identify = True
+            arch = 'arm64'
+        else:
+            arch = 'Error: Unsupported architecture'
+
+        if not json_response:
+            return arch
+
+        response = SuccessfulRequest()
+        response.data = {
+            'arch': arch,
+        }
+        if not identify:
+            response.data['platform'] = platform.machine()
+        return JSONResponse(content=response.toJSON(), status_code=200)

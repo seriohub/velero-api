@@ -35,7 +35,7 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        /*stage('Build Docker Image') {
             steps {
                 script {
                     echo 'Build Docker Image...'
@@ -48,14 +48,25 @@ pipeline {
                     def now=new Date()
 
                     // Build the Docker image, specifying the Dockerfile path
-                    sh "docker build --build-arg VERSION=dev --build-arg BUILD_DATE=${now.format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone('UTC'))} --target ${evTarget} -t ${dockerHubProject}:${GIT_TAG} -f ${dockerfilePath} ."
+                    // sh "docker build --build-arg VERSION=dev --build-arg BUILD_DATE=${now.format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone('UTC'))} --target ${evTarget} -t ${dockerHubProject}:${GIT_TAG} -f ${dockerfilePath} ."
+                    // sh "docker context create my-context"
+                    sh "docker context use my-context"
+                    sh "docker buildx build --platform linux/amd64,linux/arm64 --build-arg VERSION=dev --build-arg BUILD_DATE=${now.format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone('UTC'))} --target ${evTarget} -t ${dockerHubProject}:${GIT_TAG} -f ${dockerfilePath} ."
                 }
             }
-        }
+        }*/
 
-        stage('Push Docker Image to Registry') {
+        stage('Build Docker Image and Push Image to Registry') {
             steps {
                 script {
+                    echo 'Build Docker Image and Push Image to Registry'
+
+                    def dockerfilePath = 'docker/Dockerfile'
+                    def dockerHubProject = "${evDocker_Project}/${evTarget}"
+
+                    GIT_TAG = 'dev'
+                    def now=new Date()
+
                     echo "Docker registry: ${evDocker_HUB}"
                     def pushTo = ''
                     if (evDocker_HUB != null) {
@@ -74,10 +85,10 @@ pipeline {
                         }
                     }
 
-                    echo "Docker push to:- ${dockerImageName} -"
-                    sh "docker push ${dockerImageName}:${GIT_TAG}"
-                    // sh "docker push ${dockerImageName}:latest"
-                    sh 'docker logout '
+                    echo "Build Docker Image ${dockerImageName} -"
+                    sh "docker context use my-context"
+                    sh "docker buildx build --platform linux/amd64,linux/arm64 --build-arg VERSION=dev --build-arg BUILD_DATE=${now.format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone('UTC'))} --target ${evTarget} -t ${dockerHubProject}:${GIT_TAG} -f ${dockerfilePath} --push ."
+                    sh 'docker logout'
                 }
             }
         }
@@ -117,3 +128,4 @@ pipeline {
         }
     }
 }
+

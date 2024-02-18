@@ -13,17 +13,18 @@ router = APIRouter()
 rate_limiter = RateLimiter()
 schedule = Schedule()
 backup = Backup()
+print_ls = PrintHelper('[routes.schedule]')
 
-print_ls = PrintHelper('routes.schedule_v1')
+
 tag_name = 'Schedule'
 endpoint_limiter = LimiterRequests(debug=False,
                                    printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')
+
+
 limiter = endpoint_limiter.get_limiter_cust('schedule_get')
 route = '/schedule/get'
-
-
 @router.get(path=route,
             tags=[tag_name],
             summary='Get schedules details',
@@ -40,8 +41,6 @@ async def schedule_get():
 
 limiter_cs = endpoint_limiter.get_limiter_cust('schedule_create_settings')
 route = '/schedule/create/settings'
-
-
 @router.get(path=route,
             tags=[tag_name],
             summary='Create a new setting for schedule',
@@ -58,8 +57,6 @@ async def get_settings_create():
 
 limiter_c = endpoint_limiter.get_limiter_cust('schedule_create')
 route = '/schedule/create'
-
-
 @router.post(path=route,
              tags=[tag_name],
              summary='Create a new schedule',
@@ -78,8 +75,6 @@ async def create(info: Request):
 
 limiter_des = endpoint_limiter.get_limiter_cust('schedule_describe')
 route = '/schedule/describe'
-
-
 @router.get(path=route,
             tags=[tag_name],
             summary='Get details for a schedule',
@@ -96,8 +91,6 @@ async def schedule_describe(resource_name=None):
 
 limiter_up = endpoint_limiter.get_limiter_cust('schedule_unpause')
 route = '/schedule/unpause'
-
-
 @router.get(path=route,
             tags=[tag_name],
             summary='Set unpause a schedule',
@@ -114,8 +107,6 @@ async def schedule_describe(resource_name=None):
 
 limiter_p = endpoint_limiter.get_limiter_cust('schedule_pause')
 route = '/schedule/pause'
-
-
 @router.get(path=route,
             tags=[tag_name],
             summary='Set in pause aschedule',
@@ -132,8 +123,6 @@ async def schedule_describe(resource_name=None):
 
 limiter_delete = endpoint_limiter.get_limiter_cust('schedule_delete')
 route = '/schedule/delete'
-
-
 @router.get(path=route,
             tags=[tag_name],
             summary='Delete a schedule',
@@ -150,8 +139,6 @@ async def schedule_delete(resource_name=None):
 
 limiter_update = endpoint_limiter.get_limiter_cust('schedule_update')
 route = '/schedule/update'
-
-
 @router.post(path=route,
              tags=[tag_name],
              summary='Create a schedule',

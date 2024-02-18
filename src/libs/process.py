@@ -3,6 +3,7 @@ import subprocess
 from fastapi import WebSocketDisconnect
 
 from connection_manager import *
+from helpers.json_response import *
 
 
 @handle_exceptions_async_method
@@ -29,20 +30,21 @@ async def run_process_check_output(cmd, publish_message=True, cwd= './'):
         return {'data': output}
     except subprocess.CalledProcessError as e:
         error_message = e.stderr.decode('utf-8').strip()
-        return {'error': {'title': 'Error',
-                          'description': error_message}
-                }
+        err = FailedRequest()
+        err.error['title'] = "Error"
+        err.error['description'] = f"{error_message}"
+        return {'error': err}
 
 
 @handle_exceptions_async_method
 async def run_process_check_call(cmd, publish_message=True):
     try:
-        print(cmd)
         if publish_message:
             await send_message(' '.join(cmd))
         subprocess.check_call(cmd)
         return {'data': 'done'}
     except Exception as e:
-        return {'error': {'title': 'Error',
-                          'description': f"{str(e)} - {'.'.join(cmd)}"}
-                }
+        err = FailedRequest()
+        err.error.title = "Error"
+        err.error.description = f"{str(e)} - {'.'.join(cmd)}"
+        return {'error': err}

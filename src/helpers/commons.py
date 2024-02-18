@@ -141,7 +141,7 @@ def add_id_to_list(my_list):
 
 def extract_path(log_string):
     # Define a regular expression pattern to match the path
-    path_pattern = r'/mnt/data/[^ ]+\.tar\.gz'
+    path_pattern = r'/[^ ]+\.tar\.gz'
 
     # Use re.search to find the first match in the string
     match = re.search(path_pattern, log_string)
