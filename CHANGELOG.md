@@ -1,7 +1,17 @@
-# Change Log
+# Changelog
+
 All notable changes to this project will be documented in this file.
 
 ***
+
+## [v0.1.3] - 2024-02-17
+
+- Added diagnostic feature
+- Added environment variable validation feature
+- Added velero client download feature based on environment variable
+- Added arm64 support
+- Some improvements
+- Fix minor bug
 
 ## [v0.1.2] - 2024-02-12
 
@@ -17,6 +27,8 @@ All notable changes to this project will be documented in this file.
 - 🎉 first release!
 
 ***
+
+[v0.1.3] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.3](https://github.com/seriohub/velero-api/releases/tag/v0.1.3)
 
 [v0.1.2] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.2](https://github.com/seriohub/velero-api/releases/tag/v0.1.2)
 
