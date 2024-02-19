@@ -1,5 +1,8 @@
 import os
+import sys
 import tarfile
+import traceback
+
 import requests
 
 from helpers.handle_exceptions import handle_exceptions_instance_method
@@ -35,28 +38,49 @@ class VeleroClient:
 
     def download_file(self, url, save_path):
         try:
-            # Effettua la richiesta per ottenere il contenuto del file
-            response = requests.get(url)
-            response.raise_for_status()  # Solleva un'eccezione se la richiesta non ha successo
 
-            # Ottieni il nome del file dall'URL
+            # Make the request to obtain the contents of the file
+            response = requests.get(url)
+            response.raise_for_status()  # Raises an exception if the request is unsuccessful
+
+            self.print_ls.debug(f"Download url request successful")
+
+            # Get file name from URL
             file_name = os.path.basename(url)
 
-            # Unisci il nome del file al percorso di salvataggio
+            # Merge file name with save path
             file_path = os.path.join(save_path, file_name)
 
-            # Scrivi il contenuto del file
+            # Write the content in the file
             with open(file_path, 'wb') as file:
                 file.write(response.content)
 
-            self.print_ls.debug(f"download url: {url}, save path:{file_path}")
+            self.print_ls.debug(f"Download url: {url}, save path:{file_path}")
             self.print_ls.info(f"Success download file: {file_path}")
             return file_path
+
+        # LS 2024.02.19 handles different type of errors
+        except requests.exceptions.ConnectionError as ce:
+            # Handle connection errors (e.g., connection refused)
+            self.print_ls.error(f"Download file error. Connection refused. "
+                                f"Make sure the server is reachable and the URL is correct. error: {ce}")
+            return None
+        except (OSError, PermissionError) as ose:
+            # Handle errors related to lack of internet access permissions
+            self.print_ls.error(f"Download file error. "
+                                f"Error: Lack of internet access permissions. "
+                                f"Check your network settings. error {ose} ")
+            return None
+        except requests.exceptions.RequestException as re:
+            # Handle other types of exceptions
+            self.print_ls.error(f"Download file error. An error occurred: {re}")
+            return None
         except Exception as e:
             self.print_ls.error(f"Download file error: {e}")
             return None
 
-    @handle_exceptions_instance_method
+    # LS 2024.02.19 add to comment handle exceptions
+    # @handle_exceptions_instance_method
     def __get_file(self, source_path):
         try:
             files = [file for file in os.listdir(source_path) if file.endswith(self.extension)]
@@ -123,7 +147,8 @@ class VeleroClient:
             self.print_ls.error(f"Error occurred while extracting '{source_tarball}': {e}")
             return False
 
-    @handle_exceptions_instance_method
+    # LS 2024.02.19 add to comment handle exceptions
+    # @handle_exceptions_instance_method
     def init_velero_cli(self):
         try:
             self.print_ls.info(f'architecture: {self.arch}, client-version:{self.version}')
@@ -134,12 +159,14 @@ class VeleroClient:
                 if not config_app.developer_mode_skip_download():
                     url = f"https://github.com/vmware-tanzu/velero/releases/download/{self.version}/velero-{self.version}-linux-{self.arch}.tar.gz"
                     self.download_file(save_path=self.source_path + '/dl', url=url)
+                else:
+                    self.print_ls.info(f'developer mode- download skipped')
 
             if not self.check_source_folder():
-                raise 'Source folder not exist'
+                raise RuntimeError('Source folder not exist')
 
             if not self.check_destination_folder():
-                raise 'Destination folder not exist'
+                raise RuntimeError('Destination folder not exist')
 
             file_to_extract = self.__get_file(source_path=self.source_path + '/dl')
             if file_to_extract is None:
@@ -149,15 +176,22 @@ class VeleroClient:
 
             if file_to_extract is None:
                 self.print_ls.error(f"No valid (None) tarball file.")
-                raise f"No valid (None) tarball file."
+                raise RuntimeError(f"No valid (None) tarball file.")
             else:
                 self.print_ls.info(f'file :{file_to_extract}')
 
                 ret = self.__extract_tarball__(file_to_extract, self.destination_path)
                 self.print_ls.info(f'Result from init velero-cli-version :{ret}')
                 if not ret:
-                    raise "Error extract velero"
-
+                    raise RuntimeError("Error extract velero")
+        # LS 2024.02.19 more detailed error exception
         except Exception as Ex:
-            print(Ex)
+            self.print_ls.error(f"Init velero client failed.")
+            _, _, tb = sys.exc_info()
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            message = ('E=%s, F=%s, L=%s' %
+                       (str(Ex), traceback.extract_tb(exc_tb)[-1][0], traceback.extract_tb(exc_tb)[-1][1]))
+
+            self.print_ls.error(f"{message}")
+            self.print_ls.error(f"an forced exit code(100) is called")
             exit(100)

@@ -40,8 +40,12 @@ if k8s_in_cluster_mode:
     print_ls.info(f"velero client source .tar.gz :{velero_cli_source}")
     print_ls.info(f"velero client destination :{velero_cli_destination}")
 
+# LS 2024.02.19 add test variable
+# use only for test the env init on develop environment
+test_env = False
+
 # Prepare environment
-if k8s_in_cluster_mode or is_in_container_mode:
+if k8s_in_cluster_mode or is_in_container_mode or test_env:
     VeleroClient(source_path=velero_cli_source,
                  destination_path=velero_cli_destination,
                  arch=asyncio.run(utils.identify_architecture(json_response=False)),
