@@ -1,11 +1,11 @@
-FROM python:3.10 as velero-api
+FROM python:3.10 as velero-api-base
 LABEL maintainer="DS"
 
-ARG VERSION
-ARG BUILD_DATE
-
-ENV BUILD_VERSION=$VERSION
-ENV BUILD_DATE=$BUILD_DATE
+# ARG VERSION
+# ARG BUILD_DATE
+#
+# ENV BUILD_VERSION=$VERSION
+# ENV BUILD_DATE=$BUILD_DATE
 
 # Update packages and install basics
 RUN apt-get update && apt-get install -y \
@@ -58,3 +58,10 @@ VOLUME /app/data
 WORKDIR /app/
 RUN echo "Ready!"
 CMD ["python3", "-u" , "main.py"]
+
+FROM velero-api-base as velero-api
+ARG VERSION
+ARG BUILD_DATE
+
+ENV BUILD_VERSION=$VERSION
+ENV BUILD_DATE=$BUILD_DATE
