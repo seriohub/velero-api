@@ -88,7 +88,7 @@ pipeline {
                     echo "Build Docker Image ${dockerImageName} -"
                     // sh "docker context use my-context"
                     sh "docker buildx use multi-arch-2"
-                    sh "docker buildx build --platform linux/amd64,linux/arm64 --cache-from=type=local,src=/buildx-cache --cache-to=type=local,dest=/buildx-cache --build-arg VERSION=dev --build-arg BUILD_DATE=${now.format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone('UTC'))} --target ${evTarget} -t ${dockerHubProject}:${GIT_TAG} -f ${dockerfilePath} --push ."
+                    sh "docker buildx build --platform linux/amd64,linux/arm64 --cache-from=type=local,src=/buildx-cache/api --cache-to=type=local,mode=max,dest=/buildx-cache/api --build-arg VERSION=dev --build-arg BUILD_DATE=${now.format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone('UTC'))} --target ${evTarget} -t ${dockerHubProject}:${GIT_TAG} -f ${dockerfilePath} --push ."
                     sh 'docker logout'
                 }
             }
