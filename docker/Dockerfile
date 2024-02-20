@@ -18,12 +18,6 @@ RUN apt-get -y install python3-pip
 
 RUN pip install --upgrade pip
 
-RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
-RUN chmod +x ./kubectl
-RUN mv ./kubectl /usr/local/bin
-
-
-
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 
@@ -44,7 +38,12 @@ RUN find . -type f -name "*.db" -exec rm -f {} +
 RUN find . -type f -name "__pycache__" -exec rm -rf {} +
 RUN find . -type f -name "*.env" -exec rm -f {} +
 
-#RUN rm -rf /app/tmp /app/__pycache__
+# RUN rm -rf /app/tmp /app/__pycache__
+
+# install kubectl
+RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+RUN chmod +x ./kubectl
+RUN mv ./kubectl /usr/local/bin
 
 RUN mkdir /app/data
 
