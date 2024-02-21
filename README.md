@@ -57,7 +57,7 @@ Set VELERO_CLI_VERSION as the following example: v1.12.2
 
    The default rate limiter is defined by the key **API_RATE_LIMITER_L1**
 
-   To find out all the endpoints exposed by the API project, you can use the Swagger UI documentation **< API IP address >/docs**.
+   To find out all the endpoints exposed by the API project, you can use the Swagger UI documentation **< API IP address >/api/v1/docs**.
 
    >   [!WARNING]  
    If you disable the api documentation (API_ENABLE_DOCUMENTATION key), you are not able to reach the endpoint /docs.
