@@ -33,7 +33,8 @@ class SCMapping:
             data = {}
             # Get the ConfigMap
             try:
-                config_map = core_v1.read_namespaced_config_map(name=config_map_name, namespace=namespace)# Extract data from the ConfigMap
+                config_map = core_v1.read_namespaced_config_map(name=config_map_name,
+                                                                namespace=namespace)  # Extract data from the ConfigMap
                 data = config_map.data or {}
             except ApiException as e:
                 if e.status == 404:
@@ -71,7 +72,7 @@ class SCMapping:
     @handle_exceptions_instance_method
     @trace_k8s_async_method(description="Set storage class map")
     async def set_storages_classes_map(self,
-                                       namespace='velero',
+                                       namespace=os.getenv('K8S_VELERO_NAMESPACE', 'velero'),
                                        config_map_name='change-storage-classes-config',
                                        data_list=None):
         if data_list is None:
@@ -150,12 +151,13 @@ class SCMapping:
             config_map = await self.get_storages_classes_map(json_response=False)
             for item in config_map:
                 item.pop('id', None)
-                if item['oldStorageClass'] == data_list['oldStorageClass'] and item['newStorageClass'] == data_list['newStorageClass']:
+                if item['oldStorageClass'] == data_list['oldStorageClass'] and item['newStorageClass'] == data_list[
+                    'newStorageClass']:
                     config_map.remove(item)
 
             await self.set_storages_classes_map(data_list=config_map)
             return {'messages': [{'title': 'Storage Class Mapping',
-                                           'description': f"Done!",
-                                           'type': 'info'
-                                           }]
-                                }
+                                  'description': f"Done!",
+                                  'type': 'info'
+                                  }]
+                    }

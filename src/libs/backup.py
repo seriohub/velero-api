@@ -219,7 +219,8 @@ class Backup:
         api_instance = self.client_custom_objects_api
 
         # params
-        namespace = 'velero'
+        #  update fix 'velero' with env variable
+        namespace = config_app.get_k8s_velero_namespace()
         resource = 'backups'
 
         # get backup object
@@ -261,7 +262,10 @@ class Backup:
         api_instance = self.client_custom_objects_api
 
         # params
-        namespace = 'velero'
+        # LS 2024.02.21 update fix 'velero' with env variable
+        # namespace = 'velero'
+        namespace = config_app.get_k8s_velero_namespace()
+
         resource = 'backups'
 
         # get backup object
