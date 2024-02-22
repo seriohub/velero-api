@@ -312,8 +312,10 @@ class Backup:
         if os.path.exists(path):
             shutil.rmtree(path)
 
-        # download all kubenretes manifests for a backup
-        cmd = ['velero', 'backup', 'download', backup_name]
+        # download all kubernetes manifests for a backup
+        cmd = ['velero', 'backup', 'download', backup_name,
+               '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')]
+
         output = await run_process_check_output(cmd, cwd=tmp_folder)
         if 'error' in output:
             return output
