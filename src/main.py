@@ -29,6 +29,8 @@ log_level = config_app.logger_level()
 velero_cli_version = config_app.get_velero_version()
 velero_cli_source = config_app.get_velero_version_folder()
 velero_cli_destination = config_app.get_velero_dest_folder()
+# LS 2024.02.22 add custom folder
+velero_cli_source_custom = config_app.get_velero_version_custom_folder()
 
 app_reload = config_app.uvicorn_reload_update()
 print_ls.info(f"start :{__app_name__} -version={__version__}")
@@ -42,11 +44,12 @@ if k8s_in_cluster_mode:
 
 # LS 2024.02.19 add test variable
 # use only for test the env init on develop environment
-test_env = False
+test_env = config_app.developer_mode_skip_download()
 
 # Prepare environment
 if k8s_in_cluster_mode or is_in_container_mode or test_env:
     VeleroClient(source_path=velero_cli_source,
+                 source_path_user=velero_cli_source_custom,
                  destination_path=velero_cli_destination,
                  arch=asyncio.run(utils.identify_architecture(json_response=False)),
                  version=velero_cli_version)

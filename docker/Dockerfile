@@ -50,10 +50,15 @@ RUN mkdir /app/data
 RUN mkdir /app/velero-client
 COPY ../velero-client /app/velero-client
 
+RUN mkdir /app/velero-client-binary
+
 # expose port
 EXPOSE 8001
 # Expose a volume the database
 VOLUME /app/data
+
+# Expose a volume for custom binary download
+VOLUME /app/velero-client-binary
 
 WORKDIR /app/
 RUN echo "Ready!"

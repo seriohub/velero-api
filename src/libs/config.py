@@ -173,7 +173,7 @@ class ConfigEnv:
             if res is None or len(res) == 0:
                 break
             else:
-                message = "OK" if res=='*' or self.__validate_url__(res, value['protocol']) else "error not a url"
+                message = "OK" if res == '*' or self.__validate_url__(res, value['protocol']) else "error not a url"
                 print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
                       f"type:{'url'.ljust(10, ' ')} "
                       f"value:{res.ljust(25, ' ')} "
@@ -196,14 +196,33 @@ class ConfigEnv:
                  'SECURITY_PATH_DATABASE',
                  'VELERO_CLI_PATH']
         for key in paths:
+            res = None
             value = os.getenv(key, None)
-            res = self.__is_path_exists__(value)
+            if value is not None:
+                res = self.__is_path_exists__(value)
+            else:
+                value = ""
+            message = "OK" if res is not None else "not valid path"
             print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
                   f"type:{'path'.ljust(10, ' ')} "
                   f"value:{value[:25].ljust(25, ' ')} "
                   f"validation:{message.upper()}")
             if not res:
                 block_exec = True
+
+        # LS 2024.02.22 custom folder (not mandatory)
+        key = 'VELERO_CLI_PATH_CUSTOM'
+        value = os.getenv(key, None)
+        res = None
+        if value is not None:
+            res = self.__is_path_exists__(value)
+        else:
+            value = ""
+        message = "OK" if res is not None else "not valid path"
+        print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+              f"type:{'path'.ljust(10, ' ')} "
+              f"value:{value[:25].ljust(25, ' ')} "
+              f"validation:{message.upper()}")
 
         key = 'API_RATE_LIMITER_L1'
         value = os.getenv(key, None)
@@ -359,6 +378,10 @@ class ConfigEnv:
     @handle_exceptions_instance_method
     def get_velero_version_folder(self):
         return self.load_key('VELERO_CLI_PATH', '/velero-client')
+
+    @handle_exceptions_instance_method
+    def get_velero_version_custom_folder(self):
+        return self.load_key('VELERO_CLI_PATH_CUSTOM', None)
 
     @handle_exceptions_instance_method
     def get_velero_dest_folder(self):

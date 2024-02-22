@@ -25,6 +25,7 @@ This Python project, developed as a backend for [Velero-UI](https://github.com/s
 | `API_ENDPOINT_PORT`               | Int       | 8001                                 | Socket bind port                                                                                                     |
 | `VELERO_CLI_DEST_PATH`            | String    | /usr/local/bin                       | Path where to extract the velero executable file                                                                     |
 | `VELERO_CLI_PATH`                 | String    | /app/velero-client                   | Path where the compressed velero client archives are located                                                         |
+| `VELERO_CLI_PATH_CUSTOM`          | String    | /app/velero-client-binary            | Path where the user can store manually the binary file                                                               |
 | `VELERO_CLI_VERSION` (2)          | String    | latest available in velero-api-image | Name of the velero client release to be used                                                                         |
 | `API_ENABLE_DOCUMENTATION`        | BOOL      | True                                 | Enabled/Disabled the fastapi documentation user interfaces                                                           |
 | `API_TOKEN_EXPIRATION_MIN`        | Int       | 30                                   | Token validity after the creation (minutes)                                                                          |
@@ -163,8 +164,9 @@ cd velero-api
        kubectl apply -f 22_cluster_role_binding.yaml
       ```
 
-   7. Create PVC (*Optional*)
-      By default, the user database is created in the path configured in the SECURITY_PATH_DATABASE parameter of the configuration map. To ensure data persistence, the path can be customized using a PVC.
+   7. Create PVCs (*Optional*)
+      1. Database path : By default, the user database is created in the path configured in the SECURITY_PATH_DATABASE parameter of the configuration map. To ensure data persistence, the path can be customized using a PVC.
+      2. Custom folder for velero binaries: The user can store the binaries of new versions to avoid downloading the file directly from the code. The env parameter is VELERO_CLI_PATH_CUSTOM.  
 
       >   [!WARNING]  
       Set storage class name in [25_pvc.yaml](k8s/25_pvc.yaml) before applying it.

@@ -15,6 +15,7 @@ data:
     API_ENDPOINT_PORT: "8001"
     VELERO_CLI_VERSION: "v1.12.2"
     VELERO_CLI_PATH: "./velero-client"
+    VELERO_CLI_PATH_CUSTOM: "./velero-client-binary"
     VELERO_CLI_DEST_PATH: "/usr/local/bin"
     API_ENABLE_DOCUMENTATION: "1"
     API_TOKEN_EXPIRATION_MIN: "30"

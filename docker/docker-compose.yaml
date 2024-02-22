@@ -13,6 +13,7 @@ services:
     environment:
     - CONTAINER_MODE=True
     - VELERO_CLI_PATH=./velero-client
+    - VELERO_CLI_PATH_CUSTOM=./velero-client-binary
     - VELERO_CLI_VERSION=v1.12.2
     - VELERO_CLI_DEST_PATH=/bin
     - API_ENDPOINT_PORT=8001

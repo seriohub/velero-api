@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ***
 ## [v0.1.4] - 2024-02-21
 - Fixed the use of 'velero' as fixed namespace request with the env value 'K8S_VELERO_NAMESPACE' 
+- Add additional folder for store the velero binary files manually 
 
 
 ## [v0.1.3] - 2024-02-17

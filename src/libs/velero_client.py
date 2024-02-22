@@ -11,15 +11,22 @@ from libs.config import ConfigEnv
 
 config_app = ConfigEnv()
 
+
 # class syntax
 class VeleroClient:
-    def __init__(self, source_path=None, destination_path=None, arch=None, version=None):
+    def __init__(self, source_path=None,
+                 destination_path=None,
+                 arch=None, version=None,
+                 source_path_user=None):
+
         self.print_ls = PrintHelper('[Velero client]')
         self.source_path = source_path
         self.destination_path = destination_path
         self.arch = arch
         self.version = version
         self.extension = 'tar.gz'
+        self.source_path_user_man = source_path_user
+
         self.init_velero_cli()
 
     def check_source_folder(self):
@@ -27,6 +34,18 @@ class VeleroClient:
         if not os.path.exists(self.source_path):
             self.print_ls.error(f"Source folder '{self.source_path}' does not exist.")
             return False
+        return True
+
+    def check_source_folder_custom(self):
+        # Check if the custom folder exists
+        if self.source_path_user_man is not None:
+            if not os.path.exists(self.source_path_user_man):
+                self.print_ls.error(f"Source custom folder '{self.source_path_user_man}' does not exist.")
+                return False
+        else:
+            self.print_ls.error(f"Source custom folder is not defined.")
+            return False
+
         return True
 
     def check_destination_folder(self):
@@ -81,7 +100,7 @@ class VeleroClient:
 
     # LS 2024.02.19 add to comment handle exceptions
     # @handle_exceptions_instance_method
-    def __get_file(self, source_path):
+    def __get_file(self, source_path, fallback=True):
         try:
             files = [file for file in os.listdir(source_path) if file.endswith(self.extension)]
             if not files:
@@ -95,12 +114,37 @@ class VeleroClient:
                         matching_files.sort(key=lambda x: os.path.getmtime(os.path.join(source_path, x)))
                         return os.path.join(source_path, matching_files[0])
 
-            # fallback client
-            self.print_ls.wrn('Use fallback client velero...')
-            files = list(filter(lambda k: self.arch in k, files))
-            return os.path.join(source_path, files[-1])
+            if fallback:
+                # fallback client
+                self.print_ls.wrn('Use fallback client velero...')
+                files = list(filter(lambda k: self.arch in k, files))
+                return os.path.join(source_path, files[-1])
+            else:
+                return None
         except:
             return None
+
+    def __check_binary_in_folder(self):
+        ret = 0
+        # check in custom folder
+        if self.check_source_folder_custom():
+            file_to_extract = self.__get_file(source_path=self.source_path_user_man, fallback=False)
+            if file_to_extract is None:
+                self.print_ls.info('the required binary is not found in the custom folder')
+            else:
+                ret = 1
+                self.print_ls.info('the required binary is found in the custom folder')
+
+        if ret == 0:
+            if self.check_source_folder():
+                file_to_extract = self.__get_file(source_path=self.source_path, fallback=False)
+                if file_to_extract is None:
+                    self.print_ls.info('the required binary is not found in the default folder')
+                else:
+                    ret = 2
+                    self.print_ls.info('the required binary is found in the default folder')
+
+        return ret
 
     @handle_exceptions_instance_method
     def __extract_tarball__(self, source_tarball, destination_folder, file_to_extract='velero'):
@@ -155,12 +199,29 @@ class VeleroClient:
             self.print_ls.info(f'source folder: {self.source_path}')
             self.print_ls.info(f'destination folder: {self.destination_path}')
 
+            file_name = f"velero-{self.version}-linux-{self.arch}.tar.gz"
+            file_to_extract = None
             if self.version != '' and self.arch != '':
-                if not config_app.developer_mode_skip_download():
-                    url = f"https://github.com/vmware-tanzu/velero/releases/download/{self.version}/velero-{self.version}-linux-{self.arch}.tar.gz"
-                    self.download_file(save_path=self.source_path + '/dl', url=url)
+                self.print_ls.info(f"velero client required: version:{self.version} arch:{self.arch} ")
+
+                # LS 2024.02.22 check if the file is already in the default folder or user custom folder
+                ret = self.__check_binary_in_folder()
+                self.print_ls.info(f"velero client found res {ret}")
+                if ret == 0:
+                    if not config_app.developer_mode_skip_download():
+                        self.print_ls.info(f"Download the file : {file_name}")
+                        # url = f"https://github.com/vmware-tanzu/velero/releases/download/{self.version}/velero-{
+                        # self.version}-linux-{self.arch}.tar.gz"
+                        url = f"https://github.com/vmware-tanzu/velero/releases/download/{self.version}/{file_name}"
+                        self.download_file(save_path=self.source_path + '/dl', url=url)
+                        file_to_extract = self.__get_file(source_path=self.source_path + '/dl')
+                    else:
+                        self.print_ls.info(f'developer mode- download skipped')
                 else:
-                    self.print_ls.info(f'developer mode- download skipped')
+                    if ret == 1:
+                        file_to_extract = self.__get_file(source_path=self.source_path_user_man)
+                    elif ret == 2:
+                        file_to_extract = self.__get_file(source_path=self.source_path)
 
             if not self.check_source_folder():
                 raise RuntimeError('Source folder not exist')
@@ -168,9 +229,11 @@ class VeleroClient:
             if not self.check_destination_folder():
                 raise RuntimeError('Destination folder not exist')
 
-            file_to_extract = self.__get_file(source_path=self.source_path + '/dl')
+            # file_to_extract = self.__get_file(source_path=self.source_path + '/dl')
+            self.print_ls.info(f'file: {file_to_extract}')
             if file_to_extract is None:
                 file_to_extract = self.__get_file(source_path=self.source_path)
+                self.print_ls.info(f'forced file: {file_to_extract}')
 
             self.print_ls.info(f'velero client compress file: {file_to_extract}')
 
