@@ -55,8 +55,10 @@ class Backup:
         namespaces = await k8sv1.get_ns()
         backup_location = await backupLocation.get(json_response=False)
         snapshot_location = await snapshotLocation.get(json_response=False)
-        backup_location_list = [item['metadata']['name'] for item in backup_location['items'] if 'metadata' in item and 'name' in item['metadata']]
-        snapshot_location_list = [item['metadata']['name'] for item in snapshot_location['items'] if 'metadata' in item and 'name' in item['metadata']]
+        backup_location_list = [item['metadata']['name'] for item in backup_location['items'] if
+                                'metadata' in item and 'name' in item['metadata']]
+        snapshot_location_list = [item['metadata']['name'] for item in snapshot_location['items'] if
+                                  'metadata' in item and 'name' in item['metadata']]
 
         res = {'namespaces': namespaces,
                'backup_location': backup_location_list,
@@ -67,8 +69,11 @@ class Backup:
         return {'data': {'payload': res}}
 
     @handle_exceptions_async_method
-    async def get(self, schedule_name=None, only_last_for_schedule=False, json_response=True, in_progress=False, publish_message=True):
-        output = await run_process_check_output(['velero', 'backup', 'get', '-o', 'json'], publish_message=publish_message)
+    async def get(self, schedule_name=None, only_last_for_schedule=False, json_response=True, in_progress=False,
+                  publish_message=True):
+        output = await run_process_check_output(['velero', 'backup', 'get', '-o', 'json',
+                                                 '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')],
+                                                publish_message=publish_message)
         if 'error' in output:
             return JSONResponse(content=output['error'].toJSON(), status_code=400)
 
@@ -106,7 +111,8 @@ class Backup:
                               }
                     }
 
-        output = await run_process_check_output(['velero', 'backup', 'logs', backup_name])
+        output = await run_process_check_output(['velero', 'backup', 'logs', backup_name,
+                                                 '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')])
         if 'error' in output:
             return output
 
@@ -121,7 +127,9 @@ class Backup:
                               }
                     }
 
-        output = await run_process_check_output(['velero', 'backup', 'describe', backup_name, '--colorized=false', '--details', '-o', 'json'])
+        output = await run_process_check_output(['velero', 'backup', 'describe', backup_name,
+                                                 '--colorized=false', '--details', '-o', 'json',
+                                                 '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')])
 
         if 'error' in output:
             return output
@@ -138,7 +146,8 @@ class Backup:
                               }
                     }
 
-        output = await run_process_check_call(['velero', 'backup', 'delete', backup_name, '--confirm'])
+        output = await run_process_check_call(['velero', 'backup', 'delete', backup_name, '--confirm',
+                                               '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')])
         if 'error' in output:
             return output
 
@@ -157,7 +166,8 @@ class Backup:
                               'description': 'Backup name is required'
                               }
                     }
-        cmd = ['velero', 'backup', 'create', info['values']['name']]
+        cmd = ['velero', 'backup', 'create', info['values']['name'],
+               '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')]
 
         cmd += parse_create_parameters(info)
 
@@ -166,7 +176,7 @@ class Backup:
             return output
 
         return {'messages': [{'title': 'Create backup',
-                              'description': f"Backup { info['values']['name']} created!",
+                              'description': f"Backup {info['values']['name']} created!",
                               'type': 'info'
                               }
                              ]
@@ -180,7 +190,8 @@ class Backup:
                               'description': 'Schedule name name is required'
                               }
                     }
-        cmd = ['velero', 'backup', 'create', '--from-schedule', info['scheduleName']]
+        cmd = ['velero', 'backup', 'create', '--from-schedule', info['scheduleName'],
+               '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')]
         output = await run_process_check_call(cmd)
         if 'error' in output:
             return output
@@ -278,7 +289,7 @@ class Backup:
         )
 
         return {'data': {'payload':
-                         {'expiration': backup['status']['expiration']}
+                             {'expiration': backup['status']['expiration']}
                          }
                 }
 
@@ -302,7 +313,7 @@ class Backup:
             shutil.rmtree(path)
 
         # download all kubenretes manifests for a backup
-        cmd = ['velero', 'backup', 'download',  backup_name]
+        cmd = ['velero', 'backup', 'download', backup_name]
         output = await run_process_check_output(cmd, cwd=tmp_folder)
         if 'error' in output:
             return output
@@ -321,7 +332,8 @@ class Backup:
             return output
 
         # extract pvc data
-        persistent_volume_claims = os.path.join('.', tmp_folder, backup_name, 'resources', 'persistentvolumeclaims', 'namespaces')
+        persistent_volume_claims = os.path.join('.', tmp_folder, backup_name, 'resources', 'persistentvolumeclaims',
+                                                'namespaces')
 
         backup_storage_classes = []
         for folder_name in os.listdir(persistent_volume_claims):
@@ -334,7 +346,8 @@ class Backup:
                     if os.path.isfile(f):
                         f = open(f)
                         data = json.load(f)
-                        backup_storage_classes.append(json.loads(data['metadata']['annotations']['kubectl.kubernetes.io/last-applied-configuration']))
+                        backup_storage_classes.append(json.loads(
+                            data['metadata']['annotations']['kubectl.kubernetes.io/last-applied-configuration']))
                         f.close()
 
         return {'data': backup_storage_classes}

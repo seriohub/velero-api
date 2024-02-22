@@ -229,7 +229,10 @@ class K8s:
                     }
         api_instance = self.v1
 
-        secret = api_instance.read_namespaced_secret(name=secret_name, namespace='velero')
+        # LS 2024.20.22 use env variable
+        # secret = api_instance.read_namespaced_secret(name=secret_name, namespace='velero')
+        secret = api_instance.read_namespaced_secret(name=secret_name,
+                                                     namespace=os.getenv('K8S_VELERO_NAMESPACE', 'velero'))
         if secret.data and secret_key in secret.data:
             value = secret.data[secret_key]
             decoded_value = base64.b64decode(value)
@@ -243,7 +246,8 @@ class K8s:
         label_selector = 'app.kubernetes.io/name=velero'
         api_instance = self.v1
 
-        secret = api_instance.list_namespaced_secret('velero', label_selector=label_selector)
+        secret = api_instance.list_namespaced_secret(namespace=os.getenv('K8S_VELERO_NAMESPACE', 'velero'),
+                                                     label_selector=label_selector)
 
         if secret.items[0].data:
             value = secret.items[0].data['cloud']

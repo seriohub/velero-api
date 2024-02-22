@@ -25,7 +25,8 @@ class SCMapping:
         self.client_cs = client.StorageV1Api()
 
     @trace_k8s_async_method(description="get storage class config map")
-    async def get_storages_classes_map(self, config_map_name='change-storage-classes-config', namespace='velero',
+    async def get_storages_classes_map(self, config_map_name='change-storage-classes-config',
+                                       namespace=os.getenv('K8S_VELERO_NAMESPACE', 'velero'),
                                        json_response=True):
         try:
             # Create an instance of the Kubernetes core API

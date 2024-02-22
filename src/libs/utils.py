@@ -1,3 +1,4 @@
+import os
 import re
 from fastapi.responses import JSONResponse
 import platform
@@ -186,7 +187,8 @@ class Utils:
 
     @handle_exceptions_async_method
     async def version(self):
-        output = await run_process_check_output(['velero', 'version'])
+        output = await run_process_check_output(['velero', 'version',
+                                                 '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')])
 
         if 'error' in output:
             return output

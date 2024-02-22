@@ -1,4 +1,6 @@
 import json
+import os
+
 from fastapi.responses import JSONResponse
 
 from libs.process import *
@@ -11,7 +13,8 @@ class BackupLocation:
 
     @handle_exceptions_async_method
     async def get(self, json_response=True):
-        output = await run_process_check_output(['velero', 'backup-location', 'get', '-o', 'json'])
+        output = await run_process_check_output(['velero', 'backup-location', 'get', '-o', 'json',
+                                                 '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')])
         if 'error' in output:
             return output
 

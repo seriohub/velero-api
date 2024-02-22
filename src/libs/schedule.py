@@ -1,4 +1,6 @@
 import json
+import os
+
 from fastapi.responses import JSONResponse
 
 from libs.k8s import K8s
@@ -7,7 +9,6 @@ from libs.process import *
 from helpers.commons import *
 from helpers.handle_exceptions import *
 
-
 k8sv1 = K8s()
 
 
@@ -15,7 +16,8 @@ class Schedule:
 
     @handle_exceptions_async_method
     async def get(self, json_response=True):
-        output = await run_process_check_output(['velero', 'schedule', 'get', '-o', 'json'])
+        output = await run_process_check_output(['velero', 'schedule', 'get', '-o', 'json',
+                                                 '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')])
         if 'error' in output:
             return output
 
@@ -38,7 +40,8 @@ class Schedule:
                               }
                     }
 
-        output = await run_process_check_output(['velero', 'schedule', 'describe', schedule_name, '--colorized=false'])
+        output = await run_process_check_output(['velero', 'schedule', 'describe', schedule_name, '--colorized=false',
+                                                 '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')])
         if 'error' in output:
             return output
 
@@ -52,7 +55,8 @@ class Schedule:
                               }
                     }
 
-        output = await run_process_check_call(['velero', 'schedule', 'pause', schedule_name])
+        output = await run_process_check_call(['velero', 'schedule', 'pause', schedule_name,
+                                               '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')])
         if 'error' in output:
             return output
 
@@ -71,7 +75,8 @@ class Schedule:
                               }
                     }
 
-        output = await run_process_check_call(['velero', 'schedule', 'unpause', schedule_name])
+        output = await run_process_check_call(['velero', 'schedule', 'unpause', schedule_name,
+                                               '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')])
         if 'error' in output:
             return output
 
@@ -90,7 +95,8 @@ class Schedule:
                               'description': 'Backup name is required'
                               }
                     }
-        cmd = ['velero', 'schedule', 'create', info['values']['name']]
+        cmd = ['velero', 'schedule', 'create', info['values']['name'],
+               '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')]
 
         cmd += parse_create_parameters(info)
 
@@ -99,7 +105,7 @@ class Schedule:
             return output
 
         return {'messages': [{'title': 'Create schedule',
-                              'description': f"Schedule { info['values']['name']} created!",
+                              'description': f"Schedule {info['values']['name']} created!",
                               'type': 'info'
                               }
                              ]
@@ -113,7 +119,8 @@ class Schedule:
                               }
                     }
 
-        output = await run_process_check_call(['velero', 'schedule', 'delete', schedule_name, '--confirm'])
+        output = await run_process_check_call(['velero', 'schedule', 'delete', schedule_name, '--confirm',
+                                               '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')])
         if 'error' in output:
             return output
 
@@ -139,6 +146,6 @@ class Schedule:
             return output
 
         return {'messages': [{'title': 'Create schedule',
-                              'description': f"Schedule { info['values']['name']} created!",
+                              'description': f"Schedule {info['values']['name']} created!",
                               'type': 'info'}]
                 }
