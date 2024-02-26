@@ -9,7 +9,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.velero.your-test-domain
+  - host: api.velero.your-tests-domain
     http:
       paths:
       - path: /

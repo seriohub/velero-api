@@ -1,19 +1,21 @@
 import uvicorn
 import asyncio
-from utils.app_data import __version__, __app_name__
+from app_data import __version__, __app_name__
 
-from libs.utils import Utils
-from libs.velero_client import VeleroClient
+from service.info_service import InfoService
+from helpers.velero_client import VeleroClient
 
-from helpers.printer_helper import PrintHelper
-from libs.config import ConfigEnv
+from helpers.printer import PrintHelper
+from core.config import ConfigHelper
+
+from uvicorn_filter import uvicorn_logger
 
 print_ls = PrintHelper('[main]')
 print_ls.info('start')
 
 print_ls.info('load config')
-config_app = ConfigEnv()
-utils = Utils()
+config_app = ConfigHelper()
+infoService = InfoService()
 
 if config_app.validate_env_variables():
     exit(200)
@@ -42,16 +44,21 @@ if k8s_in_cluster_mode:
     print_ls.info(f"velero client source .tar.gz :{velero_cli_source}")
     print_ls.info(f"velero client destination :{velero_cli_destination}")
 
-# LS 2024.02.19 add test variable
-# use only for test the env init on develop environment
+# LS 2024.02.19 add tests variable
+# use only for tests the env init on develop environment
 test_env = config_app.developer_mode_skip_download()
 
 # Prepare environment
 if k8s_in_cluster_mode or is_in_container_mode or test_env:
+    output = asyncio.run(infoService.identify_architecture())
+    if not output['success']:
+        print_ls.error("Error in architecture identification.")
+        exit(1)
+    arch = output['data']['arch']
     VeleroClient(source_path=velero_cli_source,
                  source_path_user=velero_cli_source_custom,
                  destination_path=velero_cli_destination,
-                 arch=asyncio.run(utils.identify_architecture(json_response=False)),
+                 arch=arch,
                  version=velero_cli_version)
 
 

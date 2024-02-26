@@ -3,25 +3,24 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from connection_manager import *
-from helpers.printer_helper import PrintHelper
-from libs.config import ConfigEnv
+from helpers.connection_manager import WebSocket, manager
+# from helpers.printer import PrintHelper
+from core.config import ConfigHelper
 from fastapi.responses import JSONResponse
 
 
-from libs.security.middleware import add_process_time_header
-from app_info import appInfo
+from security.middleware import add_process_time_header
+from api.common.app_info import appInfo
 
-from utils.app_data import __version__, __app_name__, __app_description__, __app_summary__
-from libs.security.users import create_default_user, SessionLocal
-from v1 import v1
-
+from app_data import __version__, __app_name__, __app_description__, __app_summary__
+from security.users import create_default_user, SessionLocal
+from api.v1.api_v1 import v1
 
 load_dotenv()
-config = ConfigEnv()
+config = ConfigHelper()
 
 # init logger engine
-print_helper = PrintHelper('[app]')
+# print_helper = PrintHelper('[app]')
 
 # docs redocs
 docs_url = '/docs'
