@@ -219,17 +219,16 @@ class BackupService:
     async def get_backup_storage_classes(self, backup_name):
 
         # get tmp folder
-        tmp_folder = os.getenv('DOWNLOAD_TMP_FOLDER')
+        tmp_folder = os.getenv('DOWNLOAD_TMP_FOLDER', '/tmp/velero-api')
         if not (os.path.exists(tmp_folder)):
             os.mkdir(tmp_folder)
         # delete if exists old data in tmp folder
-        path = os.path.join('../../../helpers', tmp_folder, backup_name + '-data.tar.gz')
+        path = os.path.join(tmp_folder, backup_name + '-data.tar.gz')
         if os.path.exists(path):
             os.remove(path)
-        path = os.path.join('../../../helpers', tmp_folder, backup_name)
+        path = os.path.join(tmp_folder, backup_name)
         if os.path.exists(path):
             shutil.rmtree(path)
-
         # download all kubernetes manifests for a backup
         cmd = ['velero', 'backup', 'download', backup_name,
                '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')]
@@ -243,16 +242,14 @@ class BackupService:
         self.print_ls.debug("path to extract: " + path)
         filename = os.path.basename(path)
 
-        os.mkdir(os.path.join('../../../helpers', tmp_folder, backup_name))
+        os.mkdir(os.path.join(tmp_folder, backup_name))
         cmd = ['tar', 'xf', filename, '-C', backup_name]
         output = await run_process_check_output(cmd, cwd=tmp_folder)
         if not output['success']:
             return output
 
         # extract pvc data
-        persistent_volume_claims = os.path.join('../../../helpers', tmp_folder, backup_name, 'resources',
-                                                'persistentvolumeclaims',
-                                                'namespaces')
+        persistent_volume_claims = os.path.join(tmp_folder, backup_name, 'resources', 'persistentvolumeclaims', 'namespaces')
 
         backup_storage_classes = []
         if os.path.isdir(persistent_volume_claims):
