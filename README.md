@@ -25,7 +25,9 @@ This Python project, developed as a backend for [Velero-UI](https://github.com/s
 | `API_ENDPOINT_PORT`               | Int       | 8001                                 | Socket bind port                                                                                                     |
 | `VELERO_CLI_DEST_PATH`            | String    | /usr/local/bin                       | Path where to extract the velero executable file                                                                     |
 | `VELERO_CLI_PATH`                 | String    | /app/velero-client                   | Path where the compressed velero client archives are located                                                         |
+| `VELERO_CLI_PATH_CUSTOM`          | String    | /app/velero-client-binary            | Path where the user can store manually the binary file                                                               |
 | `VELERO_CLI_VERSION` (2)          | String    | latest available in velero-api-image | Name of the velero client release to be used                                                                         |
+| `DOWNLOAD_TMP_FOLDER`             | String    | /tmp/velero-api                      | Destination folder when executing *velero backup download*                                                           |
 | `API_ENABLE_DOCUMENTATION`        | BOOL      | True                                 | Enabled/Disabled the fastapi documentation user interfaces                                                           |
 | `API_TOKEN_EXPIRATION_MIN`        | Int       | 30                                   | Token validity after the creation (minutes)                                                                          |
 | `SECURITY_PATH_DATABASE`          | String    | ./test                               | Path where create the SQL-Lite database used for storing the users credentials                                       |
@@ -34,6 +36,7 @@ This Python project, developed as a backend for [Velero-UI](https://github.com/s
 | `API_RATE_LIMITER_L1`             | String    | 60:120                               | Rate limiter: 60 seconds  max requests 10                                                                            |
 | `API_RATE_LIMITER_CUSTOM_L1` (4)  | String    | Security:xxx:60:20                   | Rate limiter for specific tag/endpoint: Security (tag) xxx (all endpoints under the tag) 60 seconds  max requests 20 |
 | `API_RATE_LIMITER_CUSTOM_L2` (4)  | String    | Info:info:60:500                     | Rate limiter for specific tag/endpoint: Info (tag) xxx (all endpoints under the tag) 60 seconds  max requests 500    |
+
 
 1. You can define up to 100 allowed origins that should be permitted to make cross-origin requests. An origin is the combination of protocol (http, https), domain (myapp.com, localhost) and port (80, 443, 8001)
 
@@ -57,7 +60,7 @@ Set VELERO_CLI_VERSION as the following example: v1.12.2
 
    The default rate limiter is defined by the key **API_RATE_LIMITER_L1**
 
-   To find out all the endpoints exposed by the API project, you can use the Swagger UI documentation **< API IP address >/docs**.
+   To find out all the endpoints exposed by the API project, you can use the Swagger UI documentation **< API IP address >/api/v1/docs**.
 
    >   [!WARNING]  
    If you disable the api documentation (API_ENABLE_DOCUMENTATION key), you are not able to reach the endpoint /docs.
@@ -163,8 +166,9 @@ cd velero-api
        kubectl apply -f 22_cluster_role_binding.yaml
       ```
 
-   7. Create PVC (*Optional*)
-      By default, the user database is created in the path configured in the SECURITY_PATH_DATABASE parameter of the configuration map. To ensure data persistence, the path can be customized using a PVC.
+   7. Create PVCs (*Optional*)
+      1. Database path : By default, the user database is created in the path configured in the SECURITY_PATH_DATABASE parameter of the configuration map. To ensure data persistence, the path can be customized using a PVC.
+      2. Custom folder for velero binaries: The user can store the binaries of new versions to avoid downloading the file directly from the code. The env parameter is VELERO_CLI_PATH_CUSTOM.  
 
       >   [!WARNING]  
       Set storage class name in [25_pvc.yaml](k8s/25_pvc.yaml) before applying it.

@@ -34,7 +34,12 @@ spec:
           volumeMounts:
             - name: db-data
               mountPath: /app/data
+            - name: binary-data
+              mountPath: /app/velero-client-binary
       volumes:
         - name: db-data
           persistentVolumeClaim:
             claimName: pvc-db-velero-api
+        - name: binary-data
+          persistentVolumeClaim:
+            claimName: pvc-binary-velero-api
