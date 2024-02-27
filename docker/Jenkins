@@ -17,6 +17,7 @@ pipeline {
         evDocker_HUB_Credentials = credentials('DEFAULT_DOCKER_CREDENTIALS')
 
         evTarget = 'velero-api'
+        evTargetBase = 'velero-api-base'
         evLatestTag = ''
         evCommitChangeset = ''
     }
