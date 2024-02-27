@@ -3,9 +3,13 @@
 All notable changes to this project will be documented in this file.
 
 ***
+
 ## [v0.1.4] - 2024-02-21
-- Fixed the use of 'velero' as fixed namespace request with the env value 'K8S_VELERO_NAMESPACE' 
-- Add additional folder for store the velero binary files manually 
+
+- Restructured backend with new controller and service modules for improved organization and separation of concerns
+- Fixed the use of *velero* as fixed namespace request with the env value **K8S_VELERO_NAMESPACE**
+- Added the environment var **DOWNLOAD_TMP_FOLDER** for destination data when executing *velero backup download*
+- Added the environment var **VELERO_CLI_PATH_CUSTOM** where the user can load manually the binary
 
 
 ## [v0.1.3] - 2024-02-17
@@ -31,6 +35,8 @@ All notable changes to this project will be documented in this file.
 - 🎉 first release!
 
 ***
+
+[v0.1.4] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.4](https://github.com/seriohub/velero-api/releases/tag/v0.1.4)
 
 [v0.1.3] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.3](https://github.com/seriohub/velero-api/releases/tag/v0.1.3)
 

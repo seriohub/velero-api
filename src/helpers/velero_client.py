@@ -15,18 +15,19 @@ config_app = ConfigHelper()
 class VeleroClient:
     def __init__(self, source_path=None,
                  destination_path=None,
-                 arch=None, version=None,
+                 arch=None,
+                 version=None,
                  source_path_user=None):
 
-        self.print_ls = PrintHelper('[helper.velero_client]')
-        self.source_path = source_path
-        self.destination_path = destination_path
-        self.arch = arch
-        self.version = version
-        self.extension = 'tar.gz'
-        self.source_path_user_man = source_path_user
+            self.print_ls = PrintHelper('[helper.velero_client]')
+            self.source_path = source_path
+            self.destination_path = destination_path
+            self.arch = arch
+            self.version = version
+            self.extension = 'tar.gz'
+            self.source_path_user_man = source_path_user
 
-        self.init_velero_cli()
+            self.init_velero_cli()
 
     def __check_source_folder(self):
         # Check if the source folder exists
