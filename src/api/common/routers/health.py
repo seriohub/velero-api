@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, status
 from datetime import datetime
 from typing import Union
 
+from core.config import ConfigHelper
 from utils.commons import route_description
 from utils.handle_exceptions import handle_exceptions_endpoint
 from helpers.printer import PrintHelper
@@ -15,22 +16,23 @@ from api.common.response_model.successful_request import SuccessfulRequest
 
 from api.common.controllers.health import Health
 
-
 router = APIRouter()
 
 health = Health()
+config_app = ConfigHelper()
 
-print_ls = PrintHelper('[common.routers.health]')
-
+print_ls = PrintHelper('[common.routers.health]',
+                       level=config_app.get_internal_log_level())
 
 tag_name = 'health'
 
-endpoint_limiter = LimiterRequests(debug=False,
-                                   printer=print_ls,
+endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')
 limiter_status = endpoint_limiter.get_limiter_cust('info_health')
 route = '/health'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='UTC time',
@@ -50,6 +52,8 @@ async def get_health() -> dict:
 
 limiter_status_h = endpoint_limiter.get_limiter_cust('info_health_k8s')
 route = '/health-k8s'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get K8s connection an api status',

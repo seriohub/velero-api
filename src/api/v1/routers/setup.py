@@ -1,6 +1,7 @@
 from fastapi import APIRouter, status, Depends
 from typing import Union
 
+from core.config import ConfigHelper
 from security.rate_limiter import RateLimiter, LimiterRequests
 
 from utils.commons import route_description
@@ -12,21 +13,22 @@ from api.common.response_model.successful_request import SuccessfulRequest
 
 from api.v1.controllers.setup import Setup
 
-
 router = APIRouter()
 rate_limiter = RateLimiter()
 setup = Setup()
-print_ls = PrintHelper('[v1.routers.utils]')
-
+config_app = ConfigHelper()
+print_ls = PrintHelper('[v1.routers.utils]',
+                       level=config_app.get_internal_log_level())
 
 tag_name = 'Setup'
 
-endpoint_limiter_setup = LimiterRequests(debug=False,
-                                         printer=print_ls,
+endpoint_limiter_setup = LimiterRequests(printer=print_ls,
                                          tags=tag_name,
                                          default_key='L1')
 limiter_setup = endpoint_limiter_setup.get_limiter_cust('Setup')
 route = '/setup/get-config'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get all env variables',
@@ -45,6 +47,8 @@ async def app_config():
 
 limiter_v = endpoint_limiter_setup.get_limiter_cust('setup_version')
 route = '/setup/version'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get velero client version',

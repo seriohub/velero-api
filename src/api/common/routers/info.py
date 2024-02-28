@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 
 from typing import Union
 
+from core.config import ConfigHelper
 from utils.commons import route_description
 from utils.handle_exceptions import handle_exceptions_endpoint
 from helpers.printer import PrintHelper
@@ -19,18 +20,19 @@ from api.common.controllers.info import Info
 router = APIRouter()
 
 info = Info()
-
-print_ls = PrintHelper('[common.routers.info]')
-
+config_app = ConfigHelper()
+print_ls = PrintHelper('[common.routers.info]',
+                       level=config_app.get_internal_log_level())
 
 tag_name = "Info"
 
-endpoint_limiter = LimiterRequests(debug=False,
-                                   printer=print_ls,
+endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')
 limiter = endpoint_limiter.get_limiter_cust('info')
 route = '/get'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get app info',
@@ -55,12 +57,13 @@ async def get_app_info():
     return JSONResponse(content=response.toJSON(), status_code=200)
 
 
-endpoint_limiter = LimiterRequests(debug=False,
-                                   printer=print_ls,
+endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')
 limiter = endpoint_limiter.get_limiter_cust('platform')
 route = '/arch'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get app identify api architecture',
@@ -78,8 +81,11 @@ route = '/arch'
 async def get_architecture():
     return await info.identify_architecture()
 
+
 limiter_origins = endpoint_limiter.get_limiter_cust('info_origins')
 route = '/origins'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get api origins',

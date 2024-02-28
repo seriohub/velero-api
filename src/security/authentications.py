@@ -16,19 +16,20 @@ from core.config import ConfigHelper
 config = ConfigHelper()
 router = APIRouter()
 token_expires_minutes = config.get_security_token_expiration()
-print_ls = PrintHelper('[authentication.routers]')
+
+print_ls = PrintHelper('[authentication.routers]',
+                       level=config_app.get_internal_log_level())
 enable_users = config.get_security_manage_users()
 
-
 tag_name = 'Security'
-endpoint_limiter = LimiterRequests(debug=False,
-                                   printer=print_ls,
+endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')
 
-
 limiter = endpoint_limiter.get_limiter_cust('token')
 route = '/token'
+
+
 @router.post(path=route,
              tags=[tag_name],
              summary='Release a new token',
@@ -68,6 +69,8 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
 
 limiter_tr = endpoint_limiter.get_limiter_cust('token_renew')
 route = '/token-renew'
+
+
 @router.post(path=route,
              tags=[tag_name],
              summary='Renew the token',
@@ -96,6 +99,8 @@ async def renew_token(current_user: User = Depends(get_current_active_user)):
 
 limiter_meinfo = endpoint_limiter.get_limiter_cust('users_me_info')
 route = '/users/me/info'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get information about the user authenticated',
@@ -112,6 +117,8 @@ async def read_current_user(current_user: User = Depends(get_current_active_user
 
 limiter_me_pwd = endpoint_limiter.get_limiter_cust('users_me_pwd')
 route = '/users/me/update/pwd'
+
+
 @router.put(path=route,
             tags=[tag_name],
             summary='Update user password',
@@ -136,6 +143,8 @@ if enable_users:
 
     limiter_add = endpoint_limiter.get_limiter_cust('users_create')
     route = '/users/create'
+
+
     @router.post(path=route,
                  tags=[tag_name],
                  summary='Create new user',
@@ -159,6 +168,8 @@ if enable_users:
 
     limiter_us = endpoint_limiter.get_limiter_cust('users')
     route = '/users/'
+
+
     @router.get(path=route,
                 tags=[tag_name],
                 summary='Get all user registered',
@@ -175,6 +186,8 @@ if enable_users:
 
     limiter_uid = endpoint_limiter.get_limiter_cust('users_user_id')
     route = '/users/{user_id}'
+
+
     @router.get(path=route,
                 tags=[tag_name],
                 summary='Get user data',
@@ -195,6 +208,8 @@ if enable_users:
 
     limiter_delid = endpoint_limiter.get_limiter_cust('users_user_id_delete')
     route = '/users/{user_id}/delete'
+
+
     @router.delete(path=route,
                    tags=[tag_name],
                    summary='Delete user',
@@ -217,6 +232,8 @@ if enable_users:
 
     limiter_udis = endpoint_limiter.get_limiter_cust('users_user_id_disable')
     route = '/users/{user_id}/disable'
+
+
     @router.put(path=route,
                 tags=[tag_name],
                 summary='Disable user',

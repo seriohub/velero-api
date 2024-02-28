@@ -187,6 +187,20 @@ class ConfigHelper:
         if message != "OK":
             block_exec = True
 
+        key = 'DEBUG_LEVEL'
+        value = os.getenv(key, None)
+        key_is_ok = False
+        if value is not None:
+            value = value.lower()
+            key_is_ok = True if value in ['critical', 'error', 'warning', 'info', 'debug', 'trace', 'notset'] else False
+        message = "OK" if key_is_ok else "error not a valid debug level"
+        print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+              f"type:{'string'.ljust(10, ' ')} "
+              f"value:{value[:25].ljust(25, ' ')} "
+              f"validation:{message.upper()}")
+        if message != "OK":
+            block_exec = True
+
         paths = ['VELERO_CLI_PATH',
                  'VELERO_CLI_DEST_PATH',
                  'SECURITY_PATH_DATABASE',
@@ -311,9 +325,14 @@ class ConfigHelper:
     def k8s_in_cluster_mode(self):
         return self.load_key('K8S_IN_CLUSTER_MODE', 'False').lower() == 'true'
 
-    def internal_debug_enable(self):
-        res = self.load_key('DEBUG', 'False')
-        return True if res.lower() == 'true' or res.lower() == '1' else False
+    def get_internal_log_level(self):
+        res = self.load_key('DEBUG_LEVEL', None)
+        if res is not None:
+            lev = res.lower()
+            if lev in ['critical', 'error', 'warning', 'info', 'debug', 'trace', 'notset']:
+                return lev
+
+        return "info"
 
     def get_path_db(self):
         res = self.load_key('SECURITY_PATH_DATABASE',

@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+## [v0.1.x] - 2024-02-28
+- The PrinterHelper class internally handles the print level output
+
+
+
 ## [v0.1.4] - 2024-02-27
 
 - Restructured backend with new controller and service modules for improved organization and separation of concerns

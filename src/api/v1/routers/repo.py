@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from typing import Union
 
+from core.config import ConfigHelper
 from security.rate_limiter import RateLimiter, LimiterRequests
 
 from utils.commons import route_description
@@ -12,22 +13,23 @@ from api.common.response_model.successful_request import SuccessfulRequest
 
 from api.v1.controllers.repo import Repo
 
-
 router = APIRouter()
 repo = Repo()
-print_ls = PrintHelper('[v1.routers.repo]')
+config_app = ConfigHelper()
 
+print_ls = PrintHelper('[v1.routers.repo]',
+                       level=config_app.get_internal_log_level())
 
 tag_name = 'Repository'
 
-endpoint_limiter = LimiterRequests(debug=False,
-                                   printer=print_ls,
+endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')
 
-
 limiter = endpoint_limiter.get_limiter_cust("repo_get")
 route = '/repo/get'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get backups repository',

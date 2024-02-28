@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, status
 from fastapi import Request
 from typing import Union
 
+from core.config import ConfigHelper
 from security.rate_limiter import RateLimiter, LimiterRequests
 
 from utils.commons import route_description
@@ -16,13 +17,14 @@ from api.v1.controllers.restore import Restore
 
 router = APIRouter()
 restore = Restore()
-print_ls = PrintHelper('[v1.routers.restore]')
+config_app = ConfigHelper()
+print_ls = PrintHelper('[v1.routers.restore]',
+                       level=config_app.get_internal_log_level())
 
 
 tag_name = 'Restore'
 
-endpoint_limiter = LimiterRequests(debug=False,
-                                   printer=print_ls,
+endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')
 

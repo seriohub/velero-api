@@ -36,7 +36,7 @@ class BackupService:
 
         self.client_core_v1_api = client.CoreV1Api()
         self.client_custom_objects_api = client.CustomObjectsApi()
-        self.print_ls = PrintHelper('[service.backup]')
+        self.print_ls = PrintHelper('[service.backup]', level=config_app.get_internal_log_level())
 
     def __filter_last_backup_for_every_schedule(self, data):
         result = {}

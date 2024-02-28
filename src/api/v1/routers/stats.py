@@ -1,6 +1,7 @@
 from fastapi import APIRouter, status, Depends
 from typing import Union
 
+from core.config import ConfigHelper
 from security.rate_limiter import RateLimiter, LimiterRequests
 
 from utils.commons import route_description
@@ -12,21 +13,21 @@ from api.common.response_model.successful_request import SuccessfulRequest
 
 from api.v1.controllers.stats import Stats
 
-
 router = APIRouter()
 rate_limiter = RateLimiter()
 utils_controller = Stats()
-
-print_ls = PrintHelper('[v1.routers.stats]')
-
+config_app = ConfigHelper()
+print_ls = PrintHelper('[v1.routers.stats]',
+                       level=config_app.get_internal_log_level())
 
 tag_name = 'Statistics'
-endpoint_limiter = LimiterRequests(debug=False,
-                                   printer=print_ls,
+endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')
 limiter = endpoint_limiter.get_limiter_cust('utilis_stats')
 route = '/stats/get'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get backups repository',
@@ -45,6 +46,8 @@ async def stats():
 
 limiter_inprog = endpoint_limiter.get_limiter_cust('utilis_in_progress')
 route = '/stats/in-progress'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get operations in progress',
