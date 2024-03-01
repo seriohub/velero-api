@@ -66,6 +66,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=['*'],
     allow_headers=['*'],
+    expose_headers=["X-Process-Time"]
 )
 
 app.middleware('http')(add_process_time_header)

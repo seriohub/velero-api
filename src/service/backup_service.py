@@ -55,7 +55,7 @@ class BackupService:
         return list(result.values())
 
     @handle_exceptions_async_method
-    def check_expiration(self, expiration):
+    async def check_expiration(self, expiration):
         pattern = re.compile(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$')
         return bool(pattern.match(expiration))
 
