@@ -1,4 +1,4 @@
-FROM python:3.10 as velero-api-base
+FROM python:3.10-slim as velero-api-base
 LABEL maintainer="DS"
 
 # ARG VERSION
