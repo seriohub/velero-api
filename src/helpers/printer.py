@@ -1,5 +1,5 @@
 import sys
-
+from datetime import datetime
 
 class BColors:
     """
@@ -44,7 +44,7 @@ class PrintHelper:
                          title='',
                          message='',
                          stdout: bool = False):
-        ret = f"{self.name} {message}"
+        ret = f"{datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]} {self.name} {message}"
         if title:
             ret = f"{title.ljust(self.msg_len, ' ')}{ret}"
 

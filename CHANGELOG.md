@@ -4,9 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ***
 
-## [v0.1.x] - 2024-02-28
-- The PrinterHelper class internally handles the print level output
+## [v0.1.5] - 2024-03-02
 
+- The PrinterHelper class internally handles the print level output
+- Fixed error in backup expiration update
 
 
 ## [v0.1.4] - 2024-02-27
@@ -40,6 +41,8 @@ All notable changes to this project will be documented in this file.
 - 🎉 first release!
 
 ***
+
+[v0.1.5] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.5](https://github.com/seriohub/velero-api/releases/tag/v0.1.5)
 
 [v0.1.4] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.4](https://github.com/seriohub/velero-api/releases/tag/v0.1.4)
 

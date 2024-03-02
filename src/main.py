@@ -8,7 +8,7 @@ from helpers.velero_client import VeleroClient
 from helpers.printer import PrintHelper
 from core.config import ConfigHelper
 
-from uvicorn_filter import uvicorn_logger
+from uvicorn_filter import *
 
 config_app = ConfigHelper()
 
