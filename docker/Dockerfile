@@ -8,14 +8,13 @@ LABEL maintainer="DS"
 # ENV BUILD_DATE=$BUILD_DATE
 
 # Update packages and install basics
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install --no-install-recommends -y \
 	# wget \
 	# unzip \
 	# git \
-	curl
+	curl \
+	python3-pip
 	# nano
-
-RUN apt-get -y install python3-pip
 
 RUN pip install --upgrade pip
 
@@ -42,13 +41,19 @@ RUN find . -type f -name "*.env" -exec rm -f {} +
 # RUN rm -rf /app/tmp /app/__pycache__
 
 # install kubectl
-RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
-RUN chmod +x ./kubectl
-RUN mv ./kubectl /usr/local/bin
+# RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+# RUN chmod +x ./kubectl
+# RUN mv ./kubectl /usr/local/bin
+
+# install kubectl
+RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl \
+    && chmod +x ./kubectl \
+    && mv ./kubectl /usr/local/bin
 
 RUN mkdir /app/data
 
 RUN mkdir /app/velero-client
+
 COPY ../velero-client /app/velero-client
 
 RUN mkdir /app/velero-client-binary
