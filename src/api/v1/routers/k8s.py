@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from typing import Union
 
+from core.config import ConfigHelper
 from security.rate_limiter import RateLimiter, LimiterRequests
 
 from utils.commons import route_description
@@ -12,21 +13,21 @@ from api.common.response_model.successful_request import SuccessfulRequest
 
 from api.v1.controllers.k8s import K8s
 
-
 router = APIRouter()
 k8s = K8s()
-print_ls = PrintHelper('[v1.routers.k8s]')
-
+config_app = ConfigHelper()
+print_ls = PrintHelper('[v1.routers.k8s]',
+                       level=config_app.get_internal_log_level())
 
 tag_name = 'k8s'
-endpoint_limiter = LimiterRequests(debug=False,
-                                   printer=print_ls,
+endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')
 
-
 limiter = endpoint_limiter.get_limiter_cust('k8s_sc_get')
 route = '/k8s/sc/get'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get list of storage classes defined in the Kubernetes',
@@ -46,6 +47,8 @@ async def k8s_ns_sc():
 
 limiter_a = endpoint_limiter.get_limiter_cust('k8s_ns_get')
 route = '/k8s/ns/get'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get list of namespaces defined in the Kubernetes',
@@ -65,6 +68,8 @@ async def k8s_ns_get():
 
 limiter_cg = endpoint_limiter.get_limiter_cust('k8s_credential_get')
 route = '/k8s/credential/get'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get credential',
@@ -84,6 +89,8 @@ async def get_credential(secret_name=None, secret_key=None):
 
 limiter_def_cg = endpoint_limiter.get_limiter_cust('k8s_credential_default_get')
 route = '/k8s/credential/default/get'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get default credential',

@@ -18,9 +18,10 @@ from sqlalchemy.sql import func
 from typing import List, Optional
 from security.dependencies import pwd_context
 from helpers.database import GUID
-
-print_ls = PrintHelper('[authentication.users]')
 config_app = ConfigHelper()
+print_ls = PrintHelper('[authentication.users]',
+                       level=config_app.get_internal_log_level())
+
 disable_password_rate = config_app.get_security_disable_pwd_rate()
 secret_key = config_app.get_security_token_key()
 algorithm = config_app.get_security_algorithm()

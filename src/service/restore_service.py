@@ -79,4 +79,4 @@ class RestoreService:
         if not output['success']:
             return output
 
-        return {'success': True, 'data': output['data']}
+        return {'success': True}

@@ -1,9 +1,13 @@
 from functools import wraps
 
+from core.config import ConfigHelper
 from helpers.connection_manager import manager
 from helpers.printer import PrintHelper
 
-print_ls = PrintHelper('[k8s tracer]')
+config = ConfigHelper()
+print_ls = PrintHelper('[k8s tracer]',
+                       level=config.get_internal_log_level())
+
 
 def trace_k8s_async_method(description):
     def decorator(fn):

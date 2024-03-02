@@ -8,18 +8,18 @@ from helpers.velero_client import VeleroClient
 from helpers.printer import PrintHelper
 from core.config import ConfigHelper
 
-from uvicorn_filter import uvicorn_logger
+from uvicorn_filter import *
 
-print_ls = PrintHelper('[main]')
-print_ls.info('start')
-
-print_ls.info('load config')
 config_app = ConfigHelper()
+
+print_ls = PrintHelper('[main]',
+                       level=config_app.get_internal_log_level())
+print_ls.info('start')
+print_ls.info('load config')
 infoService = InfoService()
 
 if config_app.validate_env_variables():
     exit(200)
-
 
 # server setting
 k8s_in_cluster_mode = config_app.k8s_in_cluster_mode()
@@ -46,7 +46,7 @@ if k8s_in_cluster_mode:
 
 # LS 2024.02.19 add tests variable
 # use only for tests the env init on develop environment
-test_env = config_app.developer_mode_skip_download()
+test_env = not config_app.developer_mode_skip_download()
 
 # Prepare environment
 if k8s_in_cluster_mode or is_in_container_mode or test_env:
@@ -60,7 +60,6 @@ if k8s_in_cluster_mode or is_in_container_mode or test_env:
                  destination_path=velero_cli_destination,
                  arch=arch,
                  version=velero_cli_version)
-
 
 if __name__ == '__main__':
     uvicorn.run('app:app',

@@ -1,5 +1,6 @@
 import logging
 import typing as t
+from uvicorn.config import LOGGING_CONFIG
 
 
 class EndpointFilter(logging.Filter):
@@ -16,5 +17,7 @@ class EndpointFilter(logging.Filter):
         return record.getMessage().find(self._path) == -1
 
 
+LOGGING_CONFIG["formatters"]["default"]["fmt"] = "%(levelprefix)s %(asctime)s [%(name)s] %(message)s"
+LOGGING_CONFIG["formatters"]["access"]["fmt"] = "%(levelprefix)s %(asctime)s [%(name)s] %(message)s"
 uvicorn_logger = logging.getLogger("uvicorn.access")
 uvicorn_logger.addFilter(EndpointFilter(path="/stats/in-progress"))

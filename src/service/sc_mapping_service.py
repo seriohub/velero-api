@@ -2,6 +2,7 @@ import os
 from kubernetes import client, config
 from kubernetes.client.exceptions import ApiException
 
+from core.config import ConfigHelper
 from utils.commons import add_id_to_list
 from utils.handle_exceptions import handle_exceptions_async_method
 from utils.k8s_tracer import trace_k8s_async_method
@@ -22,7 +23,9 @@ class ScMappingService:
         self.v1 = client.CoreV1Api()
         self.client = client.CustomObjectsApi()
         self.client_cs = client.StorageV1Api()
-        self.print_ls = PrintHelper('[service.sc_mapping_service]')
+        config_app = ConfigHelper()
+        self.print_ls = PrintHelper('[service.sc_mapping_service]',
+                                    level=config_app.get_internal_log_level())
 
     @trace_k8s_async_method(description="Set storage class map")
     async def __set_storages_classes_map(self,
@@ -59,7 +62,8 @@ class ScMappingService:
                 existing_config_map.data = data_list
                 core_v1.replace_namespaced_config_map(name=config_map_name, namespace=namespace,
                                                       body=existing_config_map)
-                self.print_ls.info("ConfigMap 'change-storage-class-config' in namespace 'velero' updated successfully.")
+                self.print_ls.info(
+                    "ConfigMap 'change-storage-class-config' in namespace 'velero' updated successfully.")
             except client.rest.ApiException as e:
                 # If it doesn't exist, create the ConfigMap
                 if e.status == 404:
@@ -68,7 +72,8 @@ class ScMappingService:
                         data=data_list
                     )
                     core_v1.create_namespaced_config_map(namespace=namespace, body=config_map_body)
-                    self.print_ls.info("ConfigMap 'change-storage-class-config' in namespace 'velero' created successfully.")
+                    self.print_ls.info(
+                        "ConfigMap 'change-storage-class-config' in namespace 'velero' created successfully.")
                 else:
                     raise e
         except Exception as e:
@@ -139,7 +144,8 @@ class ScMappingService:
             config_map = payload['data']
             for item in config_map:
                 item.pop('id', None)
-                if item['oldStorageClass'] == data_list['oldStorageClass'] and item['newStorageClass'] == data_list['newStorageClass']:
+                if item['oldStorageClass'] == data_list['oldStorageClass'] and item['newStorageClass'] == data_list[
+                    'newStorageClass']:
                     config_map.remove(item)
 
             await self.__set_storages_classes_map(data_list=config_map)

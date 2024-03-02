@@ -2,10 +2,14 @@ import subprocess
 
 from fastapi import WebSocketDisconnect
 
+from core.config import ConfigHelper
 from helpers.connection_manager import manager
 from helpers.printer import PrintHelper
 
-print_ls = PrintHelper('[bash tracer]')
+config = ConfigHelper()
+print_ls = PrintHelper('[bash tracer]',
+                       level=config.get_internal_log_level())
+
 
 async def send_message(message):
     try:

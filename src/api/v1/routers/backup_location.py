@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from typing import Union
 
+from core.config import ConfigHelper
 from security.rate_limiter import RateLimiter, LimiterRequests
 
 from utils.commons import route_description
@@ -14,12 +15,13 @@ from api.v1.controllers.backup_location import BackupLocation
 
 router = APIRouter()
 backupLocation = BackupLocation()
-print_ls = PrintHelper('[v1.routers.backup_location]')
+config_app = ConfigHelper()
+print_ls = PrintHelper('[v1.routers.backup_location]',
+                       level=config_app.get_internal_log_level())
 
 
 tag_name = 'Backup Location'
-endpoint_limiter = LimiterRequests(debug=False,
-                                   printer=print_ls,
+endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')
 

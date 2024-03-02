@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from typing import Union
 
+from core.config import ConfigHelper
 from security.rate_limiter import RateLimiter, LimiterRequests
 
 from utils.commons import route_description
@@ -16,12 +17,13 @@ from api.v1.controllers.snapshot_location import SnapshotLocation
 router = APIRouter()
 rate_limiter = RateLimiter()
 snapshotLocation = SnapshotLocation()
-print_ls = PrintHelper('[v1.routers.snapshot_location]')
+config_app = ConfigHelper()
+print_ls = PrintHelper('[v1.routers.snapshot_location]',
+                       level=config_app.get_internal_log_level())
 
 
 tag_name = 'Snapshot'
-endpoint_limiter = LimiterRequests(debug=False,
-                                   printer=print_ls,
+endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')
 

@@ -17,7 +17,7 @@ This Python project, developed as a backend for [Velero-UI](https://github.com/s
 | `K8S_IN_CLUSTER_MODE`             | Bool      | False                                | Enabled if is deployed in a cluster                                                                                  |
 | `K8S_VELERO_NAMESPACE`            | String    | velero                               | K8s Velero namespace                                                                                                 |
 | `K8S_VELERO_UI_NAMESPACE`         | String    | velero-ui                            | K8s Velero namespace                                                                                                 |
-| `DEBUG_LEVEL`                     | String    | info                                 | Debug level                                                                                                          |
+| `DEBUG_LEVEL`                     | String    | info                                 | Print level  (Critical, error, warning, info, debug)                                                                 |
 | `ORIGINS_1` (1)                   | String    | http://localhost:3000                | Allowed origin                                                                                                       |
 | `ORIGINS_2` (1)                   | String    | http://127.0.0.1:3000                | Allowed origin                                                                                                       |
 | `ORIGINS_3` (1)                   | String    | *                                    | Allowed origin                                                                                                       |

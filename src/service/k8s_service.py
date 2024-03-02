@@ -4,6 +4,7 @@ import base64
 from kubernetes import client, config
 from datetime import datetime
 
+from core.config import ConfigHelper
 from utils.k8s_tracer import trace_k8s_async_method
 from utils.handle_exceptions import handle_exceptions_async_method
 from helpers.printer import PrintHelper
@@ -21,7 +22,10 @@ class K8sService:
         self.v1 = client.CoreV1Api()
         self.client = client.CustomObjectsApi()
         self.client_cs = client.StorageV1Api()
-        self.print_ls = PrintHelper(['service.k8s'])
+
+        config_app = ConfigHelper()
+        self.print_ls = PrintHelper(['service.k8s'],
+                                    level=config_app.get_internal_log_level())
 
     def __parse_config_string(self, config_string):
 

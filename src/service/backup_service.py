@@ -36,7 +36,7 @@ class BackupService:
 
         self.client_core_v1_api = client.CoreV1Api()
         self.client_custom_objects_api = client.CustomObjectsApi()
-        self.print_ls = PrintHelper('[service.backup]')
+        self.print_ls = PrintHelper('[service.backup]', level=config_app.get_internal_log_level())
 
     def __filter_last_backup_for_every_schedule(self, data):
         result = {}
@@ -55,7 +55,7 @@ class BackupService:
         return list(result.values())
 
     @handle_exceptions_async_method
-    def check_expiration(self, expiration):
+    async def check_expiration(self, expiration):
         pattern = re.compile(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$')
         return bool(pattern.match(expiration))
 

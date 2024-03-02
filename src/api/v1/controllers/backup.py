@@ -138,7 +138,7 @@ class Backup:
                                             description="Backup name and expiration are required")
             return JSONResponse(content=failed_response.toJSON(), status_code=400)
 
-        if not backupService.check_expiration(expiration):
+        if not await backupService.check_expiration(expiration):
             failed_response = FailedRequest(title="Error",
                                             description="Check expiration format")
             return JSONResponse(content=failed_response.toJSON(), status_code=400)
