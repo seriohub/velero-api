@@ -9,11 +9,11 @@ LABEL maintainer="DS"
 
 # Update packages and install basics
 RUN apt-get update && apt-get install -y \
-	wget \
-	unzip \
-	git \
-	curl \
-	nano
+	# wget \
+	# unzip \
+	# git \
+	curl
+	# nano
 
 RUN apt-get -y install python3-pip
 
