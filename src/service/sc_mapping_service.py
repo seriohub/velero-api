@@ -92,15 +92,15 @@ class ScMappingService:
         try:
             config_map = core_v1.read_namespaced_config_map(name=config_map_name,
                                                             namespace=namespace)  # Extract data from the ConfigMap
-            data = config_map.data or {}
+            data = config_map.data
         except ApiException as e:
             if e.status == 404:
                 # err_msg = f"ConfigMap '{config_map_name}' not found in namespace '{namespace}'"
-                self.print_ls.wrn(f"Error reading ConfigMap '{config_map_name}' in namespace '{namespace}'")
+                self.print_ls.wrn(f"{e.status} Error reading ConfigMap '{config_map_name}' in namespace '{namespace}'")
                 return {'success': True, 'data': []}
             else:
                 # err_msg = f"Error reading ConfigMap '{config_map_name}' in namespace '{namespace}': {e}"
-                self.print_ls.wrn(f"Error reading ConfigMap '{config_map_name}' in namespace '{namespace}'")
+                self.print_ls.wrn(f"{e.status} Error reading ConfigMap '{config_map_name}' in namespace '{namespace}'")
                 return {'success': True, 'data': []}
 
         # Convert data to a list of dictionaries
