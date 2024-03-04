@@ -92,7 +92,7 @@ class ScMappingService:
         try:
             config_map = core_v1.read_namespaced_config_map(name=config_map_name,
                                                             namespace=namespace)  # Extract data from the ConfigMap
-            data = config_map.data
+            data = config_map.data or {}
         except ApiException as e:
             if e.status == 404:
                 # err_msg = f"ConfigMap '{config_map_name}' not found in namespace '{namespace}'"
@@ -103,11 +103,11 @@ class ScMappingService:
                 self.print_ls.wrn(f"{e.status} Error reading ConfigMap '{config_map_name}' in namespace '{namespace}'")
                 return {'success': True, 'data': []}
 
-        # Convert data to a list of dictionaries
-        # data_list = [{"key": key, "value": value} for key, value in data.items()]
-        data_list = [{"oldStorageClass": key, "newStorageClass": value} for key, value in data.items()]
-
-        add_id_to_list(data_list)
+        if len(data.items()) > 0:
+            data_list = [{"oldStorageClass": key, "newStorageClass": value} for key, value in data.items()]
+            add_id_to_list(data_list)
+        else:
+            data_list = []
 
         return {'success': True, 'data': data_list}
 
