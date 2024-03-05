@@ -44,3 +44,42 @@ route = '/repo/get'
 @handle_exceptions_endpoint
 async def get():
     return await repo.get()
+
+
+limiter = endpoint_limiter.get_limiter_cust("repo_lock_check")
+route = '/repo/locks/get'
+
+
+@router.get(path=route,
+            tags=[tag_name],
+            summary='Get repository locks',
+            description=route_description(tag=tag_name,
+                                          route=route,
+                                          limiter_calls=limiter.max_request,
+                                          limiter_seconds=limiter.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
+                                              max_requests=limiter.max_request))],
+            response_model=Union[SuccessfulRequest, FailedRequest],
+            status_code=status.HTTP_200_OK)
+@handle_exceptions_endpoint
+async def get(repository_url: str = None):
+    return await repo.get_locks(repository_url)
+
+limiter = endpoint_limiter.get_limiter_cust("repo_unlock")
+route = '/repo/unlock'
+
+
+@router.get(path=route,
+            tags=[tag_name],
+            summary='Unlock restic repository',
+            description=route_description(tag=tag_name,
+                                          route=route,
+                                          limiter_calls=limiter.max_request,
+                                          limiter_seconds=limiter.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
+                                              max_requests=limiter.max_request))],
+            response_model=Union[SuccessfulRequest, FailedRequest],
+            status_code=status.HTTP_200_OK)
+@handle_exceptions_endpoint
+async def get(repository_url: str = None, remove_all: bool = False):
+    return await repo.unlock(repository_url, remove_all)
