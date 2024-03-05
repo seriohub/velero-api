@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+## [v0.1.6] - 2024-03-05
+
+- Added endpoint to get the logs for the pod that execute the script api
+
+
 ## [v0.1.5] - 2024-03-02
 
 - The PrinterHelper class internally handles the print level output

@@ -524,3 +524,11 @@ class ConfigHelper:
             else:
                 origins.append(res)
         return origins
+
+    @staticmethod
+    def k8s_pod_name():
+        return os.getenv('POD_NAME')
+
+    @staticmethod
+    def k8s_pod_namespace_in():
+        return os.getenv('POD_NAMESPACE')
