@@ -324,8 +324,8 @@ class K8sService:
     @trace_k8s_async_method(description="get logs")
     async def get_logs(self, lines=100, follow=False):
         # Get env variable data
-        namespace = self.config_app.k8s_pod_namespace_in()
-        pod_name = self.config_app.k8s_pod_name()
+        namespace = self.config_app.k8s_pod_namespace_in() or []
+        pod_name = self.config_app.k8s_pod_name() or []
         in_cluster_mode = self.config_app.k8s_in_cluster_mode()
 
         if lines < 10:

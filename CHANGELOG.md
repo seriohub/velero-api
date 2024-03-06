@@ -6,8 +6,11 @@ All notable changes to this project will be documented in this file.
 
 ## [v0.1.6] - 2024-03-05
 
-- Added endpoint to get the logs for the pod that execute the script api
-
+- Fixed error in get storage class
+- Added endpoint to get the logs for the pod that execute the script API
+- Added restic feature (check locks, unlock, unlock --remove-all)
+- Updated k8s files
+- Updated RBAC: Implemented new roles/cluster roles with minimum requirements for the application, following the principle of least privilege (PoLP)
 
 ## [v0.1.5] - 2024-03-02
 
