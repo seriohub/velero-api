@@ -326,14 +326,14 @@ class K8sService:
         # Get env variable data
         namespace = self.config_app.k8s_pod_namespace_in()
         pod_name = self.config_app.k8s_pod_name()
-        container_mode = self.config_app.container_mode()
+        in_cluster_mode = self.config_app.k8s_in_cluster_mode()
 
         if lines < 10:
             lines = 100
         elif lines > 500:
             lines = 500
 
-        if container_mode:
+        if in_cluster_mode:
             if len(namespace) > 0 and len(pod_name) > 0:
                 # Retrieve logs from the pod
                 logs = self.v1.read_namespaced_pod_log(
