@@ -106,3 +106,24 @@ route = '/k8s/credential/default/get'
 @handle_exceptions_endpoint
 async def get_default_credential():
     return await k8s.get_default_credential()
+
+
+limiter_logs = endpoint_limiter.get_limiter_cust('k8s_logs')
+route = '/k8s/current-pod/logs'
+
+
+@router.get(path=route,
+            tags=[tag_name],
+            summary='Get logs for the current pod',
+            description=route_description(tag=tag_name,
+                                          route=route,
+                                          limiter_calls=limiter_logs.max_request,
+                                          limiter_seconds=limiter_logs.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_logs.seconds,
+                                              max_requests=limiter_logs.max_request))],
+            response_model=Union[SuccessfulRequest, FailedRequest],
+            status_code=status.HTTP_200_OK
+            )
+@handle_exceptions_endpoint
+async def get_logs(lines: int = 100):
+    return await k8s.get_logs(lines=lines)

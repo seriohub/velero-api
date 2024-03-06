@@ -36,7 +36,7 @@ async def run_process_check_output(cmd, publish_message=True, cwd='./'):
         # print("Error", e)
         print_ls.error("Error" + str(e))
         error = {'success': False, 'error': {'title': 'Run Process Check Output Error',
-                                             'description': ' '.join(str(cmd)) + str(e.stderr.decode('utf-8').strip())
+                                             'description': str(' '.join(cmd)) + '\n' + str(e.stderr.decode('utf-8').strip())
                                              }
                  }
         return error
@@ -58,7 +58,7 @@ async def run_process_check_call(cmd, publish_message=True):
         return {'success': True}
     except Exception as e:
         error = {'success': False, 'error': {'title': 'Run Process Check Output Error',
-                                             'description': ' '.join(str(cmd)) + str(e)
+                                             'description': str(' '.join(cmd)) + '\n' + str(e)
                                              }
                  }
         return error

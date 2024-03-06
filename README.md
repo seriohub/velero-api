@@ -9,6 +9,8 @@ Thank you for your understanding and cooperation.
 
 This Python project, developed as a backend for [Velero-UI](https://github.com/seriohub/velero-ui), is designed to communicate with Kubernetes and the Velero client within the Kubernetes environment.
 
+See [changelog](CHANGELOG) for details.
+
 ## Configuration
 
 | FIELD                             | TYPE      | DEFAULT                              | DESCRIPTION                                                                                                          |
@@ -18,8 +20,8 @@ This Python project, developed as a backend for [Velero-UI](https://github.com/s
 | `K8S_VELERO_NAMESPACE`            | String    | velero                               | K8s Velero namespace                                                                                                 |
 | `K8S_VELERO_UI_NAMESPACE`         | String    | velero-ui                            | K8s Velero namespace                                                                                                 |
 | `DEBUG_LEVEL`                     | String    | info                                 | Print level  (Critical, error, warning, info, debug)                                                                 |
-| `ORIGINS_1` (1)                   | String    | http://localhost:3000                | Allowed origin                                                                                                       |
-| `ORIGINS_2` (1)                   | String    | http://127.0.0.1:3000                | Allowed origin                                                                                                       |
+| `ORIGINS_1` (1)                   | String    | <http://localhost:3000>              | Allowed origin                                                                                                       |
+| `ORIGINS_2` (1)                   | String    | <http://127.0.0.1:3000>              | Allowed origin                                                                                                       |
 | `ORIGINS_3` (1)                   | String    | *                                    | Allowed origin                                                                                                       |
 | `API_ENDPOINT_URL`                | String    | 0.0.0.0                              | Socket bind host                                                                                                     |
 | `API_ENDPOINT_PORT`               | Int       | 8001                                 | Socket bind port                                                                                                     |
@@ -36,7 +38,9 @@ This Python project, developed as a backend for [Velero-UI](https://github.com/s
 | `API_RATE_LIMITER_L1`             | String    | 60:120                               | Rate limiter: 60 seconds  max requests 10                                                                            |
 | `API_RATE_LIMITER_CUSTOM_L1` (4)  | String    | Security:xxx:60:20                   | Rate limiter for specific tag/endpoint: Security (tag) xxx (all endpoints under the tag) 60 seconds  max requests 20 |
 | `API_RATE_LIMITER_CUSTOM_L2` (4)  | String    | Info:info:60:500                     | Rate limiter for specific tag/endpoint: Info (tag) xxx (all endpoints under the tag) 60 seconds  max requests 500    |
-
+| `RESTIC_PASSWORD`                 | String    | static-passw0rd                      |                                                                                                                      |
+| `AWS_ACCESS_KEY_ID`               | String    |                                      | AWS_ACCESS_KEY_ID                                                                                                    |
+| `AWS_SECRET_ACCESS_KEY`           | String    |                                      | AWS_SECRET_ACCESS_KEY                                                                                                |
 
 1. You can define up to 100 allowed origins that should be permitted to make cross-origin requests. An origin is the combination of protocol (http, https), domain (myapp.com, localhost) and port (80, 443, 8001)
 
@@ -64,6 +68,10 @@ Set VELERO_CLI_VERSION as the following example: v1.12.2
 
    >   [!WARNING]  
    If you disable the api documentation (API_ENABLE_DOCUMENTATION key), you are not able to reach the endpoint /docs.
+
+## In case of Upgrade
+
+In case of upgrades from previous versions, ensure that Kubernetes deployment files are aligned with the latest available version.
 
 ## Installation
 
@@ -108,33 +116,40 @@ cd velero-api
 
    >   [!INFO]  
    You can skip the *Setup docker image* step and use a deployed image published on DockerHub.</br>
-   Docker hub: https://hub.docker.com/r/dserio83/velero-api
+   Docker hub: <https://hub.docker.com/r/dserio83/velero-api>
 
-    1. Navigate to the root folder
-    2. Build image
+   1. Navigate to the root folder
+   2. Build image
 
-        ``` bash
-        docker build --target velero-api -t <your-register>/<your-user>/velero-api:<tag> -f ./docker/Dockerfile .
-        ```
+      ``` bash
+      docker build --target velero-api -t <your-register>/<your-user>/velero-api:<tag> -f ./docker/Dockerfile .
+      ```
 
-    3. Push image
+   3. Push image
 
-        ``` bash
-        docker push <your-register>/<your-user>/velero-api --all-tags
-        ```
+      ``` bash
+      docker push <your-register>/<your-user>/velero-api --all-tags
+      ```
 
       >   [!WARNING]  
       If you perform custom image creation and use the files within the k8s folder to deploy to kubernetes, remember to update the 30_deployment.yaml or 30_deployment_no_pvc.yaml file with references to the created image.
 
 2. Kubernetes create objects
 
+   These files are configured assuming that the namespace where Velero is deployed is named "velero," and the namespace where "velero-api" is deployed is named "velero-ui". 
+   Please update the following files according to your environment if necessary:
+   - [*22_cluster_role_binding.yaml*](k8s/22_cluster_role_binding.yaml)
+   - [*23_role.yaml*](k8s/23_role.yaml)
+   - [*24_role_binding.yaml*](k8s/24_role_binding.yaml)
+   </br>
+   </br>
    1. Navigate to the [k8s](k8s) folder
 
    2. Create namespace:
 
-        ``` bash
-        kubectl create ns velero-ui
-        ```
+      ``` bash
+      kubectl create ns velero-ui
+      ```
 
    3. Create the ConfigMap:
 
@@ -153,20 +168,30 @@ cd velero-api
 
    5. Create the RBAC Cluster Role:
 
-       ``` bash
-        kubectl apply -f 21_cluster_role.yaml
-       ```
+      ``` bash
+      kubectl apply -f 21_cluster_role.yaml
+      ```
 
    6. Create the RBAC Cluster Role Binding:
 
-      >   [!WARNING]  
-      If you use a namespace with name other than **velero-ui** update the [*22_cluster_role_binding.yaml*](k8s/22_cluster_role_binding.yaml) file before applying it
-
       ``` bash
-       kubectl apply -f 22_cluster_role_binding.yaml
+      kubectl apply -f 22_cluster_role_binding.yaml
       ```
 
-   7. Create PVCs (*Optional*)
+   7. Create the RBAC Role:
+
+      ``` bash
+      kubectl apply -f 23_role.yaml -n velero-ui
+      ```
+
+   8. Create the RBAC Role Binding:
+
+      ``` bash
+      kubectl apply -f 24_role_binding.yaml -n velero-ui
+      ```
+
+   9. Create PVCs (*Optional*)
+
       1. Database path : By default, the user database is created in the path configured in the SECURITY_PATH_DATABASE parameter of the configuration map. To ensure data persistence, the path can be customized using a PVC.
       2. Custom folder for velero binaries: The user can store the binaries of new versions to avoid downloading the file directly from the code. The env parameter is VELERO_CLI_PATH_CUSTOM.  
 
@@ -174,10 +199,10 @@ cd velero-api
       Set storage class name in [25_pvc.yaml](k8s/25_pvc.yaml) before applying it.
 
       ``` bash
-       kubectl apply -f 25_pvc.yaml -n velero-ui
+      kubectl apply -f 25_pvc.yaml -n velero-ui
       ```
 
-   8. Create the Deployment:
+   10. Create the Deployment:
 
       If you created a pvc:
 
@@ -188,11 +213,12 @@ cd velero-api
       otherwise:
 
       ``` bash
-        kubectl apply -f 30_deployment_no_pvc.yaml -n velero-ui
+      kubectl apply -f 30_deployment_no_pvc.yaml -n velero-ui
       ```
 
-   9. Create the Service:
+   11. Create the Service:
 
+       The exposed port must be type of **LoadBalancer** or **Nodeport**
       >   [!WARNING]  
       Customizes the [40_service_lb.yaml](k8s/40_service_lb.yaml) or [40_service_nodeport.yaml](k8s/40_service_nodeport.yaml) file before applying it according to your environment.
 
@@ -205,9 +231,6 @@ cd velero-api
       ``` bash
       kubectl apply -f 40_service_nodeport.yaml -n velero-ui
       ```
-
-      >   [!INFO]
-      The exposed port must be type of **LoadBalancer** or **Nodeport**
 
 ## Test the API running with the fastapi interface tool
 

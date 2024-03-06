@@ -96,18 +96,18 @@ class ScMappingService:
         except ApiException as e:
             if e.status == 404:
                 # err_msg = f"ConfigMap '{config_map_name}' not found in namespace '{namespace}'"
-                self.print_ls.wrn(f"Error reading ConfigMap '{config_map_name}' in namespace '{namespace}'")
+                self.print_ls.wrn(f"{e.status} Error reading ConfigMap '{config_map_name}' in namespace '{namespace}'")
                 return {'success': True, 'data': []}
             else:
                 # err_msg = f"Error reading ConfigMap '{config_map_name}' in namespace '{namespace}': {e}"
-                self.print_ls.wrn(f"Error reading ConfigMap '{config_map_name}' in namespace '{namespace}'")
+                self.print_ls.wrn(f"{e.status} Error reading ConfigMap '{config_map_name}' in namespace '{namespace}'")
                 return {'success': True, 'data': []}
 
-        # Convert data to a list of dictionaries
-        # data_list = [{"key": key, "value": value} for key, value in data.items()]
-        data_list = [{"oldStorageClass": key, "newStorageClass": value} for key, value in data.items()]
-
-        add_id_to_list(data_list)
+        if len(data.items()) > 0:
+            data_list = [{"oldStorageClass": key, "newStorageClass": value} for key, value in data.items()]
+            add_id_to_list(data_list)
+        else:
+            data_list = []
 
         return {'success': True, 'data': data_list}
 

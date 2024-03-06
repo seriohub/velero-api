@@ -23,3 +23,29 @@ class RepoService:
         add_id_to_list(repos['items'])
 
         return {'success': True, 'data': repos['items']}
+
+    @handle_exceptions_async_method
+    async def get_locks(self, repository_url):
+        output = await run_process_check_output(['restic', '-q', '--no-lock', 'list', 'locks', '-r', repository_url])
+
+        if not output['success']:
+            return output
+
+        locks = output['data']
+
+        return {'success': True, 'data':  {str(repository_url): list(filter(None, locks.split('\n')))}}
+
+    @handle_exceptions_async_method
+    async def unlock(self, repository_url, remove_all=False):
+        cmd = ['restic', 'unlock', '-r', repository_url]
+        if remove_all:
+            cmd.append('--remove-all')
+
+        output = await run_process_check_output(cmd)
+
+        if not output['success']:
+            return output
+
+        locks = output['data']
+
+        return {'success': True, 'data':  {str(repository_url): list(filter(None, locks.split('\n')))}}

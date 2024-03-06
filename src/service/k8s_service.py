@@ -23,9 +23,9 @@ class K8sService:
         self.client = client.CustomObjectsApi()
         self.client_cs = client.StorageV1Api()
 
-        config_app = ConfigHelper()
+        self.config_app = ConfigHelper()
         self.print_ls = PrintHelper(['service.k8s'],
-                                    level=config_app.get_internal_log_level())
+                                    level=self.config_app.get_internal_log_level())
 
     def __parse_config_string(self, config_string):
 
@@ -107,6 +107,14 @@ class K8sService:
 
         except Exception as err:
             return 0, 0, None
+
+    def __transform_logs_to_json(self, logs):
+        json_logs = []
+        for log_line in logs.split("\n"):
+            if log_line.strip():
+                log_entry = {"log": log_line}
+                json_logs.append(log_entry)
+        return json_logs
 
     @handle_exceptions_async_method
     @trace_k8s_async_method(description="get storage classes")
@@ -310,4 +318,50 @@ class K8sService:
         else:
             return {'success': False, 'error': {'title': "Error",
                                                 "description": "Secret key not found"}
+                    }
+
+    @handle_exceptions_async_method
+    @trace_k8s_async_method(description="get logs")
+    async def get_logs(self, lines=100, follow=False):
+        # Get env variable data
+        namespace = self.config_app.k8s_pod_namespace_in() or []
+        pod_name = self.config_app.k8s_pod_name() or []
+        in_cluster_mode = self.config_app.k8s_in_cluster_mode()
+
+        if lines < 10:
+            lines = 100
+        elif lines > 500:
+            lines = 500
+
+        if in_cluster_mode:
+            if len(namespace) > 0 and len(pod_name) > 0:
+                # Retrieve logs from the pod
+                logs = self.v1.read_namespaced_pod_log(
+                    namespace=namespace,
+                    name=pod_name,
+                    pretty=True,
+                    container=None,  # If the pod has only one container, you can omit this parameter
+                    timestamps=False,  # Include timestamps in the logs
+                    tail_lines=lines,  # Number of lines to retrieve from the end of the logs
+                    follow=follow  # Set to True if you want to follow the logs continuously
+                )
+                if logs is not None:
+                    # Transform logs to JSON format
+                    json_logs = self.__transform_logs_to_json(logs)
+                    return {'success': True, 'data': json_logs}
+                else:
+                    return {'success': False, 'error': {'title': "Error",
+                                                        "description": f"No logs retrieved "
+                                                                       f"pod name {pod_name} in the namespace {namespace} "}
+                            }
+            else:
+                return {'success': False, 'error': {'title': "Error",
+                                                    "description": f"Namespace (par:{namespace}) "
+                                                                   f"or pod_name(par:{pod_name}) not defined."
+                                                    }
+                        }
+        else:
+            return {'success': False, 'error': {'title': "Error",
+                                                "description": f"the application is not running in container mode."
+                                                }
                     }

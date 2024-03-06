@@ -72,4 +72,16 @@ class K8s:
         response = SuccessfulRequest(payload=payload['data'])
         return JSONResponse(content=response.toJSON(), status_code=200)
 
+    @handle_exceptions_controller
+    async def get_logs(self, lines=100, follow=False):
+
+        payload = await k8sService.get_logs(lines=lines, follow=follow)
+
+        if not payload['success']:
+            response = FailedRequest(**payload['error'])
+            return JSONResponse(content=response.toJSON(), status_code=400)
+
+        response = SuccessfulRequest(payload=payload['data'])
+        return JSONResponse(content=response.toJSON(), status_code=200)
+
 
