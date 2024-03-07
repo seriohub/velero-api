@@ -112,6 +112,12 @@ cd velero-api
 
 ### Run in Kubernetes
 
+#### Install with HELM
+
+   See [helm readme](https://github.com/seriohub/velero-ui/tree/main/helm)
+
+#### Install with Kubernetes YAML
+
 1. Setup docker image:
 
    >   [!INFO]  
