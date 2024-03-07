@@ -9,7 +9,7 @@ Thank you for your understanding and cooperation.
 
 This Python project, developed as a backend for [Velero-UI](https://github.com/seriohub/velero-ui), is designed to communicate with Kubernetes and the Velero client within the Kubernetes environment.
 
-See [changelog](CHANGELOG) for details.
+See [changelog](CHANGELOG.md) for details.
 
 ## Configuration
 
