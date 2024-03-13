@@ -8,17 +8,22 @@ class FailedRequest(BaseModel):
          'title': '',
          'description': ''
     })
+    notifications: list = []
     messages: list = []
 
-    def __init__(self, title='', description='', messages=None, **data: Any):
+    def __init__(self, title='', description='', notifications=None, messages=None, **data: Any):
         super().__init__(**data)
+        if notifications is None:
+            notifications = []
         if messages is None:
             messages = []
         self.error['title'] = title
         self.error['description'] = description
+        self.notifications = notifications
         self.messages = messages
 
     def toJSON(self):
         return {'error': self.error,
-                'messages': self.messages
+                'notifications': self.notifications,
+                # 'alerts': self.alerts
                 }

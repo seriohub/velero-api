@@ -89,7 +89,7 @@ class Backup:
                       type='INFO')
 
         response = SuccessfulRequest()
-        response.messages = [msg.toJSON()]
+        response.notifications = [msg.toJSON()]
         return JSONResponse(content=response.toJSON(), status_code=200)
 
     @handle_exceptions_controller
@@ -108,7 +108,7 @@ class Backup:
         msg = Message(title='Create backup',
                       description=f"Backup {info.name} created!",
                       type='INFO')
-        response = SuccessfulRequest(messages=[msg.toJSON()])
+        response = SuccessfulRequest(notifications=[msg.toJSON()])
         return JSONResponse(content=response.toJSON(), status_code=201)
 
     @handle_exceptions_controller
@@ -128,7 +128,7 @@ class Backup:
         msg = Message(title='Create backup from schedule',
                       description=f"Backup created!",
                       type='INFO')
-        response = SuccessfulRequest(messages=[msg.toJSON()])
+        response = SuccessfulRequest(notifications=[msg.toJSON()])
         return JSONResponse(content=response.toJSON(), status_code=201)
 
     @handle_exceptions_controller
@@ -152,7 +152,7 @@ class Backup:
         msg = Message(title='TTL Updated',
                       description=f"Backup {backup_name} expiration updated!",
                       type='INFO')
-        response = SuccessfulRequest(messages=[msg.toJSON()])
+        response = SuccessfulRequest(notifications=[msg.toJSON()])
         return JSONResponse(content=response.toJSON(), status_code=201)
 
     @handle_exceptions_controller

@@ -37,7 +37,7 @@ class Repo:
                       description=f"{len(payload['data'][repository_url])} locks found",
                       type='INFO')
 
-        response = SuccessfulRequest(payload=payload['data'], messages=[msg.toJSON()])
+        response = SuccessfulRequest(payload=payload['data'], notifications=[msg.toJSON()])
         return JSONResponse(content=response.toJSON(), status_code=200)
 
     @handle_exceptions_controller
@@ -49,4 +49,19 @@ class Repo:
             return JSONResponse(content=response.toJSON(), status_code=400)
 
         response = SuccessfulRequest(payload=payload['data'])
+        return JSONResponse(content=response.toJSON(), status_code=200)
+
+    @handle_exceptions_controller
+    async def check(self, repository_url):
+        payload = await repoService.check(repository_url)
+
+        if not payload['success']:
+            response = FailedRequest(**payload['error'])
+            return JSONResponse(content=response.toJSON(), status_code=400)
+
+        msg = Message(title=f"Check {repository_url}",
+                      description=payload['data'][repository_url],
+                      type='INFO')
+
+        response = SuccessfulRequest(messages=[msg.toJSON()])
         return JSONResponse(content=response.toJSON(), status_code=200)

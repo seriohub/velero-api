@@ -39,7 +39,7 @@ class SCMapping:
         msg = Message(title='Storage Class Map',
                       description=f"Done!",
                       type='INFO')
-        response = SuccessfulRequest(messages=[msg.toJSON()])
+        response = SuccessfulRequest(notifications=[msg.toJSON()])
         return JSONResponse(content=response.toJSON(), status_code=200)
 
     @handle_exceptions_controller
@@ -54,5 +54,5 @@ class SCMapping:
         msg = Message(title='Storage Class Map',
                       description=f"Deleted!",
                       type='INFO')
-        response = SuccessfulRequest(messages=[msg.toJSON()])
+        response = SuccessfulRequest(notifications=[msg.toJSON()])
         return JSONResponse(content=response.toJSON(), status_code=200)

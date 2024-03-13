@@ -57,7 +57,7 @@ class Schedule:
         msg = Message(title='Pause schedule',
                       description=f"Schedule {schedule_name} pause request done!",
                       type='INFO')
-        response = SuccessfulRequest(messages=[msg.toJSON()])
+        response = SuccessfulRequest(notifications=[msg.toJSON()])
         return JSONResponse(content=response.toJSON(), status_code=200)
 
     @handle_exceptions_controller
@@ -76,7 +76,7 @@ class Schedule:
         msg = Message(title='Pause schedule',
                       description=f"Schedule {schedule_name} start request done!",
                       type='INFO')
-        response = SuccessfulRequest(messages=[msg.toJSON()])
+        response = SuccessfulRequest(notifications=[msg.toJSON()])
         return JSONResponse(content=response.toJSON(), status_code=200)
 
     @handle_exceptions_controller
@@ -95,7 +95,7 @@ class Schedule:
         msg = Message(title='Create schedule',
                       description=f"Schedule {info.name} created!",
                       type='INFO')
-        response = SuccessfulRequest(messages=[msg.toJSON()])
+        response = SuccessfulRequest(notifications=[msg.toJSON()])
         return JSONResponse(content=response.toJSON(), status_code=200)
 
     @handle_exceptions_controller
@@ -114,7 +114,7 @@ class Schedule:
         msg = Message(title='Delete schedule',
                       description=f"Schedule {schedule_name} deleted request done!",
                       type='INFO')
-        response = SuccessfulRequest(messages=[msg.toJSON()])
+        response = SuccessfulRequest(notifications=[msg.toJSON()])
         return JSONResponse(content=response.toJSON(), status_code=200)
 
     @handle_exceptions_controller
@@ -134,5 +134,5 @@ class Schedule:
         msg = Message(title='Schedule',
                       description=f"Schedule '{info['values']['name']}' successfully updated.",
                       type='INFO')
-        response = SuccessfulRequest(messages=[msg.toJSON()])
+        response = SuccessfulRequest(notifications=[msg.toJSON()])
         return JSONResponse(content=response.toJSON(), status_code=200)

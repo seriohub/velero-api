@@ -83,3 +83,23 @@ route = '/repo/unlock'
 @handle_exceptions_endpoint
 async def get(repository_url: str = None, remove_all: bool = False):
     return await repo.unlock(repository_url, remove_all)
+
+
+limiter = endpoint_limiter.get_limiter_cust("repo_check")
+route = '/repo/check'
+
+
+@router.get(path=route,
+            tags=[tag_name],
+            summary='Check restic repository',
+            description=route_description(tag=tag_name,
+                                          route=route,
+                                          limiter_calls=limiter.max_request,
+                                          limiter_seconds=limiter.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
+                                              max_requests=limiter.max_request))],
+            response_model=Union[SuccessfulRequest, FailedRequest],
+            status_code=status.HTTP_200_OK)
+@handle_exceptions_endpoint
+async def check(repository_url: str = None):
+    return await repo.check(repository_url)

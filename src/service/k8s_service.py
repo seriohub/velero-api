@@ -177,8 +177,8 @@ class K8sService:
             kv = {}
             # Print out the data
             for key, value in data.items():
-                if key.startswith('SECURITY_TOKEN_KEY'):
-                    value = value[1].ljust(len(value) - 1, '*')
+                if key.startswith('SECURITY_TOKEN_KEY') or key.startswith('AWS_SECRET_ACCESS_KEY'):
+                    value = value[0].ljust(len(value) - 1, '*')
                 kv[key] = value
             return {'success': True, 'data': kv}
         except client.exceptions.ApiException as e:

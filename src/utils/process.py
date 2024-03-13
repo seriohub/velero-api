@@ -1,5 +1,5 @@
 import subprocess
-
+import asyncio
 from fastapi import WebSocketDisconnect
 
 from core.config import ConfigHelper
@@ -24,11 +24,29 @@ async def send_message(message):
 async def run_process_check_output(cmd, publish_message=True, cwd='./'):
     try:
         if publish_message:
-            await send_message(' '.join(cmd))
-        output = subprocess.check_output(
-            cmd, stderr=subprocess.PIPE, cwd=cwd).decode('utf-8')
+            await send_message(' check output: '.join(cmd))
+        # sync
+        # output = subprocess.check_output(
+        #     cmd, stderr=subprocess.PIPE, cwd=cwd).decode('utf-8')
+
+        # Starts the secondary process asynchronously
+        process = await asyncio.create_subprocess_exec(*cmd,
+                                                       stdout=asyncio.subprocess.PIPE,
+                                                       stderr=asyncio.subprocess.STDOUT,
+                                                       cwd=cwd)
+
+        # Wait for the process to complete and capture the output
+        stdout, stderr = await process.communicate()
+
+        # Check for errors in the output
+        if stderr:
+            # example: await publish_message_function(stderr.decode())
+            pass
+
+        # Decode the output and return a string
+        output = stdout.decode('utf-8')
+
         if output.startswith('An error occurred'):
-            print("Error:", output)
             raise Exception('Error')
 
         return {'success': True, 'data': output}
@@ -53,8 +71,18 @@ async def run_process_check_output(cmd, publish_message=True, cwd='./'):
 async def run_process_check_call(cmd, publish_message=True):
     try:
         if publish_message:
-            await send_message(' '.join(cmd))
-        subprocess.check_call(cmd)
+            await send_message(' check call: '.join(cmd))
+        # sync
+        # subprocess.check_call(cmd)
+
+        # Starts the secondary process asynchronously
+        process = await asyncio.create_subprocess_exec(*cmd,
+                                                       stdout=asyncio.subprocess.PIPE,
+                                                       stderr=asyncio.subprocess.STDOUT,)
+
+        # Wait for the completion of the process
+        await process.wait()
+
         return {'success': True}
     except Exception as e:
         error = {'success': False, 'error': {'title': 'Run Process Check Output Error',
