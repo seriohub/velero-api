@@ -24,7 +24,7 @@ async def send_message(message):
 async def run_process_check_output(cmd, publish_message=True, cwd='./'):
     try:
         if publish_message:
-            await send_message(' check output: '.join(cmd))
+            await send_message('check output: ' + ' '.join(cmd))
         # sync
         # output = subprocess.check_output(
         #     cmd, stderr=subprocess.PIPE, cwd=cwd).decode('utf-8')
@@ -71,7 +71,7 @@ async def run_process_check_output(cmd, publish_message=True, cwd='./'):
 async def run_process_check_call(cmd, publish_message=True):
     try:
         if publish_message:
-            await send_message(' check call: '.join(cmd))
+            await send_message('check call: ' + ' '.join(cmd))
         # sync
         # subprocess.check_call(cmd)
 
