@@ -17,9 +17,12 @@ def trace_k8s_async_method(description):
             message = f"k8s {description}"
             # print("[k8s]", message)
             print_ls.debug(message)
-            user = current_user_var.get()
             # await manager.broadcast(message)
-            await manager.send_personal_message(str(user.id), message)
+            try:
+                user = current_user_var.get()
+                await manager.send_personal_message(str(user.id), message)
+            except:
+                pass
             return await fn(*args, **kw)
 
         return wrapper

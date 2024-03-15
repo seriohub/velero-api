@@ -28,8 +28,10 @@ class ConnectionManager:
         del self.active_connections[user_id]
 
     async def send_personal_message(self, user_id, message: str):
-        await self.active_connections[user_id].send_text(message)
-
+        try:
+            await self.active_connections[user_id].send_text(message)
+        except:
+            pass
     async def broadcast(self, message: str):
         for user_id in self.active_connections:
             try:
