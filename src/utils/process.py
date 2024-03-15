@@ -1,10 +1,13 @@
 import subprocess
 import asyncio
 from fastapi import WebSocketDisconnect
+from fastapi import Depends
 
 from core.config import ConfigHelper
+from core.context import current_user_var
 from helpers.connection_manager import manager
 from helpers.printer import PrintHelper
+from security.users import get_current_active_user
 
 config = ConfigHelper()
 print_ls = PrintHelper('[bash tracer]',
@@ -14,9 +17,16 @@ print_ls = PrintHelper('[bash tracer]',
 async def send_message(message):
     try:
         print_ls.debug(message)
-        # print('bash command:', message)
-        await manager.broadcast(message)
-        pass
+        # await manager.broadcast(message)
+        user = None
+        try:
+            user = current_user_var.get()
+        except:
+            print("get failed")
+        finally:
+            if user is not None:
+                await manager.send_personal_message(str(user.id), message)
+
     except WebSocketDisconnect:
         print_ls.error('send message error')
 

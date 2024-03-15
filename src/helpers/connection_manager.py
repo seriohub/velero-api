@@ -1,30 +1,41 @@
-from typing import List
 from fastapi import WebSocket
+from typing import Dict, Any
 
+from security.users import get_current_user_token
 
 # socket manager
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: List[WebSocket] = []
+        # self.active_connections: List[WebSocket] = []
+        self.active_connections: Dict[str, WebSocket] = {}
 
     async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.active_connections.append(websocket)
+        try:
+            await websocket.accept()
+            token = await websocket.receive_text()
+            user = await get_current_user_token(token)
+            print(f"Connected user: {user.username} user_id:{user.id} is_admin:{user.is_admin}")
+            if user is not None and not user.is_disabled:
+                self.active_connections[str(user.id)] = websocket
+                await self.send_personal_message(str(user.id), 'Connection READY!')
+            else:
+                await websocket.close(1001)
+        except:
+            await websocket.close(1001)
 
-    def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
+    def disconnect(self, user_id):
+        self.active_connections[user_id].close(1001)
+        del self.active_connections[user_id]
 
-    async def send_personal_message(self, message: str, websocket: WebSocket):
-        await websocket.send_text(message)
+    async def send_personal_message(self, user_id, message: str):
+        await self.active_connections[user_id].send_text(message)
 
     async def broadcast(self, message: str):
-        #
-        for connection in self.active_connections:
+        for user_id in self.active_connections:
             try:
-                await connection.send_text(message)
+                await self.active_connections[user_id].send_text(message)
             except Exception as Ex:
-                # print("error", Ex)
-                pass
+                print("error", Ex)
 
 
 manager = ConnectionManager()

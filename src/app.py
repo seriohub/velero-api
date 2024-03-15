@@ -83,7 +83,7 @@ async def online():
 @app.websocket('/ws')
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
-    await manager.send_personal_message('Connection READY!', websocket=websocket)
+    # await manager.send_personal_message('Connection READY!', websocket=websocket)
 
 
 app.mount("/api/v1", v1, "v1")

@@ -18,6 +18,8 @@ from sqlalchemy.sql import func
 from typing import List, Optional
 from security.dependencies import pwd_context
 from helpers.database import GUID
+from core.context import current_user_var
+
 config_app = ConfigHelper()
 print_ls = PrintHelper('[authentication.users]',
                        level=config_app.get_internal_log_level())
@@ -281,4 +283,27 @@ async def get_current_user(token: str = Depends(oauth2_scheme),
 async def get_current_active_user(current_user: User = Depends(get_current_user)):
     if current_user.is_disabled:
         raise HTTPException(status_code=400, detail='Inactive user')
+    current_user_var.set(current_user)
     return current_user
+
+
+async def get_current_user_token(token: str = Depends(oauth2_scheme)) -> UserOut:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail='Could not validate credentials',
+        headers={'WWW-Authenticate': 'Bearer'},
+    )
+    try:
+        payload = jwt.decode(token, secret_key, algorithms=[algorithm])
+        username: str = payload.get('sub')
+        if username is None:
+            raise credentials_exception
+        token_data = TokenData(username=username)
+    except JWTError:
+        raise credentials_exception
+
+    user = get_user_by_name(db=SessionLocal(),
+                            username=token_data.username)
+    if user is None:
+         raise credentials_exception
+    return user
