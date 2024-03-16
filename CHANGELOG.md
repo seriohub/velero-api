@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+## [v0.1.7] - 2024-03-16
+
+- Added restic check feature
+- Added websocket authentication
+- Updated execution of secondary processes from synchronous to asynchronous
+- Improved notifications and messages system
+- Minor fix
+
 ## [v0.1.6] - 2024-03-05
 
 - Fixed error in get storage class
