@@ -1,6 +1,8 @@
 import sys
 from datetime import datetime
 
+from core.context import called_endpoint_var, current_user_var
+
 class BColors:
     """
     Define colors for formatting log string
@@ -44,7 +46,21 @@ class PrintHelper:
                          title='',
                          message='',
                          stdout: bool = False):
-        ret = f"{datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]} {self.name} {message}"
+        try:
+            endpoint = f"[{called_endpoint_var.get()}] "
+        except LookupError:
+            endpoint = ''
+        try:
+            user = f"[{current_user_var.get().username}] "
+        except LookupError:
+            user = ''
+
+        ret = (f"{datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]} "
+               f"{self.name} "
+               f"{endpoint}"
+               f"{user}"               
+               f"{message}")
+
         if title:
             ret = f"{title.ljust(self.msg_len, ' ')}{ret}"
 

@@ -1,20 +1,22 @@
+from dotenv import load_dotenv
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 
-from dotenv import load_dotenv
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from helpers.connection_manager import WebSocket, manager
-# from helpers.printer import PrintHelper
-from core.config import ConfigHelper
-from fastapi.responses import JSONResponse
 
+from core.config import ConfigHelper
+from core.context import called_endpoint_var
 
 from security.middleware import add_process_time_header
+from security.users import create_default_user, SessionLocal
+
 from api.common.app_info import appInfo
+from api.v1.api_v1 import v1
 
 from app_data import __version__, __app_name__, __app_description__, __app_summary__
-from security.users import create_default_user, SessionLocal
-from api.v1.api_v1 import v1
+
 
 load_dotenv()
 config = ConfigHelper()
@@ -71,6 +73,17 @@ app.add_middleware(
 
 app.middleware('http')(add_process_time_header)
 
+@app.middleware("http")
+async def set_called_endpoint(request: Request, call_next):
+    # get the endpoint called by the request
+    called_endpoint = request.url.path
+    # set the endpoint called in the context variable
+    ce = called_endpoint_var.set(called_endpoint)
+    try:
+        # call the next endpoint in the application
+        return await call_next(request)
+    finally:
+        called_endpoint_var.reset(ce)
 
 @app.get('/')
 async def online():

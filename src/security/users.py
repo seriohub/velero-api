@@ -18,7 +18,7 @@ from sqlalchemy.sql import func
 from typing import List, Optional
 from security.dependencies import pwd_context
 from helpers.database import GUID
-from core.context import current_user_var
+from core.context import current_user_var, called_endpoint_var
 
 config_app = ConfigHelper()
 print_ls = PrintHelper('[authentication.users]',
@@ -283,8 +283,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme),
 async def get_current_active_user(current_user: User = Depends(get_current_user)):
     if current_user.is_disabled:
         raise HTTPException(status_code=400, detail='Inactive user')
-    current_user_var.set(current_user)
-    return current_user
+    cu = current_user_var.set(current_user)
+    # return current_user
+    try:
+        yield current_user
+    finally:
+        if called_endpoint_var.get() != '/api/v1/stats/in-progress':
+            print_ls.debug(f"Reset context current user { str(current_user_var.get().username)} endpoint: {called_endpoint_var.get()}")
+        current_user_var.reset(cu)
 
 
 async def get_current_user_token(token: str = Depends(oauth2_scheme)) -> UserOut:
