@@ -49,3 +49,16 @@ class RepoService:
         locks = output['data']
 
         return {'success': True, 'data':  {str(repository_url): list(filter(None, locks.split('\n')))}}
+
+    @handle_exceptions_async_method
+    async def check(self, repository_url):
+        cmd = ['restic', 'check', '-r', repository_url]
+
+        output = await run_process_check_output(cmd)
+
+        if not output['success']:
+            return output
+
+        check = output['data']
+
+        return {'success': True, 'data':  {str(repository_url): list(filter(None, check.split('\n')))}}

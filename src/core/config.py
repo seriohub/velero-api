@@ -473,8 +473,8 @@ class ConfigHelper:
         data = dotenv_values(find_dotenv())
         kv = {}
         for k, v in data.items():
-            if k.startswith('SECURITY_TOKEN_KEY'):
-                v = v[1].ljust(len(v) - 1, '*')
+            if k.startswith('SECURITY_TOKEN_KEY') or k.startswith('AWS_SECRET_ACCESS_KEY'):
+                v = v[0].ljust(len(v) - 1, '*')
                 # print(temp)
                 # v = temp
             kv[k] = v

@@ -48,7 +48,7 @@ class Restore:
         msg = Message(title='Create Restore',
                       description=f"Restore from {resource_type} {backup_name} created successfully",
                       type='INFO')
-        response = SuccessfulRequest(messages=[msg.toJSON()])
+        response = SuccessfulRequest(notifications=[msg.toJSON()])
         return JSONResponse(content=response.toJSON(), status_code=201)
 
     @handle_exceptions_controller
@@ -99,5 +99,5 @@ class Restore:
         msg = Message(title='Delete restore',
                       description=f"Restore {restore_name} deleted request done!",
                       type='INFO')
-        response = SuccessfulRequest(messages=[msg.toJSON()])
+        response = SuccessfulRequest(notifications=[msg.toJSON()])
         return JSONResponse(content=response.toJSON(), status_code=200)

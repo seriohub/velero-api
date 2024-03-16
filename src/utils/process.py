@@ -1,10 +1,13 @@
 import subprocess
-
+import asyncio
 from fastapi import WebSocketDisconnect
+from fastapi import Depends
 
 from core.config import ConfigHelper
+from core.context import current_user_var
 from helpers.connection_manager import manager
 from helpers.printer import PrintHelper
+from security.users import get_current_active_user
 
 config = ConfigHelper()
 print_ls = PrintHelper('[bash tracer]',
@@ -14,9 +17,16 @@ print_ls = PrintHelper('[bash tracer]',
 async def send_message(message):
     try:
         print_ls.debug(message)
-        # print('bash command:', message)
-        await manager.broadcast(message)
-        pass
+        # await manager.broadcast(message)
+        user = None
+        try:
+            user = current_user_var.get()
+        except:
+            print("get failed")
+        finally:
+            if user is not None:
+                await manager.send_personal_message(str(user.id), message)
+
     except WebSocketDisconnect:
         print_ls.error('send message error')
 
@@ -24,11 +34,29 @@ async def send_message(message):
 async def run_process_check_output(cmd, publish_message=True, cwd='./'):
     try:
         if publish_message:
-            await send_message(' '.join(cmd))
-        output = subprocess.check_output(
-            cmd, stderr=subprocess.PIPE, cwd=cwd).decode('utf-8')
+            await send_message('check output: ' + ' '.join(cmd))
+        # sync
+        # output = subprocess.check_output(
+        #     cmd, stderr=subprocess.PIPE, cwd=cwd).decode('utf-8')
+
+        # Starts the secondary process asynchronously
+        process = await asyncio.create_subprocess_exec(*cmd,
+                                                       stdout=asyncio.subprocess.PIPE,
+                                                       stderr=asyncio.subprocess.STDOUT,
+                                                       cwd=cwd)
+
+        # Wait for the process to complete and capture the output
+        stdout, stderr = await process.communicate()
+
+        # Check for errors in the output
+        if stderr:
+            # example: await publish_message_function(stderr.decode())
+            pass
+
+        # Decode the output and return a string
+        output = stdout.decode('utf-8')
+
         if output.startswith('An error occurred'):
-            print("Error:", output)
             raise Exception('Error')
 
         return {'success': True, 'data': output}
@@ -53,8 +81,18 @@ async def run_process_check_output(cmd, publish_message=True, cwd='./'):
 async def run_process_check_call(cmd, publish_message=True):
     try:
         if publish_message:
-            await send_message(' '.join(cmd))
-        subprocess.check_call(cmd)
+            await send_message('check call: ' + ' '.join(cmd))
+        # sync
+        # subprocess.check_call(cmd)
+
+        # Starts the secondary process asynchronously
+        process = await asyncio.create_subprocess_exec(*cmd,
+                                                       stdout=asyncio.subprocess.PIPE,
+                                                       stderr=asyncio.subprocess.STDOUT,)
+
+        # Wait for the completion of the process
+        await process.wait()
+
         return {'success': True}
     except Exception as e:
         error = {'success': False, 'error': {'title': 'Run Process Check Output Error',
