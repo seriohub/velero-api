@@ -537,7 +537,7 @@ class ConfigHelper:
         if self.k8s_in_cluster_mode():
             namespace = self.get_k8s_velero_ui_namespace()
             internal_endpoint = 'seriohub-velero-watchdog-clusterip'
-            url = internal_endpoint + '.' + namespace
+            url = internal_endpoint + '.' + namespace + ':8001'
             return url
         else:
             return os.getenv('VELERO_WATCHDOG_URL', '127.0.0.1:8002')
