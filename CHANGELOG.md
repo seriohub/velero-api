@@ -58,6 +58,10 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+[v0.1.7] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.7](https://github.com/seriohub/velero-api/releases/tag/v0.1.5)
+
+[v0.1.6] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.6](https://github.com/seriohub/velero-api/releases/tag/v0.1.5)
+
 [v0.1.5] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.5](https://github.com/seriohub/velero-api/releases/tag/v0.1.5)
 
 [v0.1.4] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.4](https://github.com/seriohub/velero-api/releases/tag/v0.1.4)

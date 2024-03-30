@@ -28,7 +28,7 @@ COPY ./src /app
 COPY ../velero-client /app/velero-client
 
 # Exclude specific files or directories from the project
-RUN find . -type f \( -name "*.yaml" -o -name "*.db" -o -name "*.env" \) -delete \
+RUN find . -type f \( -name "*.yaml" -o -name "*.db" -o -name ".env" \) -delete \
  && find . -type d -name "__pycache__" -exec rm -rf {} + \
  && find . -type f -name "tmp" -delete
 
