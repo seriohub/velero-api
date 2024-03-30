@@ -4,7 +4,17 @@ from fastapi import FastAPI, Depends
 from core.config import ConfigHelper
 from fastapi.responses import JSONResponse
 
-from api.v1.routers import sc_mapping, repo, restore, stats, k8s, snapshot_location, backup, schedule, backup_location, setup
+from api.v1.routers import (sc_mapping,
+                            repo,
+                            restore,
+                            stats,
+                            k8s,
+                            snapshot_location,
+                            backup,
+                            schedule,
+                            backup_location,
+                            setup,
+                            watchdog)
 from security import authentications
 
 from app_data import __version__, __app_name__, __app_description__, __app_summary__
@@ -65,4 +75,6 @@ v1.include_router(snapshot_location.router,
 v1.include_router(sc_mapping.router,
                   dependencies=[Depends(get_current_active_user)])
 v1.include_router(stats.router,
+                  dependencies=[Depends(get_current_active_user)])
+v1.include_router(watchdog.router,
                   dependencies=[Depends(get_current_active_user)])

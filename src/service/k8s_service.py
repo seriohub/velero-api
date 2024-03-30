@@ -20,6 +20,7 @@ class K8sService:
             config.load_kube_config(config_file=self.kube_config_file)
 
         self.v1 = client.CoreV1Api()
+        self.batchV1beta1Api = client.BatchV1Api()
         self.client = client.CustomObjectsApi()
         self.client_cs = client.StorageV1Api()
 
@@ -160,13 +161,13 @@ class K8sService:
 
     @handle_exceptions_async_method
     @trace_k8s_async_method(description="get configmap 'velero-api-config'")
-    async def get_config_map(self, namespace):
+    async def get_config_map(self, namespace, configmap_name):
         # Create a Kubernetes API client
         core_api = self.v1
 
         # Specify the namespace and the name of the ConfigMap you want to read
         # namespace = app_config.get_k8s_velero_ui_namespace()
-        configmap_name = 'velero-api-config'
+        # configmap_name = 'velero-api-config'
 
         try:
             # Retrieve the ConfigMap
@@ -365,3 +366,17 @@ class K8sService:
                                                 "description": f"the application is not running in container mode."
                                                 }
                     }
+
+    async def get_cron_schedule(self, namespace, job_name):
+        try:
+            api_instance = self.batchV1beta1Api
+
+            cronjob = api_instance.read_namespaced_cron_job(name=job_name, namespace=namespace)
+
+            cron_schedule = cronjob.spec.schedule
+
+            return {'success': True, 'data': cron_schedule}
+
+        except Exception as e:
+            self.print_ls.error(f"Error get cronjob '{job_name}': {e}")
+            return {'success': False, 'data': cron_schedule}
