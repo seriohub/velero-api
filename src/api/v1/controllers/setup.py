@@ -24,7 +24,7 @@ class Setup:
     @handle_exceptions_controller
     async def get_env(self):
         if os.getenv('K8S_IN_CLUSTER_MODE').lower() == 'true':
-            output = await k8sService.get_config_map(namespace=config_app.get_k8s_velero_ui_namespace())
+            output = await k8sService.get_config_map(namespace=config_app.get_k8s_velero_ui_namespace(), configmap_name='velero-api-config')
             env_data = output['data']
         else:
             env_data = config_app.get_env_variables()
