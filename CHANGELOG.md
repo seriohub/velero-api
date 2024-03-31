@@ -4,13 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+## [v0.1.8] - 2024-03-31
+
+- Added watchdog feature
+
+
 ## [v0.1.7] - 2024-03-16
+
 
 - Added restic check feature
 - Added websocket authentication
 - Updated execution of secondary processes from synchronous to asynchronous
 - Improved notifications and messages system
 - Minor fix
+
 
 ## [v0.1.6] - 2024-03-05
 
@@ -19,6 +26,7 @@ All notable changes to this project will be documented in this file.
 - Added restic feature (check locks, unlock, unlock --remove-all)
 - Updated k8s files
 - Updated RBAC: Implemented new roles/cluster roles with minimum requirements for the application, following the principle of least privilege (PoLP)
+
 
 ## [v0.1.5] - 2024-03-02
 
@@ -43,20 +51,26 @@ All notable changes to this project will be documented in this file.
 - Some improvements
 - Fix minor bug
 
+
 ## [v0.1.2] - 2024-02-12
 
 - Added storage class mapping feature
 - Minor fix
 
+
 ## [v0.1.1] - 2024-02-04
 
 - Some improvements
+
 
 ## [v0.1.0] - 2024-01-29
 
 - 🎉 first release!
 
+
 ***
+
+[v0.1.8] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.8](https://github.com/seriohub/velero-api/releases/tag/v0.1.8)
 
 [v0.1.7] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.7](https://github.com/seriohub/velero-api/releases/tag/v0.1.5)
 
