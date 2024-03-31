@@ -3,27 +3,21 @@
 from pydantic import BaseModel
 from pydantic.v1 import BaseSettings
 import uuid
-# from helpers.printer import PrintHelper
-
-# print_ls = PrintHelper('[lib.model]')
 
 
 class Token(BaseModel):
+    access_token: str
+    token_type: str
+    refresh_token: str
+
+
+class TokenRefresh(BaseModel):
     access_token: str
     token_type: str
 
 
 class TokenData(BaseModel):
     username: str | None = None
-
-
-# class User(BaseModel):
-#     id: int
-#     username: str
-#     full_name: str | None = None
-#     password: str
-#     is_default: bool
-#     is_disabled: bool
 
 
 class UserIn(BaseModel):
@@ -35,7 +29,7 @@ class UserCreate(BaseModel):
     username: str
     full_name: str | None = None
     password: str
-    is_admin: bool=False
+    is_admin: bool = False
 
 
 class UserUPDPassword(BaseModel):

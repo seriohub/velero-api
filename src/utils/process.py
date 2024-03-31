@@ -1,13 +1,11 @@
 import subprocess
 import asyncio
 from fastapi import WebSocketDisconnect
-from fastapi import Depends
 
 from core.config import ConfigHelper
 from core.context import current_user_var
 from helpers.connection_manager import manager
 from helpers.printer import PrintHelper
-from security.users import get_current_active_user
 
 config = ConfigHelper()
 print_ls = PrintHelper('[bash tracer]',

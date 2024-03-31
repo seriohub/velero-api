@@ -1,7 +1,7 @@
 from fastapi import WebSocket
 from typing import Dict
 
-from security.users import get_current_user_token
+from security.service.helpers.users import get_current_user_token
 
 # socket manager
 class ConnectionManager:

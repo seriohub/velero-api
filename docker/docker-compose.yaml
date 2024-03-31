@@ -20,6 +20,7 @@ services:
     - VELERO_NAMESPACE=velero
     - ORIGINS=["http://localhost:3000", "http://127.0.0.1:3000"]
     - SECURITY_TOKEN_KEY=<your-token-key >
+    - SECURITY_REFRESH_TOKEN_KEY=<your-token-key >
     - SECURITY_PATH_DATABASE=./data
     ports:
       - "8001:8001"

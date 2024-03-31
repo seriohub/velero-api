@@ -8,8 +8,8 @@ from utils.commons import route_description
 from utils.handle_exceptions import handle_exceptions_endpoint
 from helpers.printer import PrintHelper
 
-from security.rate_limiter import LimiterRequests
-from security.rate_limiter import RateLimiter
+from security.service.helpers.rate_limiter import LimiterRequests
+from security.service.helpers.rate_limiter import RateLimiter
 
 from api.common.response_model.failed_request import FailedRequest
 from api.common.response_model.successful_request import SuccessfulRequest

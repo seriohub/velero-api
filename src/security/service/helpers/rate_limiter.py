@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from fastapi import HTTPException, Request
 from helpers.printer import PrintHelper
 from core.config import ConfigHelper, LimiterRequestConfig
-from security.ip_from_request import IpClient
+from security.service.helpers.ip_from_request import IpClient
 
 
 class LimiterRequests:

@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 ***
+## [v0.1.8] - 2024-03-31
+
+- Added refresh token mechanism
+
 
 ## [v0.1.7] - 2024-03-16
 

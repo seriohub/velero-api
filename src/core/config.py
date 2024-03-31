@@ -1,6 +1,7 @@
 import json
 import re
 import os
+import secrets
 
 from dotenv.main import dotenv_values
 from dotenv import load_dotenv, find_dotenv
@@ -77,10 +78,11 @@ class ConfigHelper:
     @staticmethod
     def __is_valid_secret_key__(token):
         # Check if the token consists only of hexadecimal characters
-        if all(c.isdigit() or c.lower() in 'abcdef' for c in token):
-            # Check if the length of the token is within the specified range
-            if 10 <= len(token) <= 90:
-                return True
+        if token is not None and len(token) > 0:
+            if all(c.isdigit() or c.lower() in 'abcdef' for c in token):
+                # Check if the length of the token is within the specified range
+                if 10 <= len(token) <= 90:
+                    return True
         return False
 
     @staticmethod
@@ -94,6 +96,19 @@ class ConfigHelper:
 
         # Check if the pattern is found in the text
         return bool(re.search(pattern, text))
+
+    def __create_env_if_no_exits__(self, key):
+        print(f"INFO      [Env validation] create_env_variables {key}")
+        value = os.getenv(key, '')
+        message = "OK" if self.__is_valid_secret_key__(value) else "error not a valid secret key"
+        print(f"INFO      [Env creation] key: {key} "
+              f"value:{value[:25].ljust(25, ' ')} "
+              f"validation:{message.upper()}")
+        if message != "OK":
+            print(f"INFO      [Env creation] create {key}")
+            os.environ[key] = secrets.token_hex(32)  # 32 hex characters
+            value = os.getenv(key, '')
+            print(f"INFO      [Env creation] reload {key}: {value}")
 
     @staticmethod
     def __validate_env_variable__(env_var_name, var_type):
@@ -140,6 +155,11 @@ class ConfigHelper:
                   f"validation:{message.upper()}")
             return res
 
+    def create_env_variables(self):
+        print(f"INFO      [Env validation] create_env_variables")
+        self.__create_env_if_no_exits__("SECURITY_TOKEN_KEY")
+        self.__create_env_if_no_exits__("SECURITY_REFRESH_TOKEN_KEY")
+
     def validate_env_variables(self):
         print(f"INFO      [Env validation] Check the validity all env variables")
         block_exec = False
@@ -178,8 +198,20 @@ class ConfigHelper:
                     block_exec = True
 
         key = 'SECURITY_TOKEN_KEY'
-        value = os.getenv(key, None)
+        value = os.getenv(key, '')
         message = "OK" if self.__is_valid_secret_key__(value) else "error not a valid secret key"
+        print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+              f"type:{'url'.ljust(10, ' ')} "
+              f"value:{value[:25].ljust(25, ' ')} "
+              f"validation:{message.upper()}")
+        if message != "OK":
+            block_exec = True
+
+        # LS 2024.03.19 add refresh token
+        key = 'SECURITY_REFRESH_TOKEN_KEY'
+        value = os.getenv(key, '')
+        message = "OK" if self.__is_valid_secret_key__(value) else "error not a valid secret key"
+
         print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
               f"type:{'url'.ljust(10, ' ')} "
               f"value:{value[:25].ljust(25, ' ')} "
@@ -258,7 +290,7 @@ class ConfigHelper:
                 message = "OK" if self.__validate_rate_limiter__(res) else "error not a valid rate limiter "
                 print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
                       f"type:{'complex'.ljust(10, ' ')} "
-                      f"value:{res.ljust(25, ' ')} "
+                      f"value:{res[:25].ljust(25, ' ')} "
                       f"validation:{message.upper()}")
                 if message != "OK":
                     block_exec = True
@@ -317,7 +349,7 @@ class ConfigHelper:
         return self.load_key('LOG_LEVEL', 10)
 
     def uvicorn_reload_update(self):
-        return self.load_key('UVICORN_RELOAD', 'False').lower() == 'true'
+        return bool(self.load_key('UVICORN_RELOAD', 'False').lower() == 'true')
 
     def container_mode(self):
         return self.load_key('CONTAINER_MODE', 'False').lower() == 'true'
@@ -392,6 +424,15 @@ class ConfigHelper:
             res = '30'
         return int(res)
 
+    # LS 2024.03.18 add refresh token expiration time
+    @staticmethod
+    def get_security_token_refresh_expiration():
+        res = os.getenv('API_TOKEN_REFRESH_EXPIRATION_DAYS',
+                        '7')
+        if len(res) == 0:
+            res = '7'
+        return int(res)
+
     @staticmethod
     def get_security_manage_users():
         res = os.getenv('SECURITY_USERS_ON', '0')
@@ -407,8 +448,12 @@ class ConfigHelper:
         return int(res)
 
     @staticmethod
-    def get_security_token_key():
+    def get_security_access_token_key():
         return os.getenv('SECURITY_TOKEN_KEY', 'not-defined-not-secure-provide-a-valid-key')
+
+    @staticmethod
+    def get_security_refresh_token_key():
+        return os.getenv('SECURITY_REFRESH_TOKEN_KEY', 'not-defined-not-secure-provide-a-valid-key')
 
     @staticmethod
     def get_security_algorithm():
@@ -469,11 +514,14 @@ class ConfigHelper:
 
         return limiter
 
-    def get_env_variables(self):
+    @staticmethod
+    def get_env_variables():
         data = dotenv_values(find_dotenv())
         kv = {}
         for k, v in data.items():
-            if k.startswith('SECURITY_TOKEN_KEY') or k.startswith('AWS_SECRET_ACCESS_KEY'):
+            if (k.startswith('SECURITY_TOKEN_KEY') or
+                    k.startswith('SECURITY_REFRESH_TOKEN_KEY') or
+                    k.startswith('AWS_SECRET_ACCESS_KEY')):
                 v = v[0].ljust(len(v) - 1, '*')
                 # print(temp)
                 # v = temp
