@@ -178,7 +178,8 @@ class K8sService:
             kv = {}
             # Print out the data
             for key, value in data.items():
-                if key.startswith('SECURITY_TOKEN_KEY') or key.startswith('AWS_SECRET_ACCESS_KEY'):
+                if (key.startswith('SECURITY_TOKEN_KEY') or key.startswith('AWS_SECRET_ACCESS_KEY')
+                        or key.startswith('EMAIL_PASSWORD') or key.startswith('TELEGRAM_TOKEN')):
                     value = value[0].ljust(len(value) - 1, '*')
                 kv[key] = value
             return {'success': True, 'data': kv}
