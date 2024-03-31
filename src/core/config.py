@@ -106,7 +106,8 @@ class ConfigHelper:
               f"validation:{message.upper()}")
         if message != "OK":
             print(f"INFO      [Env creation] create {key}")
-            os.environ[key] = secrets.token_hex(32)  # 32 hex characters
+            # qos.environ[key] = secrets.token_hex(32)  # 32 hex characters
+            os.environ.setdefault(key, secrets.token_hex(32))
             value = os.getenv(key, '')
             print(f"INFO      [Env creation] reload {key}: {value}")
 
