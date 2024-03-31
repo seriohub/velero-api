@@ -370,7 +370,7 @@ class K8sService:
     async def get_cron_schedule(self, namespace, job_name):
         try:
             api_instance = self.batchV1beta1Api
-
+            self.print_ls.debug(f"namespace {namespace} job_name {job_name}")
             cronjob = api_instance.read_namespaced_cron_job(name=job_name, namespace=namespace)
 
             cron_schedule = cronjob.spec.schedule
@@ -379,4 +379,4 @@ class K8sService:
 
         except Exception as e:
             self.print_ls.error(f"Error get cronjob '{job_name}': {e}")
-            return {'success': False, 'data': cron_schedule}
+            return {'success': False, 'data': None}
