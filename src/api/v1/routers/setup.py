@@ -25,7 +25,7 @@ tag_name = 'Setup'
 endpoint_limiter_setup = LimiterRequests(printer=print_ls,
                                          tags=tag_name,
                                          default_key='L1')
-limiter_setup = endpoint_limiter_setup.get_limiter_cust('Setup')
+limiter_setup = endpoint_limiter_setup.get_limiter_cust('setup_get_config')
 route = '/setup/get-config'
 
 

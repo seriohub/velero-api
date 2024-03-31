@@ -118,7 +118,7 @@ cd velero-api
 
 #### Install with HELM
 
-   See [helm readme](https://github.com/seriohub/velero-ui/tree/main/helm)
+   See [helm readme](https://github.com/seriohub/velero-helm)
 
 #### Install with Kubernetes YAML
 
