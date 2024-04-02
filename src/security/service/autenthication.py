@@ -27,6 +27,34 @@ class AuthenticationService:
 
         self.response_data = ResponseData()
 
+    def __create_token(self, username, userid, db: Session, only_access=True):
+        self.print_ls.debug(f"__create_token username:{username}")
+        access_token_expires = timedelta(minutes=self.token_access_expire)
+        access_token = create_access_token(
+            data={'sub': username}, expires_delta=access_token_expires
+        )
+
+        if not only_access:
+            refresh_token_expires = timedelta(days=self.token_refresh_expires_days)
+            # UNCOMMENT to test
+            # refresh_token_expires = timedelta(minutes=3)
+
+            refresh_token = create_refresh_token(
+                data={"sub": username}, expires_delta=refresh_token_expires
+            )
+            self.print_ls.debug(f"user name: {username} id: {userid} refresh expires:{refresh_token_expires}")
+            # Update the user's refresh token in the database
+            add_refresh_token(refresh_token=refresh_token,
+                              user_id=userid,
+                              db=db)
+
+            return {"access_token": access_token,
+                    "token_type": "bearer",
+                    "refresh_token": refresh_token}
+        else:
+            return {"access_token": access_token,
+                    "token_type": "bearer"}
+
     def login(self, username, password, db: Session):
         self.print_ls.debug(f"User:{username}-Password:{password[:2]}**")
         if len(username) > 1 and len(password) > 1:
@@ -38,29 +66,34 @@ class AuthenticationService:
                                 status_code=status.HTTP_401_UNAUTHORIZED,
                                 headers={'WWW-Authenticate': 'Bearer'})
 
-            access_token_expires = timedelta(minutes=self.token_access_expire)
-            access_token = create_access_token(
-                data={'sub': user.username}, expires_delta=access_token_expires
-            )
-            # LS 2024.03.18 comment and add refresh token mechanism (more robust)
-            # return {'access_token': access_token, 'token_type': 'bearer'}
-
-            refresh_token_expires = timedelta(days=self.token_refresh_expires_days)
-            # UNCOMMENT to test
-            # refresh_token_expires = timedelta(minutes=3)
-
-            refresh_token = create_refresh_token(
-                data={"sub": user.username}, expires_delta=refresh_token_expires
-            )
-            self.print_ls.debug(f"user name: {user.username} id: {user.id}")
-            # Update the user's refresh token in the database
-            add_refresh_token(refresh_token=refresh_token,
-                              user_id=user.id,
-                              db=db)
-
-            return {"access_token": access_token,
-                    "token_type": "bearer",
-                    "refresh_token": refresh_token}
+            # LS 2024.04.02 moved to func
+            # access_token_expires = timedelta(minutes=self.token_access_expire)
+            # access_token = create_access_token(
+            #     data={'sub': user.username}, expires_delta=access_token_expires
+            # )
+            # # LS 2024.03.18 comment and add refresh token mechanism (more robust)
+            # # return {'access_token': access_token, 'token_type': 'bearer'}
+            #
+            # refresh_token_expires = timedelta(days=self.token_refresh_expires_days)
+            # # UNCOMMENT to test
+            # # refresh_token_expires = timedelta(minutes=3)
+            #
+            # refresh_token = create_refresh_token(
+            #     data={"sub": user.username}, expires_delta=refresh_token_expires
+            # )
+            # self.print_ls.debug(f"user name: {user.username} id: {user.id}")
+            # # Update the user's refresh token in the database
+            # add_refresh_token(refresh_token=refresh_token,
+            #                   user_id=user.id,
+            #                   db=db)
+            #
+            # return {"access_token": access_token,
+            #         "token_type": "bearer",
+            #         "refresh_token": refresh_token}
+            return self.__create_token(username=user.username,
+                                       userid=user.id,
+                                       db=db,
+                                       only_access=False)
         else:
             return Response("Username o password parameters missed",
                             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -84,12 +117,33 @@ class AuthenticationService:
                                                  user_id=user.id,
                                                  db=db)
             if not self.response_data.is_response(response):
-                access_token_expires = timedelta(minutes=self.token_access_expire)
-                access_token = create_access_token(
-                    data={'sub': username}, expires_delta=access_token_expires
-                )
-
-                return {"access_token": access_token, "token_type": "bearer"}
+                # LS 2024.04.02 moved to func
+                # access_token_expires = timedelta(minutes=self.token_access_expire)
+                # access_token = create_access_token(
+                #     data={'sub': username}, expires_delta=access_token_expires
+                # )
+                #
+                # self.print_ls.debug(f"user name: {user.username} id: {user.id}")
+                # refresh_token_expires = timedelta(days=self.token_refresh_expires_days)
+                # # UNCOMMENT to test
+                # # refresh_token_expires = timedelta(minutes=3)
+                #
+                # refresh_token = create_refresh_token(
+                #     data={"sub": user.username}, expires_delta=refresh_token_expires
+                # )
+                # self.print_ls.debug(f"user name: {user.username} id: {user.id}")
+                # # Update the user's refresh token in the database
+                # add_refresh_token(refresh_token=refresh_token,
+                #                   user_id=user.id,
+                #                   db=db)
+                #
+                # # return {"access_token": access_token, "token_type": "bearer"}
+                # return {"access_token": access_token,
+                #         "token_type": "bearer",
+                #         "refresh_token": refresh_token}
+                return self.__create_token(username=user.username,
+                                           userid=user.id,
+                                           db=db)
             else:
                 return response
         else:

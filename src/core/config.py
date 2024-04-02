@@ -171,6 +171,7 @@ class ConfigHelper:
                    'API_ENDPOINT_PORT': {'type': int, 'is_mandatory': True},
                    'API_ENABLE_DOCUMENTATION': {'type': int, 'is_mandatory': True},
                    'API_TOKEN_EXPIRATION_MIN': {'type': int, 'is_mandatory': True},
+                   'API_TOKEN_REFRESH_EXPIRATION_DAYS': {'type': int, 'is_mandatory': True},
                    'SECURITY_DISABLE_USERS_PWD_RATE': {'type': bool, 'is_mandatory': False},
                    'LIMIT_CONCURRENCY': {'type': int, 'is_mandatory': False}}
 
