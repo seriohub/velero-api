@@ -3,6 +3,9 @@
 All notable changes to this project will be documented in this file.
 
 ***
+## [v0.1.9] - 2024-04-02
+
+- Automatic generation token keys (access and login) if the user has not provided keys.<br>They persist until a reboot.
 
 ## [v0.1.8] - 2024-03-31
 
@@ -11,7 +14,6 @@ All notable changes to this project will be documented in this file.
 
 
 ## [v0.1.7] - 2024-03-16
-
 
 - Added restic check feature
 - Added websocket authentication
@@ -70,6 +72,7 @@ All notable changes to this project will be documented in this file.
 
 
 ***
+[v0.1.9] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.9](https://github.com/seriohub/velero-api/releases/tag/v0.1.9)
 
 [v0.1.8] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.8](https://github.com/seriohub/velero-api/releases/tag/v0.1.8)
 
