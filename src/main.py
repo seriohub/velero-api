@@ -1,14 +1,14 @@
 import uvicorn
 import asyncio
 from app_data import __version__, __app_name__
+from security.helpers.database import SessionLocal
+from security.service.helpers.users import create_default_user
 
 from service.info_service import InfoService
 from helpers.velero_client import VeleroClient
 
 from helpers.printer import PrintHelper
 from core.config import ConfigHelper
-
-from uvicorn_filter import *
 
 config_app = ConfigHelper()
 
@@ -17,6 +17,8 @@ print_ls = PrintHelper('[main]',
 print_ls.info('start')
 print_ls.info('load config')
 infoService = InfoService()
+# LS 2024.03.31 add
+config_app.create_env_variables()
 
 if config_app.validate_env_variables():
     exit(200)
@@ -39,6 +41,7 @@ print_ls.info(f"start :{__app_name__} -version={__version__}")
 
 print_ls.info(f"run server at url:{endpoint_url}-port={endpoint_port}")
 print_ls.info(f"uvicorn log level:{log_level}-limit concurrency : {limit_concurrency}")
+print_ls.info(f"uvicorn reload: {app_reload}")
 if k8s_in_cluster_mode:
     print_ls.info(f"velero client version :{velero_cli_version}")
     print_ls.info(f"velero client source .tar.gz :{velero_cli_source}")
@@ -62,6 +65,15 @@ if k8s_in_cluster_mode or is_in_container_mode or test_env:
                  version=velero_cli_version)
 
 if __name__ == '__main__':
+    # LS init database and default user (if not exits)
+    # create database session
+    db = SessionLocal()
+    print("INFO:     Open database connection")
+    # Create default user
+    create_default_user(db)
+    # Close
+    db.close()
+    print("INFO:     Close database connection")
     uvicorn.run('app:app',
                 host=endpoint_url,
                 port=int(endpoint_port),

@@ -8,18 +8,20 @@ from helpers.connection_manager import WebSocket, manager
 
 from core.config import ConfigHelper
 from core.context import called_endpoint_var
+from security.helpers.database import SessionLocal
 
-from security.middleware import add_process_time_header
-from security.users import create_default_user, SessionLocal
+from security.service.helpers.middleware import add_process_time_header
+from security.service.helpers.users import create_default_user
+
 
 from api.common.app_info import appInfo
 from api.v1.api_v1 import v1
 
 from app_data import __version__, __app_name__, __app_description__, __app_summary__
 
-
 load_dotenv()
 config = ConfigHelper()
+
 
 # init logger engine
 # print_helper = PrintHelper('[app]')
@@ -32,18 +34,20 @@ if not enabled_docs:
     docs_url = None
     re_docs_url = None
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    db = SessionLocal()
-    try:
-        # Create default db
-        create_default_user(db)
-        yield db
-
-    finally:
-        db.close()
-    yield
+#
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#
+#     db = SessionLocal()
+#     try:
+#         print("Force creation default user")
+#         # Create default db
+#         create_default_user(db)
+#         yield db
+#
+#     finally:
+#         db.close()
+#     yield
 
 
 app = FastAPI(
@@ -57,7 +61,7 @@ app = FastAPI(
     },
     docs_url=docs_url,
     redoc_url=re_docs_url,
-    lifespan=lifespan
+    #lifespan=lifespan
 )
 
 origins = config.get_origins()
@@ -73,6 +77,7 @@ app.add_middleware(
 
 app.middleware('http')(add_process_time_header)
 
+
 @app.middleware("http")
 async def set_called_endpoint(request: Request, call_next):
     # get the endpoint called by the request
@@ -84,6 +89,7 @@ async def set_called_endpoint(request: Request, call_next):
         return await call_next(request)
     finally:
         called_endpoint_var.reset(ce)
+
 
 @app.get('/')
 async def online():

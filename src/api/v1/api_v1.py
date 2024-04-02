@@ -15,16 +15,18 @@ from api.v1.routers import (sc_mapping,
                             backup_location,
                             setup,
                             watchdog)
-from security import authentications
+from security.routers import authentication, user
 
 from app_data import __version__, __app_name__, __app_description__, __app_summary__
-from security.users import get_current_active_user
+from security.service.helpers.users import get_current_active_user
+
 
 load_dotenv()
 config = ConfigHelper()
 
 # init logger engine
 # print_helper = PrintHelper('[app]')
+
 
 # docs redoc
 docs_url = '/docs'
@@ -54,8 +56,11 @@ v1 = FastAPI(
 async def online():
     return JSONResponse(content={'v1': 'alive'}, status_code=200)
 
-v1.include_router(authentications.router)
+v1.include_router(authentication.router)
 
+# LS 2024.03.18 add new router
+v1.include_router(user.router,
+                  dependencies=[Depends(get_current_active_user)])
 v1.include_router(backup.router,
                   dependencies=[Depends(get_current_active_user)])
 v1.include_router(restore.router,

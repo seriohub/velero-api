@@ -1,78 +1,79 @@
 import re
 import uuid
-from datetime import timedelta, datetime
-
 from fastapi import Depends, HTTPException
 from jose import jwt, JWTError
 from requests import Session
-
 from starlette import status
-from security.dependencies import oauth2_scheme
-from security.model import TokenData, UserOut, UserCreate
+from security.service.helpers.dependencies import oauth2_scheme
+from security.model.model import TokenData, UserOut, UserCreate
 from core.config import ConfigHelper
 from helpers.printer import PrintHelper
-from sqlalchemy import create_engine, Column, String, Boolean, DateTime as DateTimeA
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.sql import func
+
+# from sqlalchemy import create_engine, Column, String, Boolean, DateTime as DateTimeA
+# from sqlalchemy.ext.declarative import declarative_base
+# from sqlalchemy.orm import sessionmaker
+# from sqlalchemy.sql import func
+# from helpers.database import GUID
 from typing import List, Optional
-from security.dependencies import pwd_context
-from helpers.database import GUID
+from security.service.helpers.dependencies import pwd_context
 from core.context import current_user_var, called_endpoint_var
+from security.helpers.database import SessionLocal, get_db
+from security.helpers.database import User
 
 config_app = ConfigHelper()
 print_ls = PrintHelper('[authentication.users]',
                        level=config_app.get_internal_log_level())
 
 disable_password_rate = config_app.get_security_disable_pwd_rate()
-secret_key = config_app.get_security_token_key()
+secret_access_key = config_app.get_security_access_token_key()
 algorithm = config_app.get_security_algorithm()
 
-path_db = config_app.get_path_db()
 
-# SQLite database initialization
-DATABASE_URL = f"sqlite:///./{path_db}/data.db"
-print_ls.info(f"Users database {DATABASE_URL}")
-
-Base = declarative_base()
-
-
-class User(Base):
-    __tablename__ = 'users'
-    id = Column(GUID(), primary_key=True, default=uuid.uuid4)
-    username = Column(String, unique=True)
-    full_name = Column(String)
-    password = Column(String)
-    is_admin = Column(Boolean, default=False)
-    is_default = Column(Boolean, default=False)
-    is_disabled = Column(Boolean, default=False)
-    time_created = Column(DateTimeA(timezone=True), server_default=func.now())
-    time_updated = Column(DateTimeA(timezone=True), onupdate=func.now())
-
-    def toJSON(self):
-        return {'username': self.username,
-                'is_admin': self.is_admin,
-                'is_default': self.is_default,
-                'is_disabled': self.is_disabled
-                }
-
-
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={'check_same_thread': False}
-)
-
-Base.metadata.create_all(bind=engine)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-# User CRUD operations
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# path_db = config_app.get_path_db()
+#
+# # SQLite database initialization
+# DATABASE_URL = f"sqlite:///./{path_db}/data.db"
+# print_ls.info(f"Users database {DATABASE_URL}")
+#
+# Base = declarative_base()
+#
+#
+# class User(Base):
+#     __tablename__ = 'users'
+#     id = Column(GUID(), primary_key=True, default=uuid.uuid4)
+#     username = Column(String, unique=True)
+#     full_name = Column(String)
+#     password = Column(String)
+#     is_admin = Column(Boolean, default=False)
+#     is_default = Column(Boolean, default=False)
+#     is_disabled = Column(Boolean, default=False)
+#     time_created = Column(DateTimeA(timezone=True), server_default=func.now())
+#     time_updated = Column(DateTimeA(timezone=True), onupdate=func.now())
+#
+#     def toJSON(self):
+#         return {'username': self.username,
+#                 'is_admin': self.is_admin,
+#                 'is_default': self.is_default,
+#                 'is_disabled': self.is_disabled
+#                 }
+#
+#
+# engine = create_engine(
+#     DATABASE_URL,
+#     connect_args={'check_same_thread': False}
+# )
+#
+# Base.metadata.create_all(bind=engine)
+# SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+#
+#
+# # User CRUD operations
+# def get_db():
+#     db = SessionLocal()
+#     try:
+#         yield db
+#     finally:
+#         db.close()
 
 
 def hash_password(password: str) -> str:
@@ -137,7 +138,8 @@ def control_data(user_id: uuid.UUID = None,
             res = verify_password(plain_password=password,
                                   hashed_password=user.password)
             if res:
-                raise HTTPException(status_code=403, detail={'error': {'title': 'Forbidden', 'description': 'The old password is equal to the new password'}})
+                raise HTTPException(status_code=403, detail={
+                    'error': {'title': 'Forbidden', 'description': 'The old password is equal to the new password'}})
         else:
             raise HTTPException(status_code=403, detail='The user is deleted')
     return True
@@ -188,8 +190,10 @@ def delete_user(user_id: uuid.UUID, db: SessionLocal):
 
 
 def create_default_user(db: SessionLocal):
+    print("INFO:     create_default_user.check")
     default_user = db.query(User).filter(User.username == 'admin').first()
-    if not default_user:
+    if default_user is None:
+        print("INFO:     create_default_user.forced")
         default_password = 'admin'  # Change this to your desired default password
         hashed_default_password = hash_password(default_password)
         new_default_user = User(username='admin',
@@ -245,17 +249,18 @@ def authenticate_user(db, username: str, password: str):
     return user
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=2)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, secret_key, algorithm=algorithm)
-
-    return encoded_jwt
-
+# LS 2024.03.18 moved in tokens.py script
+# def create_access_token(data: dict, expires_delta: timedelta | None = None):
+#     to_encode = data.copy()
+#     if expires_delta:
+#         expire = datetime.utcnow() + expires_delta
+#     else:
+#         expire = datetime.utcnow() + timedelta(minutes=2)
+#     to_encode.update({"exp": expire})
+#     encoded_jwt = jwt.encode(to_encode, secret_access_key, algorithm=algorithm)
+#
+#     return encoded_jwt
+#
 
 async def get_current_user(token: str = Depends(oauth2_scheme),
                            db: Session = Depends(get_db)) -> UserOut:
@@ -265,7 +270,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme),
         headers={'WWW-Authenticate': 'Bearer'},
     )
     try:
-        payload = jwt.decode(token, secret_key, algorithms=[algorithm])
+        payload = jwt.decode(token, secret_access_key, algorithms=[algorithm])
         username: str = payload.get('sub')
         if username is None:
             raise credentials_exception
@@ -289,7 +294,8 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
         yield current_user
     finally:
         if called_endpoint_var.get() != '/api/v1/stats/in-progress':
-            print_ls.debug(f"Reset context current user { str(current_user_var.get().username)} endpoint: {called_endpoint_var.get()}")
+            print_ls.debug(
+                f"Reset context current user {str(current_user_var.get().username)} endpoint: {called_endpoint_var.get()}")
         current_user_var.reset(cu)
 
 
@@ -300,7 +306,7 @@ async def get_current_user_token(token: str = Depends(oauth2_scheme)) -> UserOut
         headers={'WWW-Authenticate': 'Bearer'},
     )
     try:
-        payload = jwt.decode(token, secret_key, algorithms=[algorithm])
+        payload = jwt.decode(token, secret_access_key, algorithms=[algorithm])
         username: str = payload.get('sub')
         if username is None:
             raise credentials_exception
@@ -311,5 +317,5 @@ async def get_current_user_token(token: str = Depends(oauth2_scheme)) -> UserOut
     user = get_user_by_name(db=SessionLocal(),
                             username=token_data.username)
     if user is None:
-         raise credentials_exception
+        raise credentials_exception
     return user

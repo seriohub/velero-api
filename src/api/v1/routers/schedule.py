@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request, status, Depends
 from typing import Union
 
 from core.config import ConfigHelper
-from security.rate_limiter import RateLimiter, LimiterRequests
+from security.service.helpers.rate_limiter import RateLimiter, LimiterRequests
 
 from helpers.printer import PrintHelper
 from utils.commons import route_description
