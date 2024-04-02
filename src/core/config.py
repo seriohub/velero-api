@@ -451,11 +451,11 @@ class ConfigHelper:
 
     @staticmethod
     def get_security_access_token_key():
-        return os.getenv('SECURITY_TOKEN_KEY', 'not-defined-not-secure-provide-a-valid-key')
+        return os.getenv('SECURITY_TOKEN_KEY', '')
 
     @staticmethod
     def get_security_refresh_token_key():
-        return os.getenv('SECURITY_REFRESH_TOKEN_KEY', 'not-defined-not-secure-provide-a-valid-key')
+        return os.getenv('SECURITY_REFRESH_TOKEN_KEY', '')
 
     @staticmethod
     def get_security_algorithm():
