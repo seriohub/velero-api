@@ -9,6 +9,8 @@ from helpers.printer import PrintHelper
 
 config_app = ConfigHelper()
 k8sService = K8sService()
+
+
 class WatchdogService:
 
     def __init__(self):
@@ -104,3 +106,51 @@ class WatchdogService:
                 'description': "can't read cronjob"
             }}
 
+    @handle_exceptions_async_method
+    async def send_test_notification(self,
+                                     email: bool = True,
+                                     telegram: bool = True,
+                                     slack: bool = True):
+        if not email and not telegram and not slack:
+            return {'success': False, 'error': {
+                'title': 'Error',
+                'description': 'No notification channel is selected'
+            }}
+        else:
+            bChannel = False
+            pars = ""
+            if email and telegram and slack:
+                pars = ""
+            else:
+                if email:
+                    bChannel = True
+                    pars = "?email=True"
+                if telegram:
+                    if not bChannel:
+                        bChannel = True
+                        pars = "?"
+                    else:
+                        pars = pars + "&"
+                    pars = pars + "telegram=True"
+                if slack:
+                    if not bChannel:
+                        pars = "?"
+                    else:
+                        pars = pars + "&"
+
+                    pars = pars + "slack=True"
+
+            protocol = 'http://'
+            url = protocol + config_app.get_watchdog_url() + '/send-test-notification' + pars
+            self.print_ls.debug(f'Watchdog URL {url}')
+            try:
+                response = requests.get(url)
+            except:
+                return {'success': False, 'error': {
+                    'title': 'Error',
+                    'description': 'Check url and watchdog running'
+                }}
+
+            if response.status_code == 200:
+                output = response.json()
+                return {'success': True, 'data': output['data']['payload']}

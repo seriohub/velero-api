@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 
 ***
+## [v0.1.9] - 2024-04-16
+- Added watchdog feature (test notification channel)
+
+
+***
 ## [v0.1.9] - 2024-04-02
 
 - Automatic generation token keys (access and login) if the user has not provided keys.<br>They persist until a reboot.

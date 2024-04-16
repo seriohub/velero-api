@@ -64,6 +64,7 @@ route = '/watchdog/send-report'
 async def send_report():
     return await watchdog.send_report()
 
+
 limiter_setup = endpoint_limiter_setup.get_limiter_cust('watchdog_get_config')
 route = '/watchdog/get-config'
 
@@ -83,6 +84,7 @@ route = '/watchdog/get-config'
 async def app_config():
     return await watchdog.get_env()
 
+
 limiter_setup = endpoint_limiter_setup.get_limiter_cust('watchdog_get_cron')
 route = '/watchdog/get-cron'
 
@@ -101,3 +103,27 @@ route = '/watchdog/get-cron'
 @handle_exceptions_endpoint
 async def app_config():
     return await watchdog.get_cron()
+
+
+limiter_v = endpoint_limiter_setup.get_limiter_cust('watchdog_send_tn')
+route = '/watchdog/send-test-notification'
+
+
+@router.get(path=route,
+            tags=[tag_name],
+            summary='Send a test message to verify channel settings',
+            description=route_description(tag=tag_name,
+                                          route=route,
+                                          limiter_calls=limiter_v.max_request,
+                                          limiter_seconds=limiter_v.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_v.seconds,
+                                              max_requests=limiter_v.max_request))],
+            response_model=Union[SuccessfulRequest, FailedRequest],
+            status_code=status.HTTP_200_OK)
+@handle_exceptions_endpoint
+async def send_test_notification(email: bool = True,
+                                 telegram: bool = True,
+                                 slack: bool = True):
+    return await watchdog.send_test_notification(email,
+                                                 telegram,
+                                                 slack)
