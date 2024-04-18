@@ -128,3 +128,23 @@ route = '/watchdog'
 @handle_exceptions_endpoint
 async def watchdog_config():
     return await info.watchdog_online()
+
+
+limiter_origins = endpoint_limiter.get_limiter_cust('info_get_repo_tags')
+route = '/get-repo-tags'
+
+
+@router.get(path=route,
+            tags=[tag_name],
+            summary='Get the latest tag from GitHub for projects affected by velero-api',
+            description=route_description(tag=tag_name,
+                                          route=route,
+                                          limiter_calls=limiter_origins.max_request,
+                                          limiter_seconds=limiter_origins.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_origins.seconds,
+                                              max_requests=limiter_origins.max_request))],
+            response_model=Union[SuccessfulRequest, FailedRequest],
+            status_code=status.HTTP_200_OK)
+@handle_exceptions_endpoint
+async def watchdog_config():
+    return await info.last_tags_from_github()

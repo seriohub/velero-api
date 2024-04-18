@@ -39,5 +39,6 @@ appInfo.add_middleware(
     allow_headers=["*"],
 )
 
+
 appInfo.include_router(info.router)
 appInfo.include_router(health.router)

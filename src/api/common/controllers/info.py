@@ -1,5 +1,7 @@
+
 from fastapi.responses import JSONResponse
 
+from helpers.printer import PrintHelper
 from utils.handle_exceptions import handle_exceptions_controller
 from core.config import ConfigHelper
 
@@ -12,6 +14,7 @@ from service.info_service import InfoService
 configApp = ConfigHelper()
 infoService = InfoService()
 watchdog = WatchdogService()
+
 
 class Info:
 
@@ -36,6 +39,17 @@ class Info:
     @handle_exceptions_controller
     async def watchdog_online(self):
         payload = await watchdog.online()
+
+        if not payload['success']:
+            response = FailedRequest(**payload['error'])
+            return JSONResponse(content=response.toJSON(), status_code=400)
+
+        response = SuccessfulRequest(payload=payload['data'])
+        return JSONResponse(content=response.toJSON(), status_code=200)
+
+    @handle_exceptions_controller
+    async def last_tags_from_github(self):
+        payload = await infoService.last_tags_from_github()
 
         if not payload['success']:
             response = FailedRequest(**payload['error'])
