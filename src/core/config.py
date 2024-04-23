@@ -173,7 +173,8 @@ class ConfigHelper:
                    'API_TOKEN_EXPIRATION_MIN': {'type': int, 'is_mandatory': True},
                    'API_TOKEN_REFRESH_EXPIRATION_DAYS': {'type': int, 'is_mandatory': True},
                    'SECURITY_DISABLE_USERS_PWD_RATE': {'type': bool, 'is_mandatory': False},
-                   'LIMIT_CONCURRENCY': {'type': int, 'is_mandatory': False}}
+                   'LIMIT_CONCURRENCY': {'type': int, 'is_mandatory': False},
+                   'SCRAPY_VERSION_MIN': {'type': int, 'is_mandatory': False}}
 
         for key, value in all_env.items():
             res = self.__validate_env_variable__(key, value['type'])
@@ -591,3 +592,10 @@ class ConfigHelper:
             return url
         else:
             return os.getenv('VELERO_WATCHDOG_URL', '127.0.0.1:8002')
+
+    @staticmethod
+    def get_github_scrapy_versions_minutes():
+        res = os.getenv('SCRAPY_VERSION_MIN', '30')
+        if len(res) == 0:
+            res = '30'
+        return int(res)
