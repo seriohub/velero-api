@@ -3,7 +3,10 @@ from fastapi.responses import JSONResponse
 
 from typing import Union
 
+from requests import Session
+
 from core.config import ConfigHelper
+from security.helpers.database import get_db
 from utils.commons import route_description
 from utils.handle_exceptions import handle_exceptions_endpoint
 from helpers.printer import PrintHelper
@@ -160,5 +163,5 @@ route = '/get-repo-tags'
             response_model=Union[SuccessfulRequest, FailedRequest],
             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def watchdog_config():
-    return await info.last_tags_from_github()
+async def watchdog_config(db: Session = Depends(get_db)):
+    return await info.last_tags_from_github(db)

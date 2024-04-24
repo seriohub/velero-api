@@ -117,28 +117,9 @@ class WatchdogService:
                 'description': 'No notification channel is selected'
             }}
         else:
-            bChannel = False
-            pars = ""
-            if email and telegram and slack:
-                pars = ""
-            else:
-                if email:
-                    bChannel = True
-                    pars = "?email=True"
-                if telegram:
-                    if not bChannel:
-                        bChannel = True
-                        pars = "?"
-                    else:
-                        pars = pars + "&"
-                    pars = pars + "telegram=True"
-                if slack:
-                    if not bChannel:
-                        pars = "?"
-                    else:
-                        pars = pars + "&"
-
-                    pars = pars + "slack=True"
+            pars = "?email=" + ('True' if email else 'False')
+            pars += "&telegram=" + ('True' if telegram else 'False')
+            pars += "&slack=" + ('True' if slack else 'False')
 
             protocol = 'http://'
             url = protocol + config_app.get_watchdog_url() + '/send-test-notification' + pars

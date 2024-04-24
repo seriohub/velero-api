@@ -2,6 +2,7 @@
 from fastapi.responses import JSONResponse
 
 from helpers.printer import PrintHelper
+from security.helpers.database import SessionLocal
 from utils.handle_exceptions import handle_exceptions_controller
 from core.config import ConfigHelper
 
@@ -48,8 +49,8 @@ class Info:
         return JSONResponse(content=response.toJSON(), status_code=200)
 
     @handle_exceptions_controller
-    async def last_tags_from_github(self):
-        payload = await infoService.last_tags_from_github()
+    async def last_tags_from_github(self,  db: SessionLocal):
+        payload = await infoService.last_tags_from_github(db)
 
         if not payload['success']:
             response = FailedRequest(**payload['error'])
