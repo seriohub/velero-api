@@ -3,11 +3,13 @@
 All notable changes to this project will be documented in this file.
 
 ***
-## [v0.1.10] - 2024-04-18
+
+## [v0.1.10] - 2024-04-24
+
 - Added watchdog feature (test notification channel)
 - Added a new endpoint to obtain the current version (from GitHub) of Velero-UI complementary projects  
 
-***
+
 ## [v0.1.9] - 2024-04-02
 
 - Automatic generation token keys (access and login) if the user has not provided keys.<br>They persist until a reboot.
