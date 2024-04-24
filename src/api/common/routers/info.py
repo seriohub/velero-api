@@ -7,7 +7,16 @@ from core.config import ConfigHelper
 from utils.commons import route_description
 from utils.handle_exceptions import handle_exceptions_endpoint
 from helpers.printer import PrintHelper
-from app_data import __version__, __date__, __app_description__, __app_name__, __admin_email__
+from app_data import (__version__,
+                      __date__,
+                      __app_description__,
+                      __app_name__,
+                      __admin_email__,
+                      __helm_version__,
+                      __helm_app_version__,
+                      __helm_api__,
+                      __helm_ui__,
+                      __helm_watchdog__)
 
 from security.service.helpers.rate_limiter import LimiterRequests
 from security.service.helpers.rate_limiter import RateLimiter
@@ -54,8 +63,13 @@ async def get_app_info():
     res = {'app_name': __app_name__,
            'app_description': __app_description__,
            'admin_email': __admin_email__,
-           'release_version': f"{__version__}",
-           'release_date': f"{__date__}"
+           'api_release_version': f'{__version__}',
+           'api_release_date': f'{__date__}',
+           'helm_version': f'{__helm_version__}',
+           'helm_app_version': f'{__helm_app_version__}',
+           'helm_api': f'{__helm_api__}',
+           'helm_ui': f'{__helm_ui__}',
+           'helm_watchdog': f'{__helm_watchdog__}',
            }
     if watchdog_release['success']:
         res['watchdog_release_version'] = watchdog_release['data']['release_version']

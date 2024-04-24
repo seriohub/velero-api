@@ -591,3 +591,23 @@ class ConfigHelper:
             return url
         else:
             return os.getenv('VELERO_WATCHDOG_URL', '127.0.0.1:8002')
+
+    @staticmethod
+    def get_helm_version():
+        return os.getenv('HELM_VERSION', '-')
+
+    @staticmethod
+    def get_helm_app_version():
+        return os.getenv('HELM_APP_VERSION', '-')
+
+    @staticmethod
+    def get_helm_api():
+        return os.getenv('HELM_API', '-')
+
+    @staticmethod
+    def get_helm_ui():
+        return os.getenv('HELM_UI', '-')
+
+    @staticmethod
+    def get_helm_watchdog():
+        return os.getenv('HELM_WATCHDOG', '-')
