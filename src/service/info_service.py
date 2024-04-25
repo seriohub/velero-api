@@ -4,6 +4,7 @@ from core.config import ConfigHelper
 from helpers.printer import PrintHelper
 from utils.handle_exceptions import handle_exceptions_async_method
 from datetime import datetime, timedelta
+import re
 
 from security.helpers.database import ProjectsVersion
 from security.helpers.database import SessionLocal
@@ -58,7 +59,14 @@ class InfoService:
                            f"threshold {self.config_app.get_github_scrapy_versions_minutes()}")
         return (diff.total_seconds() / 60) > self.config_app.get_github_scrapy_versions_minutes()
 
+    def extract_version_numbers(self, tag_name):
+        # Use regular expression to extract integers from the tag name
+        numbers = re.findall(r'\d+', tag_name)
+        # Convert extracted numbers into integers and return as a tuple
+        return tuple(map(int, numbers))
+
     async def __get_last_version(self, repo):
+
         owner = "seriohub"
         # GitHub API URL for fetching all tags
         url = f"https://api.github.com/repos/{owner}/{repo}/tags"
@@ -72,7 +80,8 @@ class InfoService:
             tags = response.json()
 
             # Sort the tags based on the tag name (assuming semantic versioning)
-            tags.sort(key=lambda tag: tag['name'], reverse=True)
+            # tags.sort(key=lambda tag: tag['name'], reverse=True)
+            tags.sort(key=lambda tag: self.extract_version_numbers(tag['name']), reverse=True)
 
             # The first tag in the sorted list is the latest
             latest_tag = tags[0]['name']
