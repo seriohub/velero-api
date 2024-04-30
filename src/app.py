@@ -91,7 +91,7 @@ async def set_called_endpoint(request: Request, call_next):
         called_endpoint_var.reset(ce)
 
 
-@app.get('/')
+@app.get('/api')
 async def online():
     return JSONResponse(content={'status': 'alive'}, status_code=200)
 
@@ -106,4 +106,4 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 app.mount("/api/v1", v1, "v1")
-app.mount("/info", appInfo, "appInfo")
+app.mount("/api/info", appInfo, "appInfo")
