@@ -27,8 +27,8 @@ config = ConfigHelper()
 # print_helper = PrintHelper('[app]')
 
 # docs redocs
-docs_url = '/docs'
-re_docs_url = '/redoc'
+docs_url = '/api/docs'
+re_docs_url = '/api/redoc'
 enabled_docs = config.get_api_disable_documentation()
 if not enabled_docs:
     docs_url = None
