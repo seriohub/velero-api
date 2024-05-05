@@ -27,12 +27,12 @@ config = ConfigHelper()
 # print_helper = PrintHelper('[app]')
 
 # docs redocs
-docs_url = '/docs'
-re_docs_url = '/redoc'
-enabled_docs = config.get_api_disable_documentation()
-if not enabled_docs:
-    docs_url = None
-    re_docs_url = None
+# docs_url = '/docs'
+# re_docs_url = '/redoc'
+# enabled_docs = config.get_api_disable_documentation()
+# if not enabled_docs:
+#    docs_url = None
+#    re_docs_url = None
 
 #
 # @asynccontextmanager
@@ -59,9 +59,9 @@ app = FastAPI(
         'name': 'Apache 2.0',
         'identifier': 'Apache-2.0',
     },
-    docs_url=docs_url,
-    redoc_url=re_docs_url,
-    #lifespan=lifespan
+    # docs_url=docs_url,
+    # redoc_url=re_docs_url,
+    # lifespan=lifespan
 )
 
 origins = config.get_origins()
@@ -91,7 +91,7 @@ async def set_called_endpoint(request: Request, call_next):
         called_endpoint_var.reset(ce)
 
 
-@app.get('/')
+@app.get('/api')
 async def online():
     return JSONResponse(content={'status': 'alive'}, status_code=200)
 
@@ -106,4 +106,4 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 app.mount("/api/v1", v1, "v1")
-app.mount("/info", appInfo, "appInfo")
+app.mount("/api/info", appInfo, "appInfo")

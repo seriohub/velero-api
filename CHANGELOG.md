@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+## [v0.1.11] - 2024-05-05
+
+- Updated API url mount point
+
+
 ## [v0.1.10] - 2024-04-24
 
 - Added watchdog feature (test notification channel)
@@ -79,6 +84,11 @@ All notable changes to this project will be documented in this file.
 
 
 ***
+
+[v0.1.10] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.10](https://github.com/seriohub/velero-api/releases/tag/v0.1.11)
+
+[v0.1.10] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.10](https://github.com/seriohub/velero-api/releases/tag/v0.1.10)
+
 [v0.1.9] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.9](https://github.com/seriohub/velero-api/releases/tag/v0.1.9)
 
 [v0.1.8] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.8](https://github.com/seriohub/velero-api/releases/tag/v0.1.8)

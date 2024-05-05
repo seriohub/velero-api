@@ -9,10 +9,17 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.velero.your-tests-domain
+  - host: velero.your-tests-domain
     http:
       paths:
-      - path: /
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: velero-api-lb
+            port:
+              number: 80
+      - path: /ws
         pathType: Prefix
         backend:
           service:
