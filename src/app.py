@@ -27,12 +27,12 @@ config = ConfigHelper()
 # print_helper = PrintHelper('[app]')
 
 # docs redocs
-docs_url = '/api/docs'
-re_docs_url = '/api/redoc'
-enabled_docs = config.get_api_disable_documentation()
-if not enabled_docs:
-    docs_url = None
-    re_docs_url = None
+# docs_url = '/docs'
+# re_docs_url = '/redoc'
+# enabled_docs = config.get_api_disable_documentation()
+# if not enabled_docs:
+#    docs_url = None
+#    re_docs_url = None
 
 #
 # @asynccontextmanager
@@ -59,9 +59,9 @@ app = FastAPI(
         'name': 'Apache 2.0',
         'identifier': 'Apache-2.0',
     },
-    docs_url=docs_url,
-    redoc_url=re_docs_url,
-    #lifespan=lifespan
+    # docs_url=docs_url,
+    # redoc_url=re_docs_url,
+    # lifespan=lifespan
 )
 
 origins = config.get_origins()
