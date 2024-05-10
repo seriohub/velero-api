@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+## [v0.1.12] - 2024-05-10
+
+- Minor fix
+
+
 ## [v0.1.11] - 2024-05-05
 
 - Updated API url mount point
