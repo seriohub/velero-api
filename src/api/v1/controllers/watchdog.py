@@ -10,7 +10,7 @@ from api.common.response_model.failed_request import FailedRequest
 from service.watchdog_service import WatchdogService
 
 watchdog = WatchdogService()
-
+config_app = ConfigHelper()
 
 class Watchdog:
 
@@ -47,7 +47,7 @@ class Watchdog:
     @handle_exceptions_controller
     async def get_cron(self):
 
-        payload = await watchdog.get_cron()
+        payload = await watchdog.get_cron(job_name=config_app.get_cronjob_name())
 
         if not payload['success']:
             response = FailedRequest(**payload['error'])

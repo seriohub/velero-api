@@ -595,6 +595,10 @@ class ConfigHelper:
             return os.getenv('VELERO_WATCHDOG_URL', '127.0.0.1:8002')
 
     @staticmethod
+    def get_cronjob_name():
+        return os.getenv('REPORT_CRONJOB_NAME', 'seriohub-velero-ui-report')
+
+    @staticmethod
     def get_helm_version():
         return os.getenv('HELM_VERSION', '-')
 
