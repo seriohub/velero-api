@@ -596,7 +596,7 @@ class ConfigHelper:
 
     @staticmethod
     def get_cronjob_name():
-        return os.getenv('REPORT_CRONJOB_NAME', 'seriohub-velero-ui-report')
+        return os.getenv('REPORT_CRONJOB_NAME', 'vui-report')
 
     @staticmethod
     def get_helm_version():

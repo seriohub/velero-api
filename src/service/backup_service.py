@@ -68,12 +68,12 @@ class BackupService:
                                 'metadata' in item and 'name' in item['metadata']]
         snapshot_location_list = [item['metadata']['name'] for item in snapshot_location if
                                   'metadata' in item and 'name' in item['metadata']]
+        valid_resources = (await k8sService.get_resources())['data']
 
         output = {'namespaces': namespaces,
                   'backup_location': backup_location_list,
-                  'snapshot_location': snapshot_location_list
-                  # TODO: get all resource for populate multiselect in front end form
-                  # 'resources': k8sv1.get_resources()
+                  'snapshot_location': snapshot_location_list,
+                  'resources': valid_resources
                   }
 
         return {'success': True, 'data': output}

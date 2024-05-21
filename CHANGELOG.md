@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+## [v0.1.13] - 2024-05-21
+
+- Updated the default watchdog cron job name
+- Added a function to get the list of resources available on the cluster
+
 ## [v0.1.12] - 2024-05-10
 
 - Minor fix
