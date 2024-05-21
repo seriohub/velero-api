@@ -93,7 +93,7 @@ class WatchdogService:
                 return {'success': True, 'data': output['data']['payload']}
 
     @handle_exceptions_async_method
-    async def get_cron(self, job_name='seriohub-velero-ui-report'):
+    async def get_cron(self, job_name='vui-report'):
 
         output = await k8sService.get_cron_schedule(namespace=config_app.get_k8s_velero_ui_namespace(),
                                                     job_name=job_name)

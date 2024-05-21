@@ -277,10 +277,44 @@ class K8sService:
     @handle_exceptions_async_method
     @trace_k8s_async_method(description="get resources")
     async def get_resources(self):
-        # TODO: not working yet, get all resource type name for populate multiselect in front end
-        resource_list = self.client.get_api_resources(group='*', version='*')
 
-        return {'success': True, 'data': resource_list}
+        valid_resources = []
+
+        # Initialize the API client
+        api_client = client.ApiClient()
+
+        # Retrieve the list of available API groups
+        discovery = client.ApisApi(api_client)
+        api_groups = discovery.get_api_versions().groups
+
+        for group in api_groups:
+            for version in group.versions:
+                group_version = f"{group.name}/{version.version}" if group.name else version.version
+                try:
+                    # Get the resources for the group version
+                    api_resources = api_client.call_api(
+                        f'/apis/{group_version}', 'GET',
+                        response_type='object'
+                    )[0]['resources']
+
+                    for resource in api_resources:
+                        if '/' not in resource['name']:  # Only include resource names, not sub-resources
+                            if resource['name'] not in valid_resources:
+                                valid_resources.append(resource['name'])
+                except client.exceptions.ApiException as e:
+                    print(f"Exception when calling ApisApi->get_api_resources for {group_version}: {e}")
+                    continue
+
+        # Get core API resources
+        core_api = client.CoreV1Api(api_client)
+        core_resources = core_api.get_api_resources().resources
+        for resource in core_resources:
+            if '/' not in resource.name:  # Only include resource names, not sub-resources
+                # valid_resources.append(resource.name)
+                if resource.name not in valid_resources:
+                    valid_resources.append(resource.name)
+
+        return {'success': True, 'data': valid_resources}
 
     @handle_exceptions_async_method
     @trace_k8s_async_method(description="get s3 credential")
