@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+## [v0.1.14] - 2024-05-31
+
+- Added Cron Schedule Heatmap
+
 ## [v0.1.13] - 2024-05-21
 
 - Updated the default watchdog cron job name
