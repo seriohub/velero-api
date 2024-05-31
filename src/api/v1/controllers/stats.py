@@ -36,3 +36,15 @@ class Stats:
 
         response = SuccessfulRequest(payload=payload['data'])
         return JSONResponse(content=response.toJSON(), status_code=200)
+
+    @handle_exceptions_controller
+    async def schedules(self):
+
+        payload = await statsService.schedules()
+
+        if not payload['success']:
+            response = FailedRequest(**payload['error'])
+            return JSONResponse(content=response.toJSON(), status_code=400)
+
+        response = SuccessfulRequest(payload=payload['data'])
+        return JSONResponse(content=response.toJSON(), status_code=200)

@@ -40,3 +40,4 @@ urllib3==2.1.0
 uvicorn==0.24.0.post1
 websocket-client==1.6.4
 wsproto==1.2.0
+croniter~=2.0.5
