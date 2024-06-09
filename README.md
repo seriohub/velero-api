@@ -52,6 +52,8 @@ See [changelog](CHANGELOG.md) for details.
 | `RESTIC_PASSWORD`                   | String | static-passw0rd                      |                                                                                                                      |
 | `AWS_ACCESS_KEY_ID`                 | String |                                      | AWS_ACCESS_KEY_ID                                                                                                    |
 | `AWS_SECRET_ACCESS_KEY`             | String |                                      | AWS_SECRET_ACCESS_KEY                                                                                                |
+| `DEFAULT_ADMIN_USERNAME`            | String | admin                                | Default username for admin user (will be created if does not already exist)                                          |
+| `DEFAULT_ADMIN_PASSWORD`            | String | admin                                | Default password for admin user (will be created if does not already exist)                                          |
 
 1. You can define up to 100 allowed origins that should be permitted to make cross-origin requests. An origin is the combination of protocol (http, https), domain (myapp.com, localhost) and port (80, 443, 8001)
 
