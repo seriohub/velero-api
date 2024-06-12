@@ -191,12 +191,13 @@ def delete_user(user_id: uuid.UUID, db: SessionLocal):
 
 def create_default_user(db: SessionLocal):
     print("INFO:     create_default_user.check")
-    default_user = db.query(User).filter(User.username == 'admin').first()
+    default_username = config_app.get_default_admin_username()
+    default_user = db.query(User).filter(User.username == default_username).first()
     if default_user is None:
         print("INFO:     create_default_user.forced")
-        default_password = 'admin'  # Change this to your desired default password
+        default_password = config_app.get_default_admin_password()
         hashed_default_password = hash_password(default_password)
-        new_default_user = User(username='admin',
+        new_default_user = User(username=default_username,
                                 full_name='administrator',
                                 password=hashed_default_password,
                                 is_default=True,

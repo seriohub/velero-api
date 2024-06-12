@@ -22,6 +22,8 @@ services:
     - SECURITY_TOKEN_KEY=<your-token-key >
     - SECURITY_REFRESH_TOKEN_KEY=<your-token-key >
     - SECURITY_PATH_DATABASE=./data
+    - DEFAULT_ADMIN_USERNAME=admin
+    - DEFAULT_ADMIN_PASSWORD=admin
     ports:
       - "8001:8001"
 volumes:

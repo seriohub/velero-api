@@ -407,6 +407,12 @@ class ConfigHelper:
             limit = '50'
         return limit
 
+    def get_default_admin_username(self):
+        return self.load_key("DEFAULT_ADMIN_USERNAME", "admin")
+
+    def get_default_admin_password(self):
+        return self.load_key("DEFAULT_ADMIN_PASSWORD", "admin")
+
     def get_velero_version(self):
         return self.load_key('VELERO_CLI_VERSION', 'velero-v1.11.1')
 
