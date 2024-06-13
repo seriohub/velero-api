@@ -70,7 +70,7 @@ async def run_process_check_output(cmd, publish_message=True, cwd='./'):
         # print("Error", e)
         print_ls.error("Error" + str(e))
         error = {'success': False, 'error': {'title': 'Run Process Check Output Error',
-                                             'description': str(e)
+                                             'description': str(e) + ' \n' + str(output)
                                              }
                  }
         return error

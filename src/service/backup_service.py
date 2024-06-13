@@ -11,7 +11,7 @@ from utils.process import run_process_check_output, run_process_check_call
 from utils.handle_exceptions import handle_exceptions_async_method
 
 from helpers.printer import PrintHelper
-
+from utils.commons import convert_to_list
 from service.k8s_service import K8sService
 
 from service.backup_location_service import BackupLocationService
@@ -87,6 +87,7 @@ class BackupService:
             return output
 
         backups = json.loads(output['data'])
+        backups = convert_to_list(backups)
 
         if schedule_name is not None:
             backups['items'] = [x for x in backups['items'] if

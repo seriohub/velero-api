@@ -206,7 +206,7 @@ class StatsService:
                    'last': sc['status']['lastBackup'] if 'lastBackup' in sc['status'] and sc['status']['lastBackup'] else ''}
 
             last_backup = self.__find_backup(backups, tmp['schedule_name'])
-            if tmp['last'] != '' and 'startTimestamp' in last_backup['status'] and 'completionTimestamp' in last_backup['status']:
+            if tmp['last'] != '' and last_backup is not None and 'startTimestamp' in last_backup['status'] and 'completionTimestamp' in last_backup['status']:
                 tmp['last_started'] = last_backup['status']['startTimestamp']
                 tmp['last_finished'] = last_backup['status']['completionTimestamp']
                 time1 = datetime.fromisoformat(tmp['last_started'].replace("Z", "+00:00"))

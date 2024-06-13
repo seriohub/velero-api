@@ -2,12 +2,14 @@ import os
 import configparser
 import base64
 from kubernetes import client, config
+from kubernetes.client import ApiException
 from datetime import datetime
 
 from core.config import ConfigHelper
 from utils.k8s_tracer import trace_k8s_async_method
 from utils.handle_exceptions import handle_exceptions_async_method
 from helpers.printer import PrintHelper
+import sys
 
 
 class K8sService:
@@ -277,44 +279,83 @@ class K8sService:
     @handle_exceptions_async_method
     @trace_k8s_async_method(description="get resources")
     async def get_resources(self):
+        self.print_ls.info(f"load_resources")
+        try:
 
-        valid_resources = []
+            valid_resources = []
 
-        # Initialize the API client
-        api_client = client.ApiClient()
+            k8s_client = client
+            # Initialize the API client
+            api_client = k8s_client.ApiClient()
 
-        # Retrieve the list of available API groups
-        discovery = client.ApisApi(api_client)
-        api_groups = discovery.get_api_versions().groups
+            # # Retrieve the list of available API groups
+            # discovery = k8s_client.ApisApi(api_client)
+            # api_groups = discovery.get_api_versions().groups
 
-        for group in api_groups:
-            for version in group.versions:
-                group_version = f"{group.name}/{version.version}" if group.name else version.version
-                try:
-                    # Get the resources for the group version
-                    api_resources = api_client.call_api(
-                        f'/apis/{group_version}', 'GET',
-                        response_type='object'
-                    )[0]['resources']
+            # Retrieve the list of available API groups
+            discovery = k8s_client.ApisApi(api_client)
+            try:
+                api_groups = discovery.get_api_versions().groups
+                self.print_ls.debug(f"Retrieved API groups with success")
+            except ApiException as e:
+                self.print_ls.error_and_exception(f"Exception when retrieving API groups", e)
+                return valid_resources
 
-                    for resource in api_resources:
-                        if '/' not in resource['name']:  # Only include resource names, not sub-resources
-                            if resource['name'] not in valid_resources:
-                                valid_resources.append(resource['name'])
-                except client.exceptions.ApiException as e:
-                    print(f"Exception when calling ApisApi->get_api_resources for {group_version}: {e}")
-                    continue
+            for group in api_groups:
+                self.print_ls.debug(f"find. apihist  group: {group.name}")
+                for version in group.versions:
+                    group_version = f"{group.name}/{version.version}" if group.name else version.version
+                    try:
+                        self.print_ls.debug(f"API group version: {group_version}")
+                        # # Get the resources for the group version
+                        # api_resources = api_client.call_api(
+                        #     f'/apis/{group_version}', 'GET',
+                        #     response_type='object'
+                        # )[0]['resources']
+                        #
+                        # for resource in api_resources:
+                        #     if '/' not in resource['name']:  # Only include resource names, not sub-resources
+                        #         if resource['name'] not in valid_resources:
+                        #             valid_resources.append(resource['name'])
+                        # Use the Kubernetes client to get the resources
+                        api_instance = k8s_client.CustomObjectsApi(api_client)
+                        api_resources = api_instance.list_cluster_custom_object(
+                            group=group.name,
+                            version=version.version,
+                            plural=''
+                        ).get('resources', [])
 
-        # Get core API resources
-        core_api = client.CoreV1Api(api_client)
-        core_resources = core_api.get_api_resources().resources
-        for resource in core_resources:
-            if '/' not in resource.name:  # Only include resource names, not sub-resources
-                # valid_resources.append(resource.name)
-                if resource.name not in valid_resources:
-                    valid_resources.append(resource.name)
+                        for resource in api_resources:
+                            if '/' not in resource['name']:  # Only include resource names, not sub-resources
+                                if resource['name'] not in valid_resources:
+                                    valid_resources.append(resource['name'])
 
-        return {'success': True, 'data': valid_resources}
+                    except k8s_client.exceptions.ApiException as e:
+                        self.print_ls.error(
+                            f"Exception when calling ApisApi->get_api_resources for {group_version}: {e}")
+                        continue
+
+            # Get core API resources
+            core_api = k8s_client.CoreV1Api(api_client)
+            core_resources = core_api.get_api_resources().resources
+            for resource in core_resources:
+                if '/' not in resource.name:  # Only include resource names, not sub-resources
+                    # valid_resources.append(resource.name)
+                    if resource.name not in valid_resources:
+                        valid_resources.append(resource.name)
+
+            # If you want to maintain the order of elements as they were added to the set
+            if len(valid_resources):
+                res_list_ordered = sorted(list(valid_resources))
+                self.print_ls.trace(f"load_resources:{res_list_ordered}")
+                return {'success': True, 'data': res_list_ordered}
+            else:
+                self.print_ls.wrn(f"load_load_resources:No load_resources found")
+                return {'success': False, 'data': []}
+
+        except Exception as Ex:
+            self.print_ls.error(sys.exc_info() + Ex)
+            return {'success': False, 'data': []}
 
     @handle_exceptions_async_method
     @trace_k8s_async_method(description="get s3 credential")
