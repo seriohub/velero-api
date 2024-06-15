@@ -46,6 +46,33 @@ async def get():
     return await repo.get()
 
 
+limiter = endpoint_limiter.get_limiter_cust("repo_size_get")
+route = '/repo/size/get'
+
+
+@router.get(path=route,
+            tags=[tag_name],
+            summary='Get size (Mb) of a repository',
+            description=route_description(tag=tag_name,
+                                          route=route,
+                                          limiter_calls=limiter.max_request,
+                                          limiter_seconds=limiter.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
+                                              max_requests=limiter.max_request))],
+            response_model=Union[SuccessfulRequest, FailedRequest],
+            status_code=status.HTTP_200_OK)
+@handle_exceptions_endpoint
+async def get(repository_url: str = None,
+              endpoint: str = None,
+              backup_name: str = None,
+              bucket_name: str = None):
+    return await repo.get_backup_size(repository=repository_url,
+                                      endpoint=endpoint,
+                                      bucket_name=backup_name,
+                                      backup_name=bucket_name
+                                      )
+
+
 limiter = endpoint_limiter.get_limiter_cust("repo_lock_check")
 route = '/repo/locks/get'
 
@@ -64,6 +91,7 @@ route = '/repo/locks/get'
 @handle_exceptions_endpoint
 async def get(repository_url: str = None):
     return await repo.get_locks(repository_url)
+
 
 limiter = endpoint_limiter.get_limiter_cust("repo_unlock")
 route = '/repo/unlock'

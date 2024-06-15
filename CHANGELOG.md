@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+## [v0.1.15] - 2024-06-15
+
+- Added backup size feature
+- Update Requirements files. Upgrade library dependency:
+  - cryptography from 41.0.7 to 42.0.4
+  - ecdsa from 0.18.0 to 0.19.0
+  - fastapi from 0.104.1 to 0.109.0
+  - python-multipart from 0.0.6 to 0.0.7
+  - starlette from 0.27.0 to 0.36.2
+
+
 ## [v0.1.14] - 2024-05-31
 
 - Added Cron Schedule Heatmap

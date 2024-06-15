@@ -1,9 +1,13 @@
 import json
 import os
 
+from core.config import ConfigHelper
 from utils.commons import add_id_to_list
+from utils.minio_wrapper import MinioInterface
 from utils.process import run_process_check_output
 from utils.handle_exceptions import handle_exceptions_async_method
+
+config = ConfigHelper()
 
 
 class RepoService:
@@ -25,6 +29,18 @@ class RepoService:
         return {'success': True, 'data': repos['items']}
 
     @handle_exceptions_async_method
+    async def get_backup_size(self, repository_name: str = None,
+                              endpoint: str = None,
+                              bucket_name: str = None,
+                              backup_name: str = None):
+
+        minio_interface = MinioInterface()
+        return await minio_interface.get_backup_size(repository_name=repository_name,
+                                                     endpoint=endpoint,
+                                                     bucket_name=bucket_name,
+                                                     backup_name=backup_name)
+
+    @handle_exceptions_async_method
     async def get_locks(self, repository_url):
         output = await run_process_check_output(['restic', '-q', '--no-lock', 'list', 'locks', '-r', repository_url])
 
@@ -33,7 +49,7 @@ class RepoService:
 
         locks = output['data']
 
-        return {'success': True, 'data':  {str(repository_url): list(filter(None, locks.split('\n')))}}
+        return {'success': True, 'data': {str(repository_url): list(filter(None, locks.split('\n')))}}
 
     @handle_exceptions_async_method
     async def unlock(self, repository_url, remove_all=False):
@@ -48,7 +64,7 @@ class RepoService:
 
         locks = output['data']
 
-        return {'success': True, 'data':  {str(repository_url): list(filter(None, locks.split('\n')))}}
+        return {'success': True, 'data': {str(repository_url): list(filter(None, locks.split('\n')))}}
 
     @handle_exceptions_async_method
     async def check(self, repository_url):
@@ -61,4 +77,4 @@ class RepoService:
 
         check = output['data']
 
-        return {'success': True, 'data':  {str(repository_url): list(filter(None, check.split('\n')))}}
+        return {'success': True, 'data': {str(repository_url): list(filter(None, check.split('\n')))}}
