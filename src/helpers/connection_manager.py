@@ -12,15 +12,15 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket):
         try:
             await websocket.accept()
-            while True:
-                token = await websocket.receive_text()
-                user = await get_current_user_token(token)
-                print(f"Connected user via socket: {user.username}")
-                if user is not None and not user.is_disabled:
-                    self.active_connections[str(user.id)] = websocket
-                    await self.send_personal_message(str(user.id), 'Connection READY!')
-                else:
-                    await websocket.close(1001)
+            # while True:
+            token = await websocket.receive_text()
+            user = await get_current_user_token(token)
+            print(f"Connected user via socket: {user.username}")
+            if user is not None and not user.is_disabled:
+                self.active_connections[str(user.id)] = websocket
+                await self.send_personal_message(str(user.id), 'Connection READY!')
+            else:
+                await websocket.close(1001)
         except WebSocketDisconnect:
             await websocket.close(1001)
         except:
