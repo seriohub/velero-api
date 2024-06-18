@@ -63,13 +63,16 @@ route = '/repo/size/get'
             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
 async def get(repository_url: str = None,
-              endpoint: str = None,
-              backup_name: str = None,
-              bucket_name: str = None):
-    return await repo.get_backup_size(repository=repository_url,
-                                      endpoint=endpoint,
-                                      bucket_name=backup_name,
-                                      backup_name=bucket_name
+              backup_storage_location: str = None,
+              repository_name: str = None,
+              repository_type: str = None,
+              volume_namespace: str = None,
+              ):
+    return await repo.get_backup_size(repository_url=repository_url,
+                                      backup_storage_location=backup_storage_location,
+                                      repository_name=repository_name,
+                                      repository_type=repository_type,
+                                      volume_namespace=volume_namespace
                                       )
 
 

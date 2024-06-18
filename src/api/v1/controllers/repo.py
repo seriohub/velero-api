@@ -25,15 +25,19 @@ class Repo:
         return JSONResponse(content=response.toJSON(), status_code=200)
 
     @handle_exceptions_controller
-    async def get_backup_size(self, repository: str = None,
+    async def get_backup_size(self,
+                              repository_url: str = None,
                               endpoint: str = None,
-                              backup_name: str = None,
-                              bucket_name: str = None
+                              backup_storage_location: str = None,
+                              repository_name: str = None,
+                              repository_type: str = None,
+                              volume_namespace: str = None
                               ):
-        payload = await repoService.get_backup_size(repository_name=repository,
-                                                    endpoint=endpoint,
-                                                    bucket_name=bucket_name,
-                                                    backup_name=backup_name)
+        payload = await repoService.get_backup_size(repository_url=repository_url,
+                                                    backup_storage_location=backup_storage_location,
+                                                    repository_name=repository_name,
+                                                    repository_type=repository_type,
+                                                    volume_namespace=volume_namespace)
 
         if not payload['success']:
             response = FailedRequest(**payload['error'])

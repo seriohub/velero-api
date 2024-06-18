@@ -5,8 +5,10 @@ from minio import S3Error, Minio
 from datetime import datetime, timedelta
 from core.config import ConfigHelper
 from helpers.printer import PrintHelper
+from service.backup_location_service import BackupLocationService
 
 config = ConfigHelper()
+bsl = BackupLocationService()
 print_ls = PrintHelper('[minio wrapper]',
                        level=config.get_internal_log_level())
 
@@ -62,36 +64,42 @@ class MinioInterface:
             return None, None, None
 
     async def get_backup_size(self,
-                              repository_name: str = None,
+                              repository_url: str = None,
                               endpoint: str = None,
+                              backup_storage_location: str = None,
                               bucket_name: str = None,
-                              backup_name: str = None):
+                              repository_name: str = None,
+                              repository_type: str = None,
+                              volume_namespace: str = None):
+
         print_ls.info("get_size")
-        print_ls.info(f"get_size: repository_name={repository_name}")
+        print_ls.info(f"get_size: repository_name={repository_url}")
 
         print_ls.info(f"get_size: endpoint={endpoint} "
-                      f"-bucket name={bucket_name} "
-                      f"-backup name={backup_name} ")
+                      f"-backup storage location={backup_storage_location} "
+                      f"-repository name={repository_name} ")
 
         control_passed = False
         secure = None
-        if endpoint is not None and backup_name is not None and bucket_name is not None:
-            if len(endpoint) > 0 and len(backup_name) > 0 and len(bucket_name) > 0:
-                print_ls.info(f"get_size: endpoint={endpoint} "
-                              f"-bucket name={backup_name} "
-                              f"-backup name={bucket_name}")
+        if endpoint is not None and volume_namespace is not None and backup_storage_location is not None:
+            if len(endpoint) > 0 and len(volume_namespace) > 0 and len(backup_storage_location) > 0:
+                print_ls.info(f"get_size:"
+                              f"\n- endpoint={endpoint}"
+                              f"\n- backup storage location={backup_storage_location}"
+                              f"\n- volume name={volume_namespace} ")
                 control_passed = True
         else:
-            if repository_name is not None and len(repository_name) > 0:
+            if repository_url is not None and len(repository_url) > 0:
                 print_ls.trace(f"get_size: parse urls")
 
-                endpoint, bucket_name, backup_name, secure = self.__extract_parts(url=repository_name)
-                if len(endpoint) > 0 and len(backup_name) > 0 and len(bucket_name) > 0:
+                endpoint, bucket_storage_location, volume_namespace, secure = self.__extract_parts(url=repository_url)
+                if len(endpoint) > 0 and len(volume_namespace) > 0 and len(bucket_storage_location) > 0:
                     control_passed = True
 
         if control_passed:
-            aws_access_key = config.get_aws_key_id()
-            aws_secret_key = config.get_aws_access_key()
+            aws_access_key, aws_secret_key = await bsl.credentials(backup_storage_location)
+            # aws_access_key = config.get_aws_key_id()
+            # aws_secret_key = config.get_aws_access_key()
             if secure:
                 aws_secure_connection = secure
             else:
@@ -105,7 +113,7 @@ class MinioInterface:
                     secure=aws_secure_connection  # Use SSL/TLS
                 )
                 files, total_size_mb = await minio_client.get_total_size_mb(bucket_name=bucket_name,
-                                                                            prefix=backup_name)
+                                                                            prefix=repository_type + '/' + volume_namespace)
                 data = {'files': files, 'total_size_mb': total_size_mb}
                 return {'success': True, 'data': data}
             else:
