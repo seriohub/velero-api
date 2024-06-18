@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ***
 
-## [v0.1.15] - 2024-06-15
+## [v0.1.15] - 2024-06-18
 
 - Added backup size feature
 - Update Requirements files. Upgrade library dependency:
@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file.
   - fastapi from 0.104.1 to 0.109.0
   - python-multipart from 0.0.6 to 0.0.7
   - starlette from 0.27.0 to 0.36.2
-
+- Fix the error that occurs when a single item resource is present
 
 ## [v0.1.14] - 2024-05-31
 
