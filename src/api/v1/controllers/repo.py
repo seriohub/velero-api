@@ -8,7 +8,6 @@ from api.common.response_model.message import Message
 
 from service.repo_service import RepoService
 
-
 repoService = RepoService()
 
 
@@ -17,6 +16,28 @@ class Repo:
     @handle_exceptions_controller
     async def get(self):
         payload = await repoService.get()
+
+        if not payload['success']:
+            response = FailedRequest(**payload['error'])
+            return JSONResponse(content=response.toJSON(), status_code=400)
+
+        response = SuccessfulRequest(payload=payload['data'])
+        return JSONResponse(content=response.toJSON(), status_code=200)
+
+    @handle_exceptions_controller
+    async def get_backup_size(self,
+                              repository_url: str = None,
+                              endpoint: str = None,
+                              backup_storage_location: str = None,
+                              repository_name: str = None,
+                              repository_type: str = None,
+                              volume_namespace: str = None
+                              ):
+        payload = await repoService.get_backup_size(repository_url=repository_url,
+                                                    backup_storage_location=backup_storage_location,
+                                                    repository_name=repository_name,
+                                                    repository_type=repository_type,
+                                                    volume_namespace=volume_namespace)
 
         if not payload['success']:
             response = FailedRequest(**payload['error'])

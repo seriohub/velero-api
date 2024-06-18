@@ -2,7 +2,7 @@ import json
 import os
 
 from utils.process import run_process_check_output, run_process_check_call
-from utils.commons import add_id_to_list, parse_create_parameters
+from utils.commons import add_id_to_list, parse_create_parameters, convert_to_list
 from utils.handle_exceptions import handle_exceptions_async_method
 
 
@@ -19,6 +19,7 @@ class ScheduleService:
             return output
 
         schedules = json.loads(output['data'])
+        schedules = convert_to_list(schedules)
 
         add_id_to_list(schedules['items'])
 

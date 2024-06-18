@@ -161,3 +161,9 @@ def route_description(tag='',
                    f": "
                    f"max {limiter_calls} calls for {limiter_seconds} seconds ")
     return description
+
+
+def convert_to_list(data):
+    if not data['kind'].endswith('List'):
+        return {'kind': data['kind'] + 'List', 'items': [data]}
+    return data
