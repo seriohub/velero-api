@@ -13,7 +13,10 @@ class ConnectionManager:
         try:
             await websocket.accept()
             while True:
-                token = await websocket.receive_text()
+                try:
+                    token = await websocket.receive_text()
+                except:
+                    break
                 user = await get_current_user_token(token)
                 print(f"Connected user via socket: {user.username}")
                 if user is not None and not user.is_disabled:
@@ -21,10 +24,12 @@ class ConnectionManager:
                     await self.send_personal_message(str(user.id), 'Connection READY!')
                 else:
                     await websocket.close(1001)
+                    break
         except WebSocketDisconnect:
             await websocket.close(1001)
-        except:
+        except Exception as e:
             await websocket.close(1001)
+            print(f"WebSocket connection error: {e}")
 
     def disconnect(self, user_id):
         self.active_connections[user_id].close(1001)
