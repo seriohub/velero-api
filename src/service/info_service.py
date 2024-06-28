@@ -259,6 +259,12 @@ class InfoService:
     @handle_exceptions_async_method
     async def ui_compatibility(self, version: str):
         self.print_ls.info(f"ui_compatibility version :{version}")
+
+        # avoid error in developer mode
+        if version == "dev":
+            output = {'compatibility': True}
+            return {'success': True, 'data': output}
+
         if version and len(version) > 0:
             # Compile the regex pattern
             version_regex = re.compile(r'^(dev|\d+\.\d+\.\d+)$')
