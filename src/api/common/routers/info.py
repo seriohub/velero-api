@@ -122,7 +122,7 @@ route = '/origins'
             response_model=Union[SuccessfulRequest, FailedRequest],
             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def k8s_nodes_status():
+async def k8s_nodes_origins():
     return await info.get_origins()
 
 
@@ -163,5 +163,25 @@ route = '/get-repo-tags'
             response_model=Union[SuccessfulRequest, FailedRequest],
             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def watchdog_config(db: Session = Depends(get_db)):
+async def repository_tags(db: Session = Depends(get_db)):
     return await info.last_tags_from_github(db)
+
+
+limiter_origins = endpoint_limiter.get_limiter_cust('get_ui_comp')
+route = '/get-ui-comp'
+
+
+@router.get(path=route,
+            tags=[tag_name],
+            summary='Obtain compatibility of the user interface version with the other components of the project.',
+            description=route_description(tag=tag_name,
+                                          route=route,
+                                          limiter_calls=limiter_origins.max_request,
+                                          limiter_seconds=limiter_origins.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_origins.seconds,
+                                              max_requests=limiter_origins.max_request))],
+            response_model=Union[SuccessfulRequest, FailedRequest],
+            status_code=status.HTTP_200_OK)
+@handle_exceptions_endpoint
+async def ui_compatibility(version: str):
+    return await info.ui_compatibility(version)

@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 ***
+## [v0.1.16] - 2024-06-28
+
+- Added an endpoint to check the compatibility between ui component and api component
+
 
 ## [v0.1.15] - 2024-06-18
 
