@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 ***
+## [v0.1.16] - 2024-06-28
+
+- Added an endpoint to check the compatibility between ui component and api component
+- Fix minor bug in socket connection manager
 
 ## [v0.1.15] - 2024-06-18
 
@@ -110,7 +114,17 @@ All notable changes to this project will be documented in this file.
 
 ***
 
-[v0.1.10] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.10](https://github.com/seriohub/velero-api/releases/tag/v0.1.11)
+[v0.1.16] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.16](https://github.com/seriohub/velero-api/releases/tag/v0.1.16)
+
+[v0.1.15] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.15](https://github.com/seriohub/velero-api/releases/tag/v0.1.15)
+
+[v0.1.14] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.14](https://github.com/seriohub/velero-api/releases/tag/v0.1.14)
+
+[v0.1.13] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.13](https://github.com/seriohub/velero-api/releases/tag/v0.1.13)
+
+[v0.1.12] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.12](https://github.com/seriohub/velero-api/releases/tag/v0.1.12)
+
+[v0.1.11] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.11](https://github.com/seriohub/velero-api/releases/tag/v0.1.11)
 
 [v0.1.10] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.10](https://github.com/seriohub/velero-api/releases/tag/v0.1.10)
 

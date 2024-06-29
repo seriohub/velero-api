@@ -58,3 +58,14 @@ class Info:
 
         response = SuccessfulRequest(payload=payload['data'])
         return JSONResponse(content=response.toJSON(), status_code=200)
+
+    @handle_exceptions_controller
+    async def ui_compatibility(self, version):
+        payload = await infoService.ui_compatibility(version)
+
+        if not payload['success']:
+            response = FailedRequest(**payload['error'])
+            return JSONResponse(content=response.toJSON(), status_code=400)
+
+        response = SuccessfulRequest(payload=payload['data'])
+        return JSONResponse(content=response.toJSON(), status_code=200)

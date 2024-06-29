@@ -1,3 +1,4 @@
+import base64
 import platform
 import requests
 from core.config import ConfigHelper
@@ -9,6 +10,13 @@ import re
 from security.helpers.database import ProjectsVersion
 from security.helpers.database import SessionLocal
 from typing import Optional
+
+
+def extract_version_numbers(tag_name):
+    # Use regular expression to extract integers from the tag name
+    numbers = re.findall(r'\d+', tag_name)
+    # Convert extracted numbers into integers and return as a tuple
+    return tuple(map(int, numbers))
 
 
 class InfoService:
@@ -30,6 +38,95 @@ class InfoService:
             'datetime': timestamp.strftime("%d/%m/%Y %H:%M:%S")
         }
         return output
+
+    def __get_compatibility(self, data, ui_version, api_version):
+        self.print_ls.info(f"__get_compatibility")
+        is_ok = False
+
+        self.print_ls.info(f"__get_compatibility.ui={ui_version}-api={api_version}")
+        if len(api_version) > 0 and data:
+            for revision in data:
+                self.print_ls.info(f"__get_compatibility.json={revision}")
+                is_ok = revision['api'] == api_version and revision['ui'] == ui_version
+                if is_ok:
+                    break
+        return is_ok
+
+    def __version_content(self, content, ui_version, api_version):
+        self.print_ls.info(f"__version_content")
+        lines = content.split('\n')
+        header_index = None
+        headers = []
+        header_ui = -1
+        header_api = -1
+        i = 0
+        for row, line in enumerate(lines):
+            i += 1
+            self.print_ls.debug(f'__version_content.line: {line}')
+            idx_start = line.find('| version')
+            if '| version' in line:
+                self.print_ls.debug(f"__version_content.header found:{idx_start}")
+                header_index = i
+                header_line = line.strip()
+                headers = header_line.split('|')[1:-1]
+                headers = [h.strip() for h in headers]
+                if ui_version:
+                    header_ui = headers.index("ui")
+                if api_version:
+                    header_api = headers.index("api")
+                break
+
+        if header_index is None:
+            message = "Header (| version ) row not found."
+            self.print_ls.debug(message)
+            return None, None, message
+        # Process the data lines
+        data_lines = lines[header_index + 1:]  # Skip the separator line
+        versions_ui = []
+        versions_api = []
+
+        for line in data_lines:
+            # self.print_ls.debug(f"stripped:{line}")
+            if line and line.strip():
+                data = line.strip().split('|')[1:-1]
+                data = [d.strip() for d in data]
+                add_row = True
+                if ui_version:
+                    # self.print_ls.debug(f"header:{data[header_ui] }- required:{ui_version}")
+                    add_row = data[header_ui] == ui_version
+
+                if add_row:
+                    version_info = {headers[i]: data[i] for i in range(len(headers))}
+                    versions_ui.append(version_info)
+
+                add_row = True
+                if api_version:
+                    add_row = data[header_api] == api_version
+                if add_row:
+                    version_info = {headers[i]: data[i] for i in range(len(headers))}
+                    versions_api.append(version_info)
+            else:
+                break
+
+        self.print_ls.trace(f"__retrieve_data_from_md_file output data: {versions_ui}")
+
+        return versions_ui, versions_api, None
+
+    def __retrieve_data_from_md_file(self, ui_version: str = None, api_version: str = None):
+        self.print_ls.info(f"__retrieve_data_from_md_file")
+        url = 'https://raw.githubusercontent.com/seriohub/velero-helm/main/components.txt'
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            content = response.text
+            versions_ui, versions_api, msg_error = self.__version_content(content,
+                                                                          ui_version,
+                                                                          api_version)
+            return versions_ui, versions_api, msg_error
+        else:
+            message = "no data read from md file"
+            self.print_ls.info(f"__retrieve_data_from_md_file: {message}")
+            return None, None, message
 
     def __get_last_version_from_db(self, db: SessionLocal) -> Optional[ProjectsVersion]:
         self.print_ls.info(f"__get_last_data_from_db")
@@ -59,12 +156,6 @@ class InfoService:
                            f"threshold {self.config_app.get_github_scrapy_versions_minutes()}")
         return (diff.total_seconds() / 60) > self.config_app.get_github_scrapy_versions_minutes()
 
-    def extract_version_numbers(self, tag_name):
-        # Use regular expression to extract integers from the tag name
-        numbers = re.findall(r'\d+', tag_name)
-        # Convert extracted numbers into integers and return as a tuple
-        return tuple(map(int, numbers))
-
     async def __get_last_version(self, repo):
 
         owner = "seriohub"
@@ -81,7 +172,7 @@ class InfoService:
 
             # Sort the tags based on the tag name (assuming semantic versioning)
             # tags.sort(key=lambda tag: tag['name'], reverse=True)
-            tags.sort(key=lambda tag: self.extract_version_numbers(tag['name']), reverse=True)
+            tags.sort(key=lambda tag: extract_version_numbers(tag['name']), reverse=True)
 
             # The first tag in the sorted list is the latest
             latest_tag = tags[0]['name']
@@ -164,3 +255,45 @@ class InfoService:
             self.__save_last_version_from_db(api, ui, helm, watchdog, db)
 
         return {'success': True, 'data': output}
+
+    @handle_exceptions_async_method
+    async def ui_compatibility(self, version: str):
+        self.print_ls.info(f"ui_compatibility version :{version}")
+
+        # avoid error in developer mode
+        if version == "dev":
+            output = {'compatibility': True}
+            return {'success': True, 'data': output}
+
+        if version and len(version) > 0:
+            # Compile the regex pattern
+            version_regex = re.compile(r'^(dev|\d+\.\d+\.\d+)$')
+            if version_regex.match(version):
+                output = {}
+                is_comp = False
+                api_version = self.config_app.get_build_version()
+                # retrieve data from github
+                data_ui, data_api, error = self.__retrieve_data_from_md_file(ui_version =version,
+                                                                             api_version=api_version)
+                if data_ui is None:
+                    return {'success': False, 'error': {'title': 'Error get data from GitHub repository',
+                                                        'description': error
+                                                        }
+                            }
+                is_comp = self.__get_compatibility(data=data_ui,
+                                                   ui_version=version,
+                                                   api_version=api_version)
+
+                output['compatibility'] = is_comp
+                output['versions_ui'] = data_ui
+                output['versions_api'] = data_api
+                return {'success': True, 'data': output}
+            else:
+                return {'success': False, 'error': {'title': 'Parameters missed',
+                                                    'description': f'The ui version provided {version} '
+                                                                   f'is not a valid version'
+                                                    }}
+        else:
+            return {'success': False, 'error': {'title': 'Parameters missed',
+                                                'description': 'No version provided'
+                                                }}
