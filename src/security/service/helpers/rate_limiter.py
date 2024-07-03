@@ -27,8 +27,8 @@ class LimiterRequests:
 
         limiter = self.get_limiter(complete_key)
 
-        self.print_ls.info(f"limiter tags:{self.tags} key:/{key.replace('_', '/')} "
-                           f"max request: {limiter.max_request} interval: {limiter.seconds} seconds")
+        self.print_ls.debug(f"limiter tags:{self.tags} key:/{key.replace('_', '/')} "
+                            f"max request: {limiter.max_request} interval: {limiter.seconds} seconds")
         return limiter
 
     def get_limiter(self, key):

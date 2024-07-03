@@ -646,3 +646,9 @@ class ConfigHelper:
             return True
         return False
 
+    @staticmethod
+    def get_enable_nats():
+        res = os.getenv('NATS_ENABLE', 'false')
+        if res.lower() == 'true':
+            return True
+        return False

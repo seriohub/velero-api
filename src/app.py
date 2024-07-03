@@ -1,4 +1,6 @@
 from dotenv import load_dotenv
+import asyncio
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -18,6 +20,7 @@ from api.common.app_info import appInfo
 from api.v1.api_v1 import v1
 
 from app_data import __version__, __app_name__, __app_description__, __app_summary__
+from helpers.nats_manager import boot_nats_start_manager
 
 load_dotenv()
 config = ConfigHelper()
@@ -107,3 +110,6 @@ async def websocket_endpoint(websocket: WebSocket):
 
 app.mount("/api/v1", v1, "v1")
 app.mount("/api/info", appInfo, "appInfo")
+
+if config.get_enable_nats():
+    asyncio.create_task(boot_nats_start_manager(app))

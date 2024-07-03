@@ -1,6 +1,6 @@
 import re
 import uuid
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 from jose import jwt, JWTError
 from requests import Session
 from starlette import status
@@ -16,7 +16,7 @@ from helpers.printer import PrintHelper
 # from helpers.database import GUID
 from typing import List, Optional
 from security.service.helpers.dependencies import pwd_context
-from core.context import current_user_var, called_endpoint_var
+from core.context import current_user_var, called_endpoint_var, cp_user
 from security.helpers.database import SessionLocal, get_db
 from security.helpers.database import User
 
@@ -263,7 +263,7 @@ def authenticate_user(db, username: str, password: str):
 #     return encoded_jwt
 #
 
-async def get_current_user(token: str = Depends(oauth2_scheme),
+async def get_current_user(request: Request, token: str = Depends(oauth2_scheme),
                            db: Session = Depends(get_db)) -> UserOut:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -279,6 +279,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme),
     except JWTError:
         raise credentials_exception
 
+    # for nats user
+    if payload.get('is_nats'):
+        user = User()
+        user.username = "nats"
+        user.is_nats = True
+        user.cp_mapping_user = request.headers.get('cp_user')
+        return user
+
     user = get_user_by_name(db=db,
                             username=token_data.username)
     if user is None:
@@ -286,10 +294,12 @@ async def get_current_user(token: str = Depends(oauth2_scheme),
     return user
 
 
-async def get_current_active_user(current_user: User = Depends(get_current_user)):
+async def get_current_active_user(request: Request, current_user: User = Depends(get_current_user)):
     if current_user.is_disabled:
         raise HTTPException(status_code=400, detail='Inactive user')
     cu = current_user_var.set(current_user)
+    if current_user.is_nats:
+        cp_user.set(request.headers.get('cp_user'))
     # return current_user
     try:
         yield current_user

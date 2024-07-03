@@ -34,6 +34,8 @@ class User(Base):
     is_disabled = Column(Boolean, default=False)
     time_created = Column(DateTimeA(timezone=True), server_default=func.now())
     time_updated = Column(DateTimeA(timezone=True), onupdate=func.now())
+    is_nats = False
+    cp_mapping_user = ""
 
     def toJSON(self):
         return {'username': self.username,
