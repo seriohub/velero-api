@@ -96,7 +96,7 @@ async def set_called_endpoint(request: Request, call_next):
 
 @app.get('/api/online')
 async def online():
-    return JSONResponse(content={'status': 'alive', 'type': 'agent'}, status_code=200)
+    return JSONResponse(content={'data': {'payload': {'status': 'alive', 'type': 'agent'}}}, status_code=200)
 
 
 # @app.websocket("/ws",
