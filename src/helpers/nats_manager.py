@@ -74,7 +74,7 @@ class NatsManager:
         connected = False
         in_error = False
         attempt = 0
-        interval = 2  # seconds to wait
+        interval = 5  # seconds to wait
         while not connected and not in_error:
             try:
                 attempt += 1
@@ -82,9 +82,9 @@ class NatsManager:
                 # Convert the dictionary to a JSON string
                 message = json.dumps(data)
                 # Request-reply pattern
-                response = await self.nc.request(f"register.client.{self.nc.client_id}",
-                                                 message.encode(), timeout=2)
                 self.print_ls.info(f"registration.sent attempt={attempt}")
+                response = await self.nc.request(f"register.client.{self.nc.client_id}",
+                                                 message.encode('utf-8'), timeout=2)
                 key_to_res = response.data.decode()
                 self.print_ls.debug(f"command.Received reply: {key_to_res}")
 
@@ -195,7 +195,7 @@ class NatsManager:
 
     async def subscribe_to_nats(self):
         self.print_ls.debug(f"initialize nats subscriptions")
-        await self.nc.subscribe("agent.command.request.subject", cb=self.message_handler)
+        await self.nc.subscribe(f"agent.{config.cluster_id()}.request", cb=self.message_handler)
 
     async def __send_client_alive(self):
         subject = f"status.client.{self.channel_id}"
