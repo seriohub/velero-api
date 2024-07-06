@@ -164,6 +164,10 @@ class ConfigHelper:
     def validate_env_variables(self):
         print(f"INFO      [Env validation] Check the validity all env variables")
         block_exec = False
+
+        # LS 2024.07.04 add nats checker
+        nats_enable = self.get_enable_nats()
+
         all_env = {'UNICORN_RELOAD': {'type': bool, 'is_mandatory': False},
                    'CONTAINER_MODE': {'type': bool, 'is_mandatory': False},
                    'K8S_IN_CLUSTER_MODE': {'type': bool, 'is_mandatory': False},
@@ -174,7 +178,10 @@ class ConfigHelper:
                    'API_TOKEN_REFRESH_EXPIRATION_DAYS': {'type': int, 'is_mandatory': True},
                    'SECURITY_DISABLE_USERS_PWD_RATE': {'type': bool, 'is_mandatory': False},
                    'LIMIT_CONCURRENCY': {'type': int, 'is_mandatory': False},
-                   'SCRAPY_VERSION_MIN': {'type': int, 'is_mandatory': False}}
+                   'SCRAPY_VERSION_MIN': {'type': int, 'is_mandatory': False},
+                   'NATS_ENABLE': {'type': bool, 'is_mandatory': False},
+                   'NATS_PORT_CLIENT': {'type': int, 'is_mandatory': nats_enable},
+                   'NATS_PORT_SERVER': {'type': int, 'is_mandatory': nats_enable}}
 
         for key, value in all_env.items():
             res = self.__validate_env_variable__(key, value['type'])
@@ -183,6 +190,10 @@ class ConfigHelper:
 
         # init the dict for url keys
         urls = {'API_ENDPOINT_URL': {'protocol': False}}
+        # LS 2024.07.04 add nats url
+        if nats_enable:
+            urls = {'NATS_ENDPOINT_URL': {'protocol': False}}
+
         # origins
         for x in range(1, 100, 1):
             urls[f'ORIGINS_{x}'] = {'protocol': True}
@@ -652,3 +663,36 @@ class ConfigHelper:
         if res.lower() == 'true':
             return True
         return False
+
+    @staticmethod
+    def get_nats_endpoint_url():
+        endpoint_url = os.getenv('NATS_ENDPOINT_URL')
+        if endpoint_url is None or \
+                len(endpoint_url) == 0:
+            endpoint_url = '127.0.0.1'
+        return endpoint_url
+
+    @staticmethod
+    def get_nats_endpoint_port(client_endpoint=True):
+        if client_endpoint:
+            key = 'NATS_PORT_CLIENT'
+            port = '4222'
+        else:
+            key = 'NATS_PORT_SERVER'
+            port = '8222'
+
+        endpoint_port = os.getenv(key)
+        if endpoint_port is None or \
+                len(endpoint_port) == 0:
+            endpoint_port = port
+        return endpoint_port
+
+    def get_nats_client_url(self):
+        return f"nats://{self.get_nats_endpoint_url()}:{self.get_nats_endpoint_port()}"
+
+    def get_nats_server_status_url(self):
+        return f"http://{self.get_nats_endpoint_url()}:{self.get_nats_endpoint_port()}"
+
+    @staticmethod
+    def cluster_id():
+        return os.getenv('CLUSTER_ID', 'not-defined')
