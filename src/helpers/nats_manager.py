@@ -33,9 +33,12 @@ class NatsManager:
         self.app = app
         self.nc = None
         self.channel_id = config.cluster_id()
+        self.retry_registration_sec = config.get_nast_retry_registration()
+        self.alive_sec = config.get_nast_send_alive()
+        self.timeout_request= config.get_timeout_request()
 
     async def __nats_error_cb(self, e):
-        self.print_ls.info(f"_nats_error_cb {e}")
+        self.print_ls.wrn(f"_nats_error_cb {e}")
 
     async def __nats_closed_cb(self):
         self.print_ls.info(f"_nats_closed_cb")
@@ -53,15 +56,19 @@ class NatsManager:
             self.print_ls.info(f"__init_nats_connection")
             if self.nc is None:
                 nats_server = f"{config.get_nats_client_url()}"
-                self.print_ls.info(f"Connect to server: {nats_server}")
+                reconnect_sec = config.get_nast_retry_connection()
+                if reconnect_sec < 10:
+                    reconnect_sec = 10
+                self.print_ls.info(f"Connect to server: {nats_server}- timeout reconnect: {reconnect_sec} sec")
 
                 options = {
+                    "name": "CoreManagerAPI",
                     "servers": [nats_server],
                     "error_cb": self.__nats_error_cb,
                     "closed_cb": self.__nats_closed_cb,
                     "reconnected_cb": self.__nats_reconnected_cb,
                     "disconnected_cb": self.__nats_disconnected_cb,
-                    "reconnect_time_wait": 10
+                    "reconnect_time_wait": reconnect_sec
                 }
 
                 self.nc = await nats.connect(**options)
@@ -74,7 +81,7 @@ class NatsManager:
         connected = False
         in_error = False
         attempt = 0
-        interval = 5  # seconds to wait
+        interval = self.retry_registration_sec  # seconds to wait
         while not connected and not in_error:
             try:
                 attempt += 1
@@ -196,25 +203,53 @@ class NatsManager:
     async def subscribe_to_nats(self):
         self.print_ls.debug(f"initialize nats subscriptions")
         await self.nc.subscribe(f"agent.{config.cluster_id()}.request", cb=self.message_handler)
+        await self.nc.subscribe(f"server.cmd", cb=self.__server_cmd_handler)
+
+    async def __server_cmd_handler(self, msg):
+        try:
+            self.print_ls.debug(f"cmd from server")
+            command = msg.data.decode()
+            self.print_ls.debug(f"cmd from server. command : {command}")
+
+            if command:
+                command = json.loads(command)
+                self.print_ls.debug(f"force registration and subscription")
+                if command['command'] == 'restart':
+                    self.print_ls.debug(f"run.registration")
+                    await self.client_registration()
+                    self.print_ls.debug(f"run.subscription")
+                    await self.subscribe_to_nats()
+
+        except Exception as e:
+            self.print_ls.wrn(f"__server_cmd_handler ({str(e)})")
 
     async def __send_client_alive(self):
         subject = f"status.client.{self.channel_id}"
+        data = {'client': self.nc.client_id, 'name': config.cluster_id(), 'status': 'alive'}
 
-        data = {'client': self.nc.client_id, 'status': 'alive'}
         # Convert the dictionary to a JSON string
         message = json.dumps(data)
-        interval = 10
+        interval = self.alive_sec
+
+        # initial sleep
+        await asyncio.sleep(interval)
         while True:
             try:
                 if self.nc.is_connected:
-                    self.print_ls.debug(f"alive message {subject}: {message}")
-                    await self.nc.publish(subject, message.encode())
-                await asyncio.sleep(interval)  # Publish every 10 seconds
+                    self.print_ls.trace(f"alive message {subject}: {message}")
+                    response = await self.nc.request(subject, message.encode(),
+                                                     timeout=self.timeout_request)
+                    # self.print_ls.trace(f"__send_client_alive .Received reply: {response.data.decode()}")
+            except ErrTimeout:
+                self.print_ls.wrn("__send_client_alive No reply received from server (timeout)")
+            except ErrNoServers:
+                self.print_ls.wrn("__send_client_alive No reply received (no nats server)")
             except Exception as e:
                 self.print_ls.wrn(f"__send_client_alive ({str(e)})")
+            finally:
+                await asyncio.sleep(interval)  # Publish every x seconds
 
     async def run(self):
-        interval = 10
         self.print_ls.debug(f"run")
 
         self.print_ls.debug(f"run.connection")
@@ -224,7 +259,7 @@ class NatsManager:
         self.print_ls.debug(f"run.subscription")
         await self.subscribe_to_nats()
 
-        # # Create a task to publish messages at intervals
+        # Create a task to publish messages at intervals
         publish_status = asyncio.create_task(self.__send_client_alive())
 
         # Keep the receiver running

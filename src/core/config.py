@@ -180,8 +180,10 @@ class ConfigHelper:
                    'LIMIT_CONCURRENCY': {'type': int, 'is_mandatory': False},
                    'SCRAPY_VERSION_MIN': {'type': int, 'is_mandatory': False},
                    'NATS_ENABLE': {'type': bool, 'is_mandatory': False},
-                   'NATS_PORT_CLIENT': {'type': int, 'is_mandatory': nats_enable},
-                   'NATS_PORT_SERVER': {'type': int, 'is_mandatory': nats_enable}}
+                   'NATS_PORT_CLIENT': {'type': int, 'is_mandatory': False},
+                   'NATS_RETRY_REG_SEC': {'type': int, 'is_mandatory': False},
+                   'NATS_ALIVE_SEC': {'type': int, 'is_mandatory': False},
+                   'NATS_REQUEST_TIMEOUT_SEC': {'type': int, 'is_mandatory': False}}
 
         for key, value in all_env.items():
             res = self.__validate_env_variable__(key, value['type'])
@@ -678,7 +680,7 @@ class ConfigHelper:
             key = 'NATS_PORT_CLIENT'
             port = '4222'
         else:
-            key = 'NATS_PORT_SERVER'
+            key = 'NATS_PORT_MONITORING'
             port = '8222'
 
         endpoint_port = os.getenv(key)
@@ -688,10 +690,51 @@ class ConfigHelper:
         return endpoint_port
 
     def get_nats_client_url(self):
-        return f"nats://{self.get_nats_endpoint_url()}:{self.get_nats_endpoint_port()}"
+        username = self.get_nats_username()
+        password = self.get_nats_password()
+        credentials = ""
+        if username and password:
+            credentials = f"{username}:{password}@"
+        return f"nats://{credentials}{self.get_nats_endpoint_url()}:{self.get_nats_endpoint_port()}"
 
     def get_nats_server_status_url(self):
         return f"http://{self.get_nats_endpoint_url()}:{self.get_nats_endpoint_port()}"
+
+    @staticmethod
+    def get_nast_retry_connection():
+        res = os.getenv('NATS_RETRY_CONN_SEC', '20')
+        if len(res) == 0:
+            res = '20'
+        return int(res)
+
+    @staticmethod
+    def get_nast_retry_registration():
+        res = os.getenv('NATS_RETRY_REG_SEC', '30')
+        if len(res) == 0:
+            res = '30'
+        return int(res)
+
+    @staticmethod
+    def get_nast_send_alive():
+        res = os.getenv('NATS_ALIVE_SEC', '60')
+        if len(res) == 0:
+            res = '60'
+        return int(res)
+
+    @staticmethod
+    def get_timeout_request():
+        res = os.getenv('NATS_REQUEST_TIMEOUT_SEC', '2')
+        if len(res) == 0:
+            res = '2'
+        return int(res)
+
+    @staticmethod
+    def get_nats_username():
+        return os.getenv("NATS_USERNAME")
+
+    @staticmethod
+    def get_nats_password():
+        return os.getenv("NATS_PASSWORD")
 
     @staticmethod
     def cluster_id():
