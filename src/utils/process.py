@@ -32,10 +32,11 @@ async def send_message(message):
                 nc = await nats_manager.get_nats_connection()
                 control_plane_user = cp_user.get()
                 data = {"user": control_plane_user, "msg": message}
-                await nc.publish("socket", json.dumps(data).encode())
+                await nc.publish("socket." + config.cluster_id(), json.dumps(data).encode())
                 pass
             elif user is not None:
-                await manager.send_personal_message(str(user.id), message)
+                response = {'response_type': 'process', 'message': message}
+                await manager.send_personal_message(str(user.id), response)
 
     except WebSocketDisconnect:
         print_ls.error('send message error')
