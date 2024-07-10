@@ -15,7 +15,7 @@ from helpers.printer import PrintHelper
 
 from core.config import ConfigHelper
 from helpers.nats_manager import boot_nats_start_manager
-from app import app
+
 
 config_app = ConfigHelper()
 
@@ -84,6 +84,15 @@ if __name__ == '__main__':
     db.close()
     print("INFO:     Close database connection")
 
+    # uvicorn.run('app:app',
+    #             host=endpoint_url,
+    #             port=int(endpoint_port),
+    #             reload=app_reload,
+    #             log_level=log_level,
+    #             workers=4,
+    #             limit_concurrency=int(limit_concurrency),
+    #             )
+
     def start_uvicorn():
         uvicorn.run('app:app',
                     host=endpoint_url,
@@ -96,8 +105,9 @@ if __name__ == '__main__':
 
     server_process = Process(target=start_uvicorn)
     server_process.start()
-    time.sleep(5)
+    time.sleep(2)
 
     if config_app.get_enable_nats():
+        from app import app
         asyncio.run(boot_nats_start_manager(app))
 
