@@ -716,9 +716,9 @@ class ConfigHelper:
 
     @staticmethod
     def get_nast_send_alive():
-        res = os.getenv('NATS_ALIVE_SEC', '15')
+        res = os.getenv('NATS_ALIVE_SEC', '60')
         if len(res) == 0:
-            res = '15'
+            res = '60'
         return int(res)
 
     @staticmethod

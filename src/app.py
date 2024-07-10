@@ -112,5 +112,5 @@ app.mount("/api/v1", v1, "v1")
 app.mount("/api/info", appInfo, "appInfo")
 
 
-if config.get_enable_nats():
-    asyncio.create_task(boot_nats_start_manager(app))
+# if config.get_enable_nats():
+#     asyncio.create_task(boot_nats_start_manager(app))
