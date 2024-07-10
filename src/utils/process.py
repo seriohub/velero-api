@@ -36,7 +36,7 @@ async def send_message(message):
                 pass
             elif user is not None:
                 response = {'response_type': 'process', 'message': message}
-                await manager.send_personal_message(str(user.id), response)
+                await manager.send_personal_message(str(user.id), json.dumps(response))
 
     except WebSocketDisconnect:
         print_ls.error('send message error')
