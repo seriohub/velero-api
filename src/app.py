@@ -102,12 +102,12 @@ async def online():
 # @app.websocket("/ws",
 #                dependencies=[Depends(get_current_active_user)])
 # Can't use jwt in socket header request
-@app.websocket('/ws')
+@app.websocket('/ws/auth')
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     # await manager.send_personal_message('Connection READY!', websocket=websocket)
 
-@app.websocket('/online')
+@app.websocket('/ws/online')
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
 
