@@ -35,7 +35,7 @@ class NatsManager:
         self.channel_id = config.cluster_id()
         self.retry_registration_sec = config.get_nast_retry_registration()
         self.alive_sec = config.get_nast_send_alive()
-        self.timeout_request= config.get_timeout_request()
+        self.timeout_request = config.get_timeout_request()
 
     async def __nats_error_cb(self, e):
         self.print_ls.wrn(f"_nats_error_cb {e}")
@@ -62,7 +62,7 @@ class NatsManager:
                 self.print_ls.info(f"Connect to server: {nats_server}- timeout reconnect: {reconnect_sec} sec")
 
                 options = {
-                    "name": "CoreManagerAPI",
+                    "name": "AgentAPI",
                     "servers": [nats_server],
                     "error_cb": self.__nats_error_cb,
                     "closed_cb": self.__nats_closed_cb,
@@ -75,6 +75,22 @@ class NatsManager:
         except Exception as e:
             self.print_ls.wrn(f"__init_nats_connection ({str(e)})")
             self.nc = None
+
+    def __ensure_encoded(self, data):
+        """
+        Ensures that the given data is encoded in bytes. If it's already encoded,
+        it returns the data as is. If not, it encodes the data.
+        """
+        self.print_ls.trace(f"__ensure_encoded")
+        if isinstance(data, bytes):
+            # Data is already encoded
+            return data
+        elif isinstance(data, str):
+            # Data is a string, encode it to bytes
+            return data.encode()
+        else:
+            # Data is not a string, convert to JSON string and encode to bytes
+            return json.dumps(data).encode()
 
     async def client_registration(self):
         self.print_ls.info(f"__init_client_register")
@@ -132,21 +148,32 @@ class NatsManager:
             return None
 
     @staticmethod
-    def __get_endpoint_function_by_path(app_fastapi: FastAPI, path: str):
+    def __get_endpoint_function_by_path(app_fastapi: FastAPI, path: str, debug=False):
         # Helper function to search routes
         def search_routes(routes, path):
             for route in routes:
-                # print("route", route)
-                if isinstance(route, APIRoute) and route.path == path:
-                    return route.endpoint
+                if isinstance(route, APIRoute):
+                    if debug:
+                        print(f"route:{route}-find:{path}")
+                    if route.path == path:
+                        return route.endpoint
                 elif isinstance(route, Mount):
+                    if debug:
+                        print(f"route mount:{route}-find:{path}")
                     # Check mounted sub-application routes
                     sub_app = route.app
+                    if debug:
+                        print(f"route:{route}-sun_app:{sub_app}-find:{path}")
                     sub_path = path[len(route.path.rstrip("/")):]
                     if sub_path:
+                        if debug:
+                            print(f"sub_path:{route}-sun_app:{sub_app}-find:{path}")
                         sub_endpoint = search_routes(sub_app.routes, sub_path)
                         if sub_endpoint:
                             return sub_endpoint
+                else:
+                    if debug:
+                        print(f"no found type:{route}")
             return None
 
         return search_routes(app_fastapi.routes, path)
@@ -155,14 +182,18 @@ class NatsManager:
         self.print_ls.info(f"message_handler")
         command = msg.data.decode()
 
+        self.print_ls.trace(f"message_handler:{command}")
+
         if command:
             command = json.loads(command)
         else:
             await self.nc.publish(msg.reply, "error".encode())
-        self.print_ls.debug(f"message_handle.command {command['method']} \tpath:{command['path']} ")
+        self.print_ls.trace(f"message_handle.command {command['method']} \tpath:{command['path']} ")
         # path = "/api/info/get"
         endpoint_function = self.__get_endpoint_function_by_path(self.app, command['path'])
-        if endpoint_function:
+
+        if endpoint_function is not None:
+            self.print_ls.trace(f"message_handle.endpoint_function is ok ")
             access_token = create_access_token(
                 data={'sub': 'nats', 'is_nats': True}
             )
@@ -172,19 +203,20 @@ class NatsManager:
             if command['method'] in commands:
                 # Call endpoint function with TestClient
                 if command['method'] == 'GET':
-                    self.print_ls.debug(f"message_handle.command GET")
+                    self.print_ls.trace(f"message_handle.command GET")
+
                     response = TestClient(self.app).get(command['path'],
                                                         params=command['params'],
                                                         headers={"Authorization": f"Bearer {access_token}",
                                                                  "cp_user": command["user"]})
                 elif command['method'] == 'POST':
-                    self.print_ls.debug(f"message_handle.command POST")
+                    self.print_ls.trace(f"message_handle.command POST")
                     response = TestClient(self.app).post(command['path'],
                                                          json=command['params'],
                                                          headers={"Authorization": f"Bearer {access_token}",
                                                                   "cp_user": command["user"]})
                 elif command['method'] == 'DELETE':
-                    self.print_ls.debug(f"message_handle.command DELETE")
+                    self.print_ls.trace(f"message_handle.command DELETE")
                     response = TestClient(self.app).delete(command['path'],
                                                            params=command['params'],
                                                            headers={"Authorization": f"Bearer {access_token}",
@@ -193,12 +225,22 @@ class NatsManager:
                 content = response.content
             else:
                 self.print_ls.wrn(f"message_handle.command {command['method']} not recognized ")
-                content = f"Method not recognized {command['method']} "
-
+                data = {'success': False, 'error': {'title': 'message_handler',
+                                                    'description': f"Method not recognized {command['method']}"
+                                                    }
+                        }
+                content = json.dumps(data)
+                self.print_ls.wrn(f"message_handler:{content}")
         else:
-            content = f"No endpoint found for path: {endpoint_function}"
+            data = {'success': False, 'error': {'title': 'message_handler',
+                                                'description': f"No endpoint found for path: {command['path']}"
+                                                }
+                    }
+            content = json.dumps(data)
 
-        await self.nc.publish(msg.reply, content)
+            self.print_ls.wrn(f"message_handler:{content}")
+
+        await self.nc.publish(msg.reply, self.__ensure_encoded(content))
 
     async def subscribe_to_nats(self):
         self.print_ls.debug(f"initialize nats subscriptions")
@@ -239,7 +281,7 @@ class NatsManager:
                     self.print_ls.trace(f"alive message {subject}: {message}")
                     response = await self.nc.request(subject, message.encode(),
                                                      timeout=self.timeout_request)
-                    # self.print_ls.trace(f"__send_client_alive .Received reply: {response.data.decode()}")
+                    self.print_ls.trace(f"__send_client_alive .Received reply: {response.data.decode()}")
             except ErrTimeout:
                 self.print_ls.wrn("__send_client_alive No reply received from server (timeout)")
             except ErrNoServers:
