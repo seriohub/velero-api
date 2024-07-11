@@ -20,7 +20,7 @@ from api.common.app_info import appInfo
 from api.v1.api_v1 import v1
 
 from app_data import __version__, __app_name__, __app_description__, __app_summary__
-from helpers.nats_manager import boot_nats_start_manager
+
 
 load_dotenv()
 config = ConfigHelper()
