@@ -14,7 +14,7 @@ from helpers.velero_client import VeleroClient
 from helpers.printer import PrintHelper
 
 from core.config import ConfigHelper
-from helpers.nats_manager import boot_nats_start_manager
+
 
 
 config_app = ConfigHelper()
@@ -89,7 +89,7 @@ if __name__ == '__main__':
     #             port=int(endpoint_port),
     #             reload=app_reload,
     #             log_level=log_level,
-    #             workers=4,
+    #             workers=1,
     #             limit_concurrency=int(limit_concurrency),
     #             )
 
@@ -99,7 +99,7 @@ if __name__ == '__main__':
                     port=int(endpoint_port),
                     reload=app_reload,
                     log_level=log_level,
-                    workers=4,
+                    workers=1,
                     limit_concurrency=int(limit_concurrency),
                     )
 
@@ -107,6 +107,7 @@ if __name__ == '__main__':
     server_process.start()
     time.sleep(2)
 
+    from helpers.nats_manager import boot_nats_start_manager
     if config_app.get_enable_nats():
         from app import app
         asyncio.run(boot_nats_start_manager(app))
