@@ -44,6 +44,7 @@ async def send_message(message):
 
 async def run_process_check_output(cmd, publish_message=True, cwd='./'):
     try:
+        output = ''
         if publish_message:
             await send_message('check output: ' + ' '.join(cmd))
         # sync

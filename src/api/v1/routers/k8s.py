@@ -19,7 +19,7 @@ config_app = ConfigHelper()
 print_ls = PrintHelper('[v1.routers.k8s]',
                        level=config_app.get_internal_log_level())
 
-tag_name = 'k8s'
+tag_name = 'K8s'
 endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')

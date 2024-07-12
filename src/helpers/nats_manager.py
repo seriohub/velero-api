@@ -1,19 +1,25 @@
+from fastapi import FastAPI, Request
+from fastapi.routing import APIRoute, Mount
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from inspect import signature
+
 import asyncio
 import json
-import time
 
 import nats
-
-from fastapi import FastAPI
-from fastapi.routing import APIRoute, Mount
-from fastapi.testclient import TestClient
 from nats.aio.errors import ErrTimeout, ErrNoServers
 from nats.errors import NoRespondersError
 
-from core.config import ConfigHelper
+from security.helpers.database import User
+
 from helpers.printer import PrintHelper
 
-from security.service.helpers.tokens import create_access_token
+from core.context import current_user_var, cp_user
+from core.config import ConfigHelper
+
+# from fastapi.testclient import TestClient
+
 
 config = ConfigHelper()
 
@@ -62,7 +68,7 @@ class NatsManager:
                 self.print_ls.info(f"Connect to server: {nats_server}- timeout reconnect: {reconnect_sec} sec")
 
                 options = {
-                    "name": "AgentAPI",
+                    "name": "AgentAPI." + config.cluster_id(),
                     "servers": [nats_server],
                     "error_cb": self.__nats_error_cb,
                     "closed_cb": self.__nats_closed_cb,
@@ -178,6 +184,11 @@ class NatsManager:
 
         return search_routes(app_fastapi.routes, path)
 
+    def query_string_to_dict(self, query_string: str) -> dict:
+        from urllib.parse import parse_qs
+        query_dict = parse_qs(query_string)
+        return {k: v[0] for k, v in query_dict.items()}
+
     async def message_handler(self, msg):
         self.print_ls.info(f"message_handler")
         command = msg.data.decode()
@@ -194,36 +205,84 @@ class NatsManager:
 
         if endpoint_function is not None:
             self.print_ls.trace(f"message_handle.endpoint_function is ok ")
-            access_token = create_access_token(
-                data={'sub': 'nats', 'is_nats': True}
-            )
-            assigned = False
+
+            # access_token = create_access_token(
+            #     data={'sub': 'nats', 'is_nats': True}
+            # )
 
             commands = ['GET', 'POST', 'DELETE']
+
+            # create temp user
+            user = User()
+            user.username = "nats"
+            user.is_nats = True
+            user.cp_mapping_user = command["user"]
+            current_user_var.set(user)
+            cp_user.set(command["user"])
+            response = {}
+
             if command['method'] in commands:
-                # Call endpoint function with TestClient
-                if command['method'] == 'GET':
-                    self.print_ls.trace(f"message_handle.command GET")
 
-                    response = TestClient(self.app).get(command['path'],
-                                                        params=command['params'],
-                                                        headers={"Authorization": f"Bearer {access_token}",
-                                                                 "cp_user": command["user"]})
-                elif command['method'] == 'POST':
+                if command['method'] == 'GET' or command['method'] == 'DELETE':
+                    self.print_ls.trace(f"message_handle.command {command['method']}")
+
+                    # Call endpoint function with TestClient
+                    # response = TestClient(self.app).get(command['path'],
+                    #                                     params=command['params'],
+                    #                                     headers={"Authorization": f"Bearer {access_token}",
+                    #                                              "cp_user": command["user"]})
+
+                    if 'params' in command and len(command['params']) > 0:
+                        query_dict = self.query_string_to_dict(command['params'])
+                        response = await endpoint_function(**query_dict)
+                    else:
+                        response = await endpoint_function()
+
+                    if isinstance(response, JSONResponse):
+                        response = json.loads(response.body.decode())
+
+                elif command['method'] == 'POST' or command['method'] == 'PATCH':
                     self.print_ls.trace(f"message_handle.command POST")
-                    response = TestClient(self.app).post(command['path'],
-                                                         json=command['params'],
-                                                         headers={"Authorization": f"Bearer {access_token}",
-                                                                  "cp_user": command["user"]})
-                elif command['method'] == 'DELETE':
-                    self.print_ls.trace(f"message_handle.command DELETE")
-                    response = TestClient(self.app).delete(command['path'],
-                                                           params=command['params'],
-                                                           headers={"Authorization": f"Bearer {access_token}",
-                                                                    "cp_user": command["user"]})
 
-                content = response.content
-            else:
+                    # Call endpoint function with TestClient
+                    # response = TestClient(self.app).post(command['path'],
+                    #                                      json=command['params'],
+                    #                                      headers={"Authorization": f"Bearer {access_token}",
+                    #                                               "cp_user": command["user"]})
+
+                    # get function signature
+                    sig = signature(endpoint_function)
+                    first_param = next(iter(sig.parameters.values()))
+
+                    # get first param of endpoint
+                    if first_param.annotation == Request:
+                        # Create fake Request Object
+                        request_scope = {
+                            "type": "http",
+                            "method": command['method'],
+                            "path": command["path"],
+                            "headers": {},
+                        }
+                        request = Request(request_scope)
+                        request._json = command['params']
+
+                        # call endpoint with Request object
+                        response = await endpoint_function(request)
+                    elif issubclass(first_param.annotation, BaseModel):
+                        # Create Pydantic model
+                        model_instance = first_param.annotation(**command['params'])
+                        # call endpoint with Pydantic object
+                        response = await endpoint_function(model_instance)
+                    # else:
+                    #     raise HTTPException(status_code=400, detail="Unsupported parameter type")
+
+                    # Se la risposta è un oggetto JSONResponse, get contenuto
+                    if isinstance(response, JSONResponse):
+                        response = json.loads(response.body.decode())
+
+                content = json.dumps(response)
+
+            else:   # command['method'] not in commands:
                 self.print_ls.wrn(f"message_handle.command {command['method']} not recognized ")
                 data = {'success': False, 'error': {'title': 'message_handler',
                                                     'description': f"Method not recognized {command['method']}"
@@ -231,7 +290,7 @@ class NatsManager:
                         }
                 content = json.dumps(data)
                 self.print_ls.wrn(f"message_handler:{content}")
-        else:
+        else:   # endpoint_function is None
             data = {'success': False, 'error': {'title': 'message_handler',
                                                 'description': f"No endpoint found for path: {command['path']}"
                                                 }

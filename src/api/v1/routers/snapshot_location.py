@@ -22,7 +22,7 @@ print_ls = PrintHelper('[v1.routers.snapshot_location]',
                        level=config_app.get_internal_log_level())
 
 
-tag_name = 'Snapshot'
+tag_name = 'Snapshots'
 endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')

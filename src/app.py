@@ -30,12 +30,12 @@ config = ConfigHelper()
 # print_helper = PrintHelper('[app]')
 
 # docs redocs
-# docs_url = '/docs'
-# re_docs_url = '/redoc'
-# enabled_docs = config.get_api_disable_documentation()
-# if not enabled_docs:
-#    docs_url = None
-#    re_docs_url = None
+docs_url = '/api/docs'
+re_docs_url = '/api/redoc'
+enabled_docs = config.get_api_disable_documentation()
+if not enabled_docs:
+   docs_url = None
+   re_docs_url = None
 
 #
 # @asynccontextmanager
@@ -62,8 +62,8 @@ app = FastAPI(
         'name': 'Apache 2.0',
         'identifier': 'Apache-2.0',
     },
-    # docs_url=docs_url,
-    # redoc_url=re_docs_url,
+    docs_url=docs_url,
+    redoc_url=re_docs_url,
     # lifespan=lifespan
 )
 
@@ -95,6 +95,7 @@ async def set_called_endpoint(request: Request, call_next):
 
 
 @app.get('/api/online')
+@app.get('/api')
 async def online():
     return JSONResponse(content={'data': {'payload': {'status': 'alive', 'type': 'agent'}}}, status_code=200)
 
@@ -112,8 +113,11 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
 
 
-app.mount("/api/v1", v1, "v1")
-app.mount("/api/info", appInfo, "appInfo")
+# app.mount("/api/info", appInfo, "appInfo")
+# app.mount("/api/v1", v1, "v1")
+
+app.include_router(appInfo, prefix="/api/info")
+app.include_router(v1, prefix="/api/v1")
 
 
 # if config.get_enable_nats():
