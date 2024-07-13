@@ -739,3 +739,17 @@ class ConfigHelper:
     @staticmethod
     def cluster_id():
         return os.getenv('CLUSTER_ID', 'not-defined')
+
+    @staticmethod
+    def get_nats_update_sec_k8s_health():
+        res = os.getenv('NATS_UPDATE_K8S_HEALTH', '120')
+        if len(res) == 0:
+            res = '120'
+        return int(res)
+
+    @staticmethod
+    def get_nats_update_sec_statistic():
+        res = os.getenv('NATS_UPDATE_STATS', '120')
+        if len(res) == 0:
+            res = '120'
+        return int(res)

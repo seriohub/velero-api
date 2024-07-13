@@ -1,6 +1,9 @@
+from datetime import datetime
+
 from fastapi import FastAPI, Request
 from fastapi.routing import APIRoute, Mount
 from fastapi.responses import JSONResponse
+from nats.js.api import StreamConfig, KeyValueConfig
 from pydantic import BaseModel
 from inspect import signature
 
@@ -38,6 +41,18 @@ class NatsManager:
 
         self.app = app
         self.nc = None
+        self.js = None
+
+        self.kv_bucket_name = f"kv-{config.cluster_id()}"
+
+        self.kv_stats_path = "/api/v1/stats/get"
+        self.kv_stats_name = 'stast_get'
+        self.kv_stats_interval = config.get_nats_update_sec_statistic()
+
+        self.kv_health_path = "/api/info/health-k8s"
+        self.kv_health_k8s_name = 'k8s_health'
+        self.kv_health_k8s_interval = config.get_nats_update_sec_k8s_health()
+
         self.channel_id = config.cluster_id()
         self.retry_registration_sec = config.get_nast_retry_registration()
         self.alive_sec = config.get_nast_send_alive()
@@ -97,6 +112,40 @@ class NatsManager:
         else:
             # Data is not a string, convert to JSON string and encode to bytes
             return json.dumps(data).encode()
+
+    async def create_bucket_store(self, key_value, max_size=100000):
+        self.print_ls.info(f"create_bucket_store {key_value} ")
+        self.js = self.nc.jetstream()
+        bucket_name = f"{key_value}"
+        interval = 2
+        # Check if the KV store exists and delete it if it does
+        try:
+            await self.js.stream_info(bucket_name)
+            self.print_ls.debug(f"create_bucket_store.{bucket_name} store exists. Deleting...")
+            await self.js.delete_key_value(bucket_name)
+        except Exception as e:
+            self.print_ls.debug(f"create_bucket_store.KV {bucket_name} store does not exist or cannot be retrieved.")
+        is_not_created = False
+        while not is_not_created:
+            try:
+                # Create a KV store
+                kv_config = KeyValueConfig(
+                    bucket=bucket_name,
+                    max_value_size=max_size,
+                    history=1  # Only keep the latest value
+                )
+                await self.js.create_key_value(kv_config)
+
+                self.print_ls.info(f"create_bucket_store.{bucket_name} store created.")
+                is_not_created = True
+            except Exception as e:
+                self.print_ls.debug(f"create_bucket_store. {bucket_name} cannot create the kv")
+            finally:
+                if is_not_created:
+                    return True
+                else:
+                    await asyncio.sleep(interval)
+        return True
 
     async def client_registration(self):
         self.print_ls.info(f"__init_client_register")
@@ -282,7 +331,7 @@ class NatsManager:
 
                 content = json.dumps(response)
 
-            else:   # command['method'] not in commands:
+            else:  # command['method'] not in commands:
                 self.print_ls.wrn(f"message_handle.command {command['method']} not recognized ")
                 data = {'success': False, 'error': {'title': 'message_handler',
                                                     'description': f"Method not recognized {command['method']}"
@@ -290,7 +339,7 @@ class NatsManager:
                         }
                 content = json.dumps(data)
                 self.print_ls.wrn(f"message_handler:{content}")
-        else:   # endpoint_function is None
+        else:  # endpoint_function is None
             data = {'success': False, 'error': {'title': 'message_handler',
                                                 'description': f"No endpoint found for path: {command['path']}"
                                                 }
@@ -350,18 +399,112 @@ class NatsManager:
             finally:
                 await asyncio.sleep(interval)  # Publish every x seconds
 
+    async def __get_data_from_api(self, path, credential: bool= False):
+
+        self.print_ls.debug(f"__get_data_from_api {path}")
+        try:
+            if credential:
+                # create temp user
+                user = User()
+                user.username = "nats"
+                user.is_nats = True
+                user.cp_mapping_user = 'local-nats'
+                current_user_var.set(user)
+                cp_user.set("local-nats")
+
+            endpoint_function = self.__get_endpoint_function_by_path(self.app, path)
+            response = await endpoint_function()
+
+            if isinstance(response, JSONResponse):
+                return json.loads(response.body.decode())
+
+            return response
+        except Exception as e:
+            self.print_ls.wrn(f"__get_data_from_api ({str(e)})")
+            return None
+
+    async def __publish_kv_pair(self, key, value):
+        try:
+            self.print_ls.debug(f"__publish_kv_pair.key {key}")
+            js = self.nc.jetstream()
+            kv = await js.key_value(self.kv_bucket_name)
+
+            data = self.__ensure_encoded(value)
+
+            # await kv.put(key, json.dumps(value).encode())
+            await kv.put(key, data)
+            self.print_ls.debug(f"__publish_kv_pair.published {key}")
+            return True
+
+        except ErrTimeout:
+            self.print_ls.wrn("__publish_kv_pair No reply received from server (timeout)")
+        except ErrNoServers:
+            self.print_ls.wrn("__publish_kv_pair No reply received (no nats server)")
+        except Exception as e:
+            self.print_ls.wrn(f"__publish_kv_pair ({str(e)})")
+
+        return False
+
+    async def __publish_data_to_kv(self):
+        self.print_ls.info(f"__publish_data_to_kv.client {self.kv_bucket_name}")
+
+        interval = 1
+
+        self.print_ls.info(f"__publish_data_to_kv.k8s health updated every {self.kv_health_k8s_interval} sec")
+        self.print_ls.info(f"__publish_data_to_kv.statistics updated every {self.kv_stats_interval} sec")
+
+        last_stats = self.kv_stats_interval + 1
+        last_health_k8s = self.kv_health_k8s_interval + 1
+        # initial sleep
+        await asyncio.sleep(5)
+        while True:
+            try:
+                last_stats += 1
+                last_health_k8s += 1
+
+                if last_stats > self.kv_stats_interval:
+                    last_stats = 0
+                    data = await self.__get_data_from_api(path=self.kv_stats_path, credential=True)
+                    if data is not None:
+                        update = await self.__publish_kv_pair(key=self.kv_stats_name, value=data)
+                        self.print_ls.info(f"__publish_data_to_kv. update {self.kv_stats_name} res: {update}")
+
+                if last_health_k8s > self.kv_health_k8s_interval:
+                    last_health_k8s = 0
+                    data = await self.__get_data_from_api(path=self.kv_health_path)
+                    if data is not None:
+                        update = await self.__publish_kv_pair(key=self.kv_health_k8s_name, value=data)
+                        self.print_ls.info(f"__publish_data_to_kv. update {self.kv_health_k8s_name} res: {update}")
+                    else:
+                        self.print_ls.wrn("__publish_data_to_kv. No data published")
+            except ErrTimeout:
+                self.print_ls.wrn("__publish_data_to_kv No reply received from server (timeout)")
+            except ErrNoServers:
+                self.print_ls.wrn("__publish_data_to_kv No reply received (no nats server)")
+            except Exception as e:
+                self.print_ls.wrn(f"__publish_data_to_kv ({str(e)})")
+            finally:
+                await asyncio.sleep(interval)  # Publish every x seconds
+
     async def run(self):
         self.print_ls.debug(f"run")
 
         self.print_ls.debug(f"run.connection")
         await self.get_nats_connection()
+
         self.print_ls.debug(f"run.registration")
         await self.client_registration()
+        self.print_ls.debug(f"run.create bucket  {self.kv_bucket_name}")
+        await self.create_bucket_store(key_value=self.kv_bucket_name)
+
         self.print_ls.debug(f"run.subscription")
         await self.subscribe_to_nats()
 
         # Create a task to publish messages at intervals
         publish_status = asyncio.create_task(self.__send_client_alive())
+
+        # Create a task to publish status to kv value at intervals
+        publish_kv_status = asyncio.create_task(self.__publish_data_to_kv())
 
         # Keep the receiver running
         await asyncio.Event().wait()
