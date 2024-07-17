@@ -2,6 +2,8 @@ import os
 import shutil
 import json
 import re
+import time
+
 from kubernetes import client, config
 
 from core.config import ConfigHelper
@@ -83,6 +85,8 @@ class BackupService:
         output = await run_process_check_output(['velero', 'backup', 'get', '-o', 'json',
                                                  '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')],
                                                 publish_message=publish_message)
+        # output2 = k8sService.get_velero_backups()
+
         if not output['success']:
             return output
 
