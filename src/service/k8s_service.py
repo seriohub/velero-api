@@ -158,7 +158,7 @@ class K8sService:
                  'in_error': retr_nodes
                  },
 
-            'timestamp': str(datetime.utcnow())}
+            'timestamp': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')}
         return {'success': True, 'data': output}
 
     @handle_exceptions_async_method
