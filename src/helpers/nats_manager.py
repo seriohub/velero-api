@@ -14,6 +14,7 @@ import nats
 from nats.aio.errors import ErrTimeout, ErrNoServers
 from nats.errors import NoRespondersError
 
+from helpers.nats_cron_jobs import NatsCronJobs
 from security.helpers.database import User
 
 from helpers.printer import PrintHelper
@@ -45,13 +46,14 @@ class NatsManager:
 
         self.kv_bucket_name = f"kv-{config.cluster_id()}"
 
-        self.kv_stats_path = "/api/v1/stats/get"
-        self.kv_stats_name = 'stast_get'
-        self.kv_stats_interval = config.get_nats_update_sec_statistic()
-
-        self.kv_health_path = "/api/info/health-k8s"
-        self.kv_health_k8s_name = 'k8s_health'
-        self.kv_health_k8s_interval = config.get_nats_update_sec_k8s_health()
+        # self.kv_stats_path = "/api/v1/stats/get"
+        # self.kv_stats_name = 'stast_get'
+        # self.kv_stats_interval = config.get_nats_update_sec_statistic()
+        #
+        # self.kv_health_path = "/api/info/health-k8s"
+        # self.kv_health_k8s_name = 'k8s_health'
+        # self.kv_health_k8s_interval = config.get_nats_update_sec_k8s_health()
+        self.kv_job_cron = NatsCronJobs()
 
         self.channel_id = config.cluster_id()
         self.retry_registration_sec = config.get_nast_retry_registration()
@@ -113,7 +115,7 @@ class NatsManager:
             # Data is not a string, convert to JSON string and encode to bytes
             return json.dumps(data).encode()
 
-    async def create_bucket_store(self, key_value, max_size=100000):
+    async def create_bucket_store(self, key_value, max_size=500000):
         self.print_ls.info(f"create_bucket_store {key_value} ")
         self.js = self.nc.jetstream()
         bucket_name = f"{key_value}"
@@ -399,7 +401,7 @@ class NatsManager:
             finally:
                 await asyncio.sleep(interval)  # Publish every x seconds
 
-    async def __get_data_from_api(self, path, credential: bool= False):
+    async def __get_data_from_api(self, path, credential: bool = False):
 
         self.print_ls.debug(f"__get_data_from_api {path}")
         try:
@@ -450,33 +452,52 @@ class NatsManager:
 
         interval = 1
 
-        self.print_ls.info(f"__publish_data_to_kv.k8s health updated every {self.kv_health_k8s_interval} sec")
-        self.print_ls.info(f"__publish_data_to_kv.statistics updated every {self.kv_stats_interval} sec")
+        # self.print_ls.info(f"__publish_data_to_kv.k8s health updated every {self.kv_health_k8s_interval} sec")
+        # self.print_ls.info(f"__publish_data_to_kv.statistics updated every {self.kv_stats_interval} sec")
+        self.kv_job_cron.print_info()
 
-        last_stats = self.kv_stats_interval + 1
-        last_health_k8s = self.kv_health_k8s_interval + 1
+        # last_stats = self.kv_stats_interval + 1
+        # last_health_k8s = self.kv_health_k8s_interval + 1
         # initial sleep
         await asyncio.sleep(5)
         while True:
             try:
-                last_stats += 1
-                last_health_k8s += 1
+                # last_stats += 1
+                # last_health_k8s += 1
+                self.kv_job_cron.add_tick_to_interval(1)
 
-                if last_stats > self.kv_stats_interval:
-                    last_stats = 0
-                    data = await self.__get_data_from_api(path=self.kv_stats_path, credential=True)
-                    if data is not None:
-                        update = await self.__publish_kv_pair(key=self.kv_stats_name, value=data)
-                        self.print_ls.info(f"__publish_data_to_kv. update {self.kv_stats_name} res: {update}")
+                # if last_stats > self.kv_stats_interval:
+                #     last_stats = 0
+                #     data = await self.__get_data_from_api(path=self.kv_stats_path, credential=True)
+                #     if data is not None:
+                #         update = await self.__publish_kv_pair(key=self.kv_stats_name, value=data)
+                #         self.print_ls.info(f"__publish_data_to_kv. update {self.kv_stats_name} res: {update}")
+                #
+                # if last_health_k8s > self.kv_health_k8s_interval:
+                #     last_health_k8s = 0
+                #     data = await self.__get_data_from_api(path=self.kv_health_path)
+                #     if data is not None:
+                #         update = await self.__publish_kv_pair(key=self.kv_health_k8s_name, value=data)
+                #         self.print_ls.info(f"__publish_data_to_kv. update {self.kv_health_k8s_name} res: {update}")
+                #     else:
+                #         self.print_ls.wrn("__publish_data_to_kv. No data published")
+                for name, job in self.kv_job_cron.jobs.items():
+                    if job.is_elapsed:
+                        self.print_ls.trace(f"__publish_data_to_kv. batch {name}")
+                        job.reset_timer()
+                        data = await self.__get_data_from_api(path=job.endpoint,
+                                                              credential=job.credential)
+                        if data and data is not None:
+                            # print(f"---->{data}")
 
-                if last_health_k8s > self.kv_health_k8s_interval:
-                    last_health_k8s = 0
-                    data = await self.__get_data_from_api(path=self.kv_health_path)
-                    if data is not None:
-                        update = await self.__publish_kv_pair(key=self.kv_health_k8s_name, value=data)
-                        self.print_ls.info(f"__publish_data_to_kv. update {self.kv_health_k8s_name} res: {update}")
-                    else:
-                        self.print_ls.wrn("__publish_data_to_kv. No data published")
+                            data['data']['metadata'] = {'timestamp': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'),
+                                                        'jetstream': True}
+                            # print(f"------>{data['data']['metadata']}")
+                            update = await self.__publish_kv_pair(key=job.ky_key,
+                                                                  value=data)
+
+                            self.print_ls.info(f"__publish_data_to_kv. update {job.ky_key} res: {update}")
+
             except ErrTimeout:
                 self.print_ls.wrn("__publish_data_to_kv No reply received from server (timeout)")
             except ErrNoServers:
