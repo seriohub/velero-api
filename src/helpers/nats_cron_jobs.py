@@ -42,7 +42,7 @@ class NatsCronJobs:
                      credential=True,
                      interval=config.get_nats_cron_update_sec_backup_location())
 
-        self.add_job(endpoint="api/v1/snapshot-location/get",
+        self.add_job(endpoint="/api/v1/snapshot-location/get",
                      credential=True,
                      interval=config.get_nats_cron_update_sec_storage_location())
 
