@@ -141,7 +141,7 @@ class NatsManager:
                 self.print_ls.info(f"create_bucket_store.{bucket_name} store created.")
                 is_not_created = True
             except Exception as e:
-                self.print_ls.debug(f"create_bucket_store. {bucket_name} cannot create the kv")
+                self.print_ls.debug(f"create_bucket_store. {bucket_name} cannot create the kv. {str(e)}")
             finally:
                 if is_not_created:
                     return True
