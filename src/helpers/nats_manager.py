@@ -491,7 +491,7 @@ class NatsManager:
                             # print(f"---->{data}")
 
                             data['data']['metadata'] = {'timestamp': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'),
-                                                        'jetstream': True}
+                                                        'source': 'cron job'}
                             # print(f"------>{data['data']['metadata']}")
                             update = await self.__publish_kv_pair(key=job.ky_key,
                                                                   value=data)
