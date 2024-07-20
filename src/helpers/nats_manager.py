@@ -120,33 +120,37 @@ class NatsManager:
         self.js = self.nc.jetstream()
         bucket_name = f"{key_value}"
         interval = 2
+        exists = False
         # Check if the KV store exists and delete it if it does
         try:
             await self.js.stream_info(bucket_name)
-            self.print_ls.debug(f"create_bucket_store.{bucket_name} store exists. Deleting...")
-            await self.js.delete_key_value(bucket_name)
+            self.print_ls.debug(f"create_bucket_store.{bucket_name} store exists.")
+            exists = True
+            # await self.js.delete_key_value(bucket_name)
         except Exception as e:
             self.print_ls.debug(f"create_bucket_store.KV {bucket_name} store does not exist or cannot be retrieved. {str(e)}")
         is_not_created = False
-        while not is_not_created:
-            try:
-                # Create a KV store
-                kv_config = KeyValueConfig(
-                    bucket=bucket_name,
-                    max_value_size=max_size,
-                    history=1  # Only keep the latest value
-                )
-                await self.js.create_key_value(kv_config)
+        if not exists:
+            while not is_not_created:
+                try:
+                    # Create a KV store
+                    kv_config = KeyValueConfig(
+                        bucket=bucket_name,
+                        max_value_size=max_size,
+                        history=1  # Only keep the latest value
+                    )
+                    await self.js.create_key_value(kv_config)
 
-                self.print_ls.info(f"create_bucket_store.{bucket_name} store created.")
-                is_not_created = True
-            except Exception as e:
-                self.print_ls.debug(f"create_bucket_store. {bucket_name} cannot create the kv. {str(e)}")
-            finally:
-                if is_not_created:
-                    return True
-                else:
-                    await asyncio.sleep(interval)
+                    self.print_ls.info(f"create_bucket_store.{bucket_name} store created.")
+                    is_not_created = True
+                except Exception as e:
+                    self.print_ls.debug(f"create_bucket_store. {bucket_name} cannot create the kv. {str(e)}")
+                finally:
+                    if is_not_created:
+                        return True
+                    else:
+                        await asyncio.sleep(interval)
+
         return True
 
     async def client_registration(self):
