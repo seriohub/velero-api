@@ -742,63 +742,63 @@ class ConfigHelper:
 
     @staticmethod
     def get_nats_cron_update_sec_k8s_health():
-        res = os.getenv('NATS_CRON_UPDATE_K8S_HEALTH', '180')
+        res = os.getenv('NATS_CRON_UPDATE_K8S_HEALTH', '300')
         if len(res) == 0:
-            res = '120'
+            res = '300'
         return int(res)
 
     @staticmethod
     def get_nats_cron_update_sec_statistic():
-        res = os.getenv('NATS_CRON_UPDATE_STATS_GET', '180')
+        res = os.getenv('NATS_CRON_UPDATE_STATS_GET', '300')
         if len(res) == 0:
-            res = '180'
+            res = '300'
         return int(res)
 
     @staticmethod
     def get_nats_cron_update_sec_backup():
-        res = os.getenv('NATS_CRON_UPDATE_BACKUP', '180')
+        res = os.getenv('NATS_CRON_UPDATE_BACKUP', '300')
         if len(res) == 0:
-            res = '180'
+            res = '300'
         return int(res)
 
     @staticmethod
     def get_nats_cron_update_sec_restore():
-        res = os.getenv('NATS_CRON_UPDATE_RESTORE', '180')
+        res = os.getenv('NATS_CRON_UPDATE_RESTORE', '300')
         if len(res) == 0:
-            res = '180'
+            res = '300'
         return int(res)
 
     @staticmethod
     def get_nats_cron_update_sec_schedules():
-        res = os.getenv('NATS_CRON_UPDATE_SCHEDULES', '180')
+        res = os.getenv('NATS_CRON_UPDATE_SCHEDULES', '300')
         if len(res) == 0:
-            res = '180'
+            res = '300'
         return int(res)
 
     @staticmethod
     def get_nats_cron_update_sec_backup_location():
-        res = os.getenv('NATS_CRON_UPDATE_BACKUP_LOCATION', '180')
+        res = os.getenv('NATS_CRON_UPDATE_BACKUP_LOCATION', '300')
         if len(res) == 0:
-            res = '180'
+            res = '300'
         return int(res)
 
     @staticmethod
     def get_nats_cron_update_sec_storage_location():
-        res = os.getenv('NATS_CRON_UPDATE_STORAGE_LOCATION', '180')
+        res = os.getenv('NATS_CRON_UPDATE_STORAGE_LOCATION', '300')
         if len(res) == 0:
-            res = '180'
+            res = '300'
         return int(res)
 
     @staticmethod
     def get_nats_cron_update_sec_repositories():
-        res = os.getenv('NATS_CRON_UPDATE_REPOSITORIES', '180')
+        res = os.getenv('NATS_CRON_UPDATE_REPOSITORIES', '300')
         if len(res) == 0:
-            res = '180'
+            res = '300'
         return int(res)
 
     @staticmethod
     def get_nats_cron_update_sec_sc_mapping():
-        res = os.getenv('NATS_CRON_UPDATE_SC_MAPPING', '180')
+        res = os.getenv('NATS_CRON_UPDATE_SC_MAPPING', '300')
         if len(res) == 0:
-            res = '180'
+            res = '300'
         return int(res)

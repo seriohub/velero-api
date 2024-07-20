@@ -126,7 +126,7 @@ class NatsManager:
             self.print_ls.debug(f"create_bucket_store.{bucket_name} store exists. Deleting...")
             await self.js.delete_key_value(bucket_name)
         except Exception as e:
-            self.print_ls.debug(f"create_bucket_store.KV {bucket_name} store does not exist or cannot be retrieved.")
+            self.print_ls.debug(f"create_bucket_store.KV {bucket_name} store does not exist or cannot be retrieved. {str(e)}")
         is_not_created = False
         while not is_not_created:
             try:

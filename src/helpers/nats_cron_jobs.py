@@ -29,7 +29,7 @@ class NatsCronJobs:
         self.add_job(endpoint="/api/v1/backup/get",
                      credential=True,
                      interval=config.get_nats_cron_update_sec_backup())
-
+c
         self.add_job(endpoint="/api/v1/restore/get",
                      credential=True,
                      interval=config.get_nats_cron_update_sec_restore())
