@@ -46,7 +46,7 @@ All notable changes to this project will be documented in this file.
 
 ## [v0.1.9] - 2024-04-02
 
-- Automatic generation token keys (access and login) if the user has not provided keys.<br>They persist until a reboot.
+- Automatic generation token keys (access and login) if the user has not provided keys. They persist until a reboot.
 
 ## [v0.1.8] - 2024-03-31
 
