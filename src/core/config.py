@@ -164,6 +164,10 @@ class ConfigHelper:
     def validate_env_variables(self):
         print(f"INFO      [Env validation] Check the validity all env variables")
         block_exec = False
+
+        # LS 2024.07.04 add nats checker
+        nats_enable = self.get_enable_nats()
+
         all_env = {'UNICORN_RELOAD': {'type': bool, 'is_mandatory': False},
                    'CONTAINER_MODE': {'type': bool, 'is_mandatory': False},
                    'K8S_IN_CLUSTER_MODE': {'type': bool, 'is_mandatory': False},
@@ -174,7 +178,12 @@ class ConfigHelper:
                    'API_TOKEN_REFRESH_EXPIRATION_DAYS': {'type': int, 'is_mandatory': True},
                    'SECURITY_DISABLE_USERS_PWD_RATE': {'type': bool, 'is_mandatory': False},
                    'LIMIT_CONCURRENCY': {'type': int, 'is_mandatory': False},
-                   'SCRAPY_VERSION_MIN': {'type': int, 'is_mandatory': False}}
+                   'SCRAPY_VERSION_MIN': {'type': int, 'is_mandatory': False},
+                   'NATS_ENABLE': {'type': bool, 'is_mandatory': False},
+                   'NATS_PORT_CLIENT': {'type': int, 'is_mandatory': False},
+                   'NATS_RETRY_REG_SEC': {'type': int, 'is_mandatory': False},
+                   'NATS_ALIVE_SEC': {'type': int, 'is_mandatory': False},
+                   'NATS_REQUEST_TIMEOUT_SEC': {'type': int, 'is_mandatory': False}}
 
         for key, value in all_env.items():
             res = self.__validate_env_variable__(key, value['type'])
@@ -183,6 +192,10 @@ class ConfigHelper:
 
         # init the dict for url keys
         urls = {'API_ENDPOINT_URL': {'protocol': False}}
+        # LS 2024.07.04 add nats url
+        if nats_enable:
+            urls = {'NATS_ENDPOINT_URL': {'protocol': False}}
+
         # origins
         for x in range(1, 100, 1):
             urls[f'ORIGINS_{x}'] = {'protocol': True}
@@ -646,3 +659,146 @@ class ConfigHelper:
             return True
         return False
 
+    @staticmethod
+    def get_enable_nats():
+        res = os.getenv('NATS_ENABLE', 'false')
+        if res.lower() == 'true':
+            return True
+        return False
+
+    @staticmethod
+    def get_nats_endpoint_url():
+        endpoint_url = os.getenv('NATS_ENDPOINT_URL')
+        if endpoint_url is None or \
+                len(endpoint_url) == 0:
+            endpoint_url = '127.0.0.1'
+        return endpoint_url
+
+    @staticmethod
+    def get_nats_endpoint_port(client_endpoint=True):
+        if client_endpoint:
+            key = 'NATS_PORT_CLIENT'
+            port = '4222'
+        else:
+            key = 'NATS_PORT_MONITORING'
+            port = '8222'
+
+        endpoint_port = os.getenv(key)
+        if endpoint_port is None or \
+                len(endpoint_port) == 0:
+            endpoint_port = port
+        return endpoint_port
+
+    def get_nats_client_url(self):
+        username = self.get_nats_username()
+        password = self.get_nats_password()
+        credentials = ""
+        if username and password:
+            credentials = f"{username}:{password}@"
+        return f"nats://{credentials}{self.get_nats_endpoint_url()}:{self.get_nats_endpoint_port()}"
+
+    def get_nats_server_status_url(self):
+        return f"http://{self.get_nats_endpoint_url()}:{self.get_nats_endpoint_port()}"
+
+    @staticmethod
+    def get_nast_retry_connection():
+        res = os.getenv('NATS_RETRY_CONN_SEC', '20')
+        if len(res) == 0:
+            res = '20'
+        return int(res)
+
+    @staticmethod
+    def get_nast_retry_registration():
+        res = os.getenv('NATS_RETRY_REG_SEC', '30')
+        if len(res) == 0:
+            res = '30'
+        return int(res)
+
+    @staticmethod
+    def get_nast_send_alive():
+        res = os.getenv('NATS_ALIVE_SEC', '60')
+        if len(res) == 0:
+            res = '60'
+        return int(res)
+
+    @staticmethod
+    def get_timeout_request():
+        res = os.getenv('NATS_REQUEST_TIMEOUT_SEC', '2')
+        if len(res) == 0:
+            res = '2'
+        return int(res)
+
+    @staticmethod
+    def get_nats_username():
+        return os.getenv("NATS_USERNAME")
+
+    @staticmethod
+    def get_nats_password():
+        return os.getenv("NATS_PASSWORD")
+
+    @staticmethod
+    def cluster_id():
+        return os.getenv('CLUSTER_ID', 'not-defined')
+
+    @staticmethod
+    def get_nats_cron_update_sec_k8s_health():
+        res = os.getenv('NATS_CRON_UPDATE_K8S_HEALTH', '300')
+        if len(res) == 0:
+            res = '300'
+        return int(res)
+
+    @staticmethod
+    def get_nats_cron_update_sec_statistic():
+        res = os.getenv('NATS_CRON_UPDATE_STATS_GET', '300')
+        if len(res) == 0:
+            res = '300'
+        return int(res)
+
+    @staticmethod
+    def get_nats_cron_update_sec_backup():
+        res = os.getenv('NATS_CRON_UPDATE_BACKUP', '300')
+        if len(res) == 0:
+            res = '300'
+        return int(res)
+
+    @staticmethod
+    def get_nats_cron_update_sec_restore():
+        res = os.getenv('NATS_CRON_UPDATE_RESTORE', '300')
+        if len(res) == 0:
+            res = '300'
+        return int(res)
+
+    @staticmethod
+    def get_nats_cron_update_sec_schedules():
+        res = os.getenv('NATS_CRON_UPDATE_SCHEDULES', '300')
+        if len(res) == 0:
+            res = '300'
+        return int(res)
+
+    @staticmethod
+    def get_nats_cron_update_sec_backup_location():
+        res = os.getenv('NATS_CRON_UPDATE_BACKUP_LOCATION', '300')
+        if len(res) == 0:
+            res = '300'
+        return int(res)
+
+    @staticmethod
+    def get_nats_cron_update_sec_storage_location():
+        res = os.getenv('NATS_CRON_UPDATE_STORAGE_LOCATION', '300')
+        if len(res) == 0:
+            res = '300'
+        return int(res)
+
+    @staticmethod
+    def get_nats_cron_update_sec_repositories():
+        res = os.getenv('NATS_CRON_UPDATE_REPOSITORIES', '300')
+        if len(res) == 0:
+            res = '300'
+        return int(res)
+
+    @staticmethod
+    def get_nats_cron_update_sec_sc_mapping():
+        res = os.getenv('NATS_CRON_UPDATE_SC_MAPPING', '300')
+        if len(res) == 0:
+            res = '300'
+        return int(res)

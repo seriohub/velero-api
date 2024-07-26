@@ -2,6 +2,8 @@ import os
 import shutil
 import json
 import re
+import time
+
 from kubernetes import client, config
 
 from core.config import ConfigHelper
@@ -38,7 +40,7 @@ class BackupService:
         self.client_custom_objects_api = client.CustomObjectsApi()
         self.print_ls = PrintHelper('[service.backup]', level=config_app.get_internal_log_level())
 
-    def __filter_last_backup_for_every_schedule(self, data):
+    def filter_last_backup_for_every_schedule(self, data):
         result = {}
 
         for item in data:
@@ -83,6 +85,8 @@ class BackupService:
         output = await run_process_check_output(['velero', 'backup', 'get', '-o', 'json',
                                                  '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')],
                                                 publish_message=publish_message)
+        # output2 = k8sService.get_velero_backups()
+
         if not output['success']:
             return output
 
@@ -95,7 +99,7 @@ class BackupService:
                                     'velero.io/schedule-name'] == schedule_name]
 
         if only_last_for_schedule:
-            backups['items'] = self.__filter_last_backup_for_every_schedule(backups['items'])
+            backups['items'] = self.filter_last_backup_for_every_schedule(backups['items'])
 
         if in_progress:
             backups['items'] = filter_in_progress(backups['items'])

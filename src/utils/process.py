@@ -1,18 +1,23 @@
 import subprocess
 import asyncio
+import json
 from fastapi import WebSocketDisconnect
 
 from core.config import ConfigHelper
-from core.context import current_user_var
+from core.context import current_user_var, cp_user
 from helpers.connection_manager import manager
 from helpers.printer import PrintHelper
 
 config = ConfigHelper()
+
+if config.get_enable_nats():
+    from helpers.nats_manager import get_nats_manager_instance
+
 print_ls = PrintHelper('[bash tracer]',
                        level=config.get_internal_log_level())
 
-
 async def send_message(message):
+
     try:
         print_ls.debug(message)
         # await manager.broadcast(message)
@@ -22,8 +27,16 @@ async def send_message(message):
         except:
             print("get failed")
         finally:
-            if user is not None:
-                await manager.send_personal_message(str(user.id), message)
+            if config.get_enable_nats() and user.is_nats:
+                nats_manager = get_nats_manager_instance()
+                nc = await nats_manager.get_nats_connection()
+                control_plane_user = cp_user.get()
+                data = {"user": control_plane_user, "msg": message}
+                await nc.publish("socket." + config.cluster_id(), json.dumps(data).encode())
+                pass
+            elif user is not None:
+                response = {'response_type': 'process', 'message': message}
+                await manager.send_personal_message(str(user.id), json.dumps(response))
 
     except WebSocketDisconnect:
         print_ls.error('send message error')
@@ -31,6 +44,7 @@ async def send_message(message):
 
 async def run_process_check_output(cmd, publish_message=True, cwd='./'):
     try:
+        output = ''
         if publish_message:
             await send_message('check output: ' + ' '.join(cmd))
         # sync

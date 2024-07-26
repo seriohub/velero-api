@@ -22,7 +22,7 @@ config_app = ConfigHelper()
 print_ls = PrintHelper('[v1.routers.backup_location]',
                        level=config_app.get_internal_log_level())
 
-tag_name = "Backup"
+tag_name = "Backups"
 
 endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,

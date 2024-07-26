@@ -158,7 +158,7 @@ class K8sService:
                  'in_error': retr_nodes
                  },
 
-            'timestamp': str(datetime.utcnow())}
+            'timestamp': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')}
         return {'success': True, 'data': output}
 
     @handle_exceptions_async_method
@@ -456,3 +456,32 @@ class K8sService:
         except Exception as e:
             self.print_ls.error(f"Error get cronjob '{job_name}': {e}")
             return {'success': False, 'data': None}
+
+    def get_velero_backups(self):
+        import json
+        # Carica la configurazione del cluster
+        #config.load_kube_config()
+
+        # Crea un'istanza del client API
+        api_instance = self.client
+
+        # Namespace in cui Velero sta operando
+        namespace = "velero"
+
+        # Ottieni gli oggetti di backup di Velero
+        group = "velero.io"
+        version = "v1"
+        plural = "backups"
+
+        try:
+            # Chiamata all'API per ottenere i backup
+            backups = api_instance.list_namespaced_custom_object(group, version, namespace, plural)
+
+            # Converti il risultato in JSON
+            # backups_json = json.dumps(backups, indent=4)
+
+            return backups
+
+        except client.exceptions.ApiException as e:
+            print("Exception when calling CustomObjectsApi->list_namespaced_custom_object: %s\n" % e)
+            return None

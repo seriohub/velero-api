@@ -24,7 +24,7 @@ config_app = ConfigHelper()
 print_ls = PrintHelper('[common.routers.health]',
                        level=config_app.get_internal_log_level())
 
-tag_name = 'health'
+tag_name = 'Agent health'
 
 endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,
@@ -47,7 +47,7 @@ route = '/health'
             )
 @handle_exceptions_endpoint
 async def get_health() -> dict:
-    return {'timestamp': datetime.utcnow()}
+    return {'timestamp': datetime.utcnow().strftime('%B %d %Y - %H:%M:%S')}
 
 
 limiter_status_h = endpoint_limiter.get_limiter_cust('info_health_k8s')

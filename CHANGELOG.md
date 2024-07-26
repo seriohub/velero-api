@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 
 ***
+
+## [v0.1.17] - 2024-07-26
+
+- Added Velero-Core communication features via nats
+- Several improvements
+- Fix minor bugs
+
 ## [v0.1.16] - 2024-06-28
 
 - Added an endpoint to check the compatibility between ui component and api component
@@ -113,6 +120,8 @@ All notable changes to this project will be documented in this file.
 
 
 ***
+
+[v0.1.17] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.17](https://github.com/seriohub/velero-api/releases/tag/v0.1.17)
 
 [v0.1.16] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.16](https://github.com/seriohub/velero-api/releases/tag/v0.1.16)
 

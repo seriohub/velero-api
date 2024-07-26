@@ -1,14 +1,21 @@
 import uvicorn
 import asyncio
+from multiprocessing import Process
+import time
+
 from app_data import __version__, __app_name__
+
 from security.helpers.database import SessionLocal
 from security.service.helpers.users import create_default_user
 
 from service.info_service import InfoService
-from helpers.velero_client import VeleroClient
 
+from helpers.velero_client import VeleroClient
 from helpers.printer import PrintHelper
+
 from core.config import ConfigHelper
+
+
 
 config_app = ConfigHelper()
 
@@ -17,6 +24,7 @@ print_ls = PrintHelper('[main]',
 print_ls.info('start')
 print_ls.info('load config')
 infoService = InfoService()
+
 # LS 2024.03.31 add
 config_app.create_env_variables()
 
@@ -33,6 +41,7 @@ log_level = config_app.logger_level()
 velero_cli_version = config_app.get_velero_version()
 velero_cli_source = config_app.get_velero_version_folder()
 velero_cli_destination = config_app.get_velero_dest_folder()
+
 # LS 2024.02.22 add custom folder
 velero_cli_source_custom = config_app.get_velero_version_custom_folder()
 
@@ -47,12 +56,11 @@ if k8s_in_cluster_mode:
     print_ls.info(f"velero client source .tar.gz :{velero_cli_source}")
     print_ls.info(f"velero client destination :{velero_cli_destination}")
 
-# LS 2024.02.19 add tests variable
 # use only for tests the env init on develop environment
-test_env = not config_app.developer_mode_skip_download()
+skip_download = config_app.developer_mode_skip_download()
 
 # Prepare environment
-if k8s_in_cluster_mode or is_in_container_mode or test_env:
+if (k8s_in_cluster_mode or is_in_container_mode) or not skip_download:
     output = asyncio.run(infoService.identify_architecture())
     if not output['success']:
         print_ls.error("Error in architecture identification.")
@@ -65,6 +73,7 @@ if k8s_in_cluster_mode or is_in_container_mode or test_env:
                  version=velero_cli_version)
 
 if __name__ == '__main__':
+
     # LS init database and default user (if not exits)
     # create database session
     db = SessionLocal()
@@ -74,11 +83,32 @@ if __name__ == '__main__':
     # Close
     db.close()
     print("INFO:     Close database connection")
-    uvicorn.run('app:app',
-                host=endpoint_url,
-                port=int(endpoint_port),
-                reload=app_reload,
-                log_level=log_level,
-                workers=4,
-                limit_concurrency=int(limit_concurrency),
-                )
+
+    # uvicorn.run('app:app',
+    #             host=endpoint_url,
+    #             port=int(endpoint_port),
+    #             reload=app_reload,
+    #             log_level=log_level,
+    #             workers=1,
+    #             limit_concurrency=int(limit_concurrency),
+    #             )
+
+    def start_uvicorn():
+        uvicorn.run('app:app',
+                    host=endpoint_url,
+                    port=int(endpoint_port),
+                    reload=app_reload,
+                    log_level=log_level,
+                    workers=1,
+                    limit_concurrency=int(limit_concurrency),
+                    )
+
+    server_process = Process(target=start_uvicorn)
+    server_process.start()
+    time.sleep(2)
+
+    from helpers.nats_manager import boot_nats_start_manager
+    if config_app.get_enable_nats():
+        from app import app
+        asyncio.run(boot_nats_start_manager(app))
+

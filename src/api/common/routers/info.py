@@ -39,7 +39,7 @@ config_app = ConfigHelper()
 print_ls = PrintHelper('[common.routers.info]',
                        level=config_app.get_internal_log_level())
 
-tag_name = "Info"
+tag_name = "Agent info"
 
 endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,

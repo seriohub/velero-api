@@ -24,7 +24,7 @@ config_app = ConfigHelper()
 print_ls = PrintHelper('[v1.routers.schedule]',
                        level=config_app.get_internal_log_level())
 
-tag_name = 'Schedule'
+tag_name = 'Schedules'
 endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')

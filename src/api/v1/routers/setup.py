@@ -20,7 +20,7 @@ config_app = ConfigHelper()
 print_ls = PrintHelper('[v1.routers.utils]',
                        level=config_app.get_internal_log_level())
 
-tag_name = 'Setup'
+tag_name = 'Agent setup'
 
 endpoint_limiter_setup = LimiterRequests(printer=print_ls,
                                          tags=tag_name,

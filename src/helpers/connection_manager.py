@@ -1,5 +1,6 @@
 from fastapi import WebSocket, WebSocketDisconnect
 from typing import Dict
+import json
 
 from security.service.helpers.users import get_current_user_token
 
@@ -21,7 +22,8 @@ class ConnectionManager:
                 print(f"Connected user via socket: {user.username}")
                 if user is not None and not user.is_disabled:
                     self.active_connections[str(user.id)] = websocket
-                    await self.send_personal_message(str(user.id), 'Connection READY!')
+                    response = {'response_type': 'notification', 'message': 'Connection READY!'}
+                    await self.send_personal_message(str(user.id), json.dumps(response))
                 else:
                     await websocket.close(1001)
                     break

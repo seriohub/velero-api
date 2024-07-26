@@ -1,4 +1,5 @@
 from functools import wraps
+import json
 
 from core.config import ConfigHelper
 from core.context import current_user_var
@@ -20,7 +21,8 @@ def trace_k8s_async_method(description):
             # await manager.broadcast(message)
             try:
                 user = current_user_var.get()
-                await manager.send_personal_message(str(user.id), message)
+                response = {'response_type': 'k8s_tracker', 'message': message}
+                await manager.send_personal_message(str(user.id), json.dumps(response))
             except:
                 pass
             return await fn(*args, **kw)

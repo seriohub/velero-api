@@ -105,7 +105,7 @@ class StatsService:
         backups = (await backup.get())['data']
         all_backups_stats = self.__resources_stats(backups, count_from_schedule=True)
 
-        last_backup = (await backup.get(only_last_for_schedule=True))['data']
+        last_backup = backup.filter_last_backup_for_every_schedule(backups)
         last_schedule_backup_stats = self.__resources_stats(last_backup)
 
         restores = (await restore.get())['data']
