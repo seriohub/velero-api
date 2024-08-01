@@ -6,7 +6,6 @@ All notable changes to this project will be documented in this file.
 
 ## [v0.1.18] - 2024-08-01
 
-- Added help link
 - Updated Fastapi root path
 - Updated nats cron jobs
 
