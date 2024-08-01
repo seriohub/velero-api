@@ -18,39 +18,39 @@ class NatsCronJobs:
 
     def __init_default_api(self):
         self.print_ls.debug(f"__init_default_api")
-        self.add_job(endpoint="/api/v1/stats/get",
+        self.add_job(endpoint="/v1/stats/get",
                      credential=True,
                      interval=config.get_nats_cron_update_sec_statistic())
 
-        self.add_job(endpoint="/api/info/health-k8s",
+        self.add_job(endpoint="/info/health-k8s",
                      credential=False,
                      interval=config.get_nats_cron_update_sec_statistic())
 
-        self.add_job(endpoint="/api/v1/backup/get",
+        self.add_job(endpoint="/v1/backup/get",
                      credential=True,
                      interval=config.get_nats_cron_update_sec_backup())
 
-        self.add_job(endpoint="/api/v1/restore/get",
+        self.add_job(endpoint="/v1/restore/get",
                      credential=True,
                      interval=config.get_nats_cron_update_sec_restore())
 
-        self.add_job(endpoint="/api/v1/schedule/get",
+        self.add_job(endpoint="/v1/schedule/get",
                      credential=True,
                      interval=config.get_nats_cron_update_sec_schedules())
 
-        self.add_job(endpoint="/api/v1/backup-location/get",
+        self.add_job(endpoint="/v1/backup-location/get",
                      credential=True,
                      interval=config.get_nats_cron_update_sec_backup_location())
 
-        self.add_job(endpoint="/api/v1/snapshot-location/get",
+        self.add_job(endpoint="/v1/snapshot-location/get",
                      credential=True,
                      interval=config.get_nats_cron_update_sec_storage_location())
 
-        self.add_job(endpoint="/api/v1/repo/get",
+        self.add_job(endpoint="/v1/repo/get",
                      credential=True,
                      interval=config.get_nats_cron_update_sec_repositories())
 
-        self.add_job(endpoint="/api/v1/sc/change-storage-classes-config-map/get",
+        self.add_job(endpoint="/v1/sc/change-storage-classes-config-map/get",
                      credential=True,
                      interval=config.get_nats_cron_update_sec_sc_mapping())
 

@@ -30,8 +30,8 @@ config = ConfigHelper()
 # print_helper = PrintHelper('[app]')
 
 # docs redocs
-docs_url = '/api/docs'
-re_docs_url = '/api/redoc'
+docs_url = '/docs'
+re_docs_url = '/redoc'
 enabled_docs = config.get_api_disable_documentation()
 if not enabled_docs:
    docs_url = None
@@ -54,6 +54,7 @@ if not enabled_docs:
 
 
 app = FastAPI(
+    root_path="/api",
     title=__app_name__,
     description=__app_description__,
     summary=__app_summary__,
@@ -94,8 +95,8 @@ async def set_called_endpoint(request: Request, call_next):
         called_endpoint_var.reset(ce)
 
 
-@app.get('/api/online')
-@app.get('/api')
+@app.get('/online')
+@app.get('/')
 async def online():
     return JSONResponse(content={'data': {'payload': {'status': 'alive', 'type': 'agent'}}}, status_code=200)
 
@@ -116,8 +117,8 @@ async def websocket_endpoint(websocket: WebSocket):
 # app.mount("/api/info", appInfo, "appInfo")
 # app.mount("/api/v1", v1, "v1")
 
-app.include_router(appInfo, prefix="/api/info")
-app.include_router(v1, prefix="/api/v1")
+app.include_router(appInfo, prefix="/info")
+app.include_router(v1, prefix="/v1")
 
 
 # if config.get_enable_nats():

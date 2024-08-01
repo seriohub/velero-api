@@ -16,7 +16,6 @@ from helpers.printer import PrintHelper
 from core.config import ConfigHelper
 
 
-
 config_app = ConfigHelper()
 
 print_ls = PrintHelper('[main]',
