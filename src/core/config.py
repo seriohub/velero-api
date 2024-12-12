@@ -33,7 +33,28 @@ class LimiterRequestConfig:
 class ConfigHelper:
     def __init__(self, debug=False):
         self.debug_on = debug
-        load_dotenv()
+        res = load_dotenv()
+        print(f"INFO      [ConfigHelper] initialization:{res} ")
+
+    @staticmethod
+    def __print_validation_key__(group='Env validation',
+                                 key='',
+                                 key_type='bool',
+                                 value='',
+                                 message=''):
+        header = f"{group}".ljust(15, ' ')
+        row = (f"[{header}] key:{key.ljust(35, ' ')} "
+               f"type:{f'{key_type}'.ljust(10, ' ')} "
+               f"value:{value[:25].ljust(25, ' ')} "
+               f"validation:{message.upper()}")
+        if message.upper() != "OK":
+            header = 'ERROR'.ljust(10, ' ')
+            # Print in red
+            print(f"\033[91m{header}{row}\033[0m")
+        else:
+            header = 'INFO'.ljust(10, ' ')
+            # print(f"\033[92m{header}{row}\033[0m")
+            print(f"{header}{row}")
 
     @staticmethod
     def __validate_rate_limiter__(input_str):
@@ -104,15 +125,17 @@ class ConfigHelper:
         print(f"INFO      [Env creation] key: {key} "
               f"value:{value[:25].ljust(25, ' ')} "
               f"validation:{message.upper()}")
+
         if message != "OK":
             print(f"INFO      [Env creation] create {key}")
             # qos.environ[key] = secrets.token_hex(32)  # 32 hex characters
-            os.environ.setdefault(key, secrets.token_hex(32))
+            token = secrets.token_hex(32)
+            # os.environ.setdefault(key, token)
+            os.environ[key] = token
             value = os.getenv(key, '')
-            print(f"INFO      [Env creation] reload {key}: {value}")
+            print(f"INFO      [Env creation] reload {key}: {value} -({token})")
 
-    @staticmethod
-    def __validate_env_variable__(env_var_name, var_type):
+    def __validate_env_variable__(self, env_var_name, var_type):
         res = True
         env_var_value = os.getenv(env_var_name)
         message = ""
@@ -150,10 +173,16 @@ class ConfigHelper:
             res = False
             message = f"****error cast value"
         finally:
-            print(f"INFO      [Env validation] key: {env_var_name.ljust(35, ' ')} "
-                  f"type:{var_type.__name__.ljust(10, ' ')} "
-                  f"value:{env_var_value.ljust(25, ' ')} "
-                  f"validation:{message.upper()}")
+            # print(f"INFO      [Env validation] key: {env_var_name.ljust(35, ' ')} "
+            #       f"type:{var_type.__name__.ljust(10, ' ')} "
+            #       f"value:{env_var_value.ljust(25, ' ')} "
+            #       f"validation:{message.upper()}")
+            self.__print_validation_key__(group="Env validation",
+                                          key=env_var_name.ljust(35, ' '),
+                                          key_type=var_type.__name__.ljust(10, ' '),
+                                          value=env_var_value.ljust(25, ' '),
+                                          message=message.upper())
+
             return res
 
     def create_env_variables(self):
@@ -206,20 +235,33 @@ class ConfigHelper:
                 break
             else:
                 message = "OK" if res == '*' or self.__validate_url__(res, value['protocol']) else "error not a url"
-                print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
-                      f"type:{'url'.ljust(10, ' ')} "
-                      f"value:{res.ljust(25, ' ')} "
-                      f"validation:{message.upper()}")
+                # LS 2024.12.09 call a sub
+                # print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+                #       f"type:{'url'.ljust(10, ' ')} "
+                #       f"value:{res.ljust(25, ' ')} "
+                #       f"validation:{message.upper()}")
+                self.__print_validation_key__(group="Env validation",
+                                              key=key,
+                                              key_type='url',
+                                              value=res,
+                                              message=message.upper())
                 if message != "OK":
                     block_exec = True
 
         key = 'SECURITY_TOKEN_KEY'
         value = os.getenv(key, '')
         message = "OK" if self.__is_valid_secret_key__(value) else "error not a valid secret key"
-        print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
-              f"type:{'url'.ljust(10, ' ')} "
-              f"value:{value[:25].ljust(25, ' ')} "
-              f"validation:{message.upper()}")
+        # LS 2024.12.09 call a sub
+        # print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+        #       f"type:{'url'.ljust(10, ' ')} "
+        #       f"value:{value[:25].ljust(25, ' ')} "
+        #       f"validation:{message.upper()}")
+        self.__print_validation_key__(group="Env validation",
+                                      key=key,
+                                      key_type='token',
+                                      value=value[:25].ljust(25, ' '),
+                                      message=message.upper())
+
         if message != "OK":
             block_exec = True
 
@@ -227,11 +269,16 @@ class ConfigHelper:
         key = 'SECURITY_REFRESH_TOKEN_KEY'
         value = os.getenv(key, '')
         message = "OK" if self.__is_valid_secret_key__(value) else "error not a valid secret key"
-
-        print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
-              f"type:{'url'.ljust(10, ' ')} "
-              f"value:{value[:25].ljust(25, ' ')} "
-              f"validation:{message.upper()}")
+        # LS 2024.12.09 call a sub
+        # print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+        #       f"type:{'url'.ljust(10, ' ')} "
+        #       f"value:{value[:25].ljust(25, ' ')} "
+        #       f"validation:{message.upper()}")
+        self.__print_validation_key__(group="Env validation",
+                                      key=key,
+                                      key_type='token',
+                                      value=value[:25].ljust(25, ' '),
+                                      message=message.upper())
         if message != "OK":
             block_exec = True
 
@@ -242,53 +289,89 @@ class ConfigHelper:
             value = value.lower()
             key_is_ok = True if value in ['critical', 'error', 'warning', 'info', 'debug', 'trace', 'notset'] else False
         message = "OK" if key_is_ok else "error not a valid debug level"
-        print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
-              f"type:{'string'.ljust(10, ' ')} "
-              f"value:{value[:25].ljust(25, ' ')} "
-              f"validation:{message.upper()}")
+        # LS 2024.12.09 call a sub
+        # print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+        #       f"type:{'string'.ljust(10, ' ')} "
+        #       f"value:{value[:25].ljust(25, ' ')} "
+        #       f"validation:{message.upper()}")
+        self.__print_validation_key__(group="Env validation",
+                                      key=key,
+                                      key_type='string',
+                                      value=value[:25].ljust(25, ' '),
+                                      message=message.upper())
+
         if message != "OK":
             block_exec = True
 
         paths = ['VELERO_CLI_PATH',
                  'VELERO_CLI_DEST_PATH',
-                 'SECURITY_PATH_DATABASE',
-                 'VELERO_CLI_PATH']
+                 'SECURITY_PATH_DATABASE']
         for key in paths:
-            res = None
+            # LS 2024.12.09 Init from None to False
+            # res = None
+            res = False
             value = os.getenv(key, None)
             if value is not None:
                 res = self.__is_path_exists__(value)
             else:
                 value = ""
-            message = "OK" if res is not None else "not valid path"
-            print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
-                  f"type:{'path'.ljust(10, ' ')} "
-                  f"value:{value[:25].ljust(25, ' ')} "
-                  f"validation:{message.upper()}")
+
+            # LS 2024.12.09 control changed
+            # message = "OK" if res is not None else "not valid path"
+            message = "OK" if res else "not valid path"
+            # print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+            #       f"type:{'path'.ljust(10, ' ')} "
+            #       f"value:{value[:25].ljust(25, ' ')} "
+            #       f"validation:{message.upper()}")
+
+            self.__print_validation_key__(group="Path validation",
+                                          key=key,
+                                          key_type='path',
+                                          value=value,
+                                          message=message.upper())
+
             if not res:
                 block_exec = True
 
         # LS 2024.02.22 custom folder (not mandatory)
         key = 'VELERO_CLI_PATH_CUSTOM'
         value = os.getenv(key, None)
-        res = None
+        # LS 2024.12.09 Init from None to False
+        # res = None
+        res = False
+
         if value is not None:
             res = self.__is_path_exists__(value)
         else:
             value = ""
-        message = "OK" if res is not None else "not valid path"
-        print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
-              f"type:{'path'.ljust(10, ' ')} "
-              f"value:{value[:25].ljust(25, ' ')} "
-              f"validation:{message.upper()}")
+        # LS 2024.12.09 control changed
+        # message = "OK" if res is not None else "not valid path"
+        message = "OK" if res else "not valid path"
+
+        # print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+        #       f"type:{'path'.ljust(10, ' ')} "
+        #       f"value:{value[:25].ljust(25, ' ')} "
+        #       f"validation:{message.upper()}")
+        self.__print_validation_key__(group="Path validation",
+                                      key=key,
+                                      key_type='path',
+                                      value=value,
+                                      message=message.upper())
 
         key = 'API_RATE_LIMITER_L1'
         value = os.getenv(key, None)
         message = "OK" if self.__check_integer_sequence__(value) else "error not a valid rate limiter sequence"
-        print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
-              f"type:{'complex'.ljust(10, ' ')} "
-              f"value:{value[:25].ljust(25, ' ')} "
-              f"validation:{message.upper()}")
+        # LS 2024.12.09 control changed
+        # print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+        #       f"type:{'complex'.ljust(10, ' ')} "
+        #       f"value:{value[:25].ljust(25, ' ')} "
+        #       f"validation:{message.upper()}")
+        self.__print_validation_key__(group="Env validation",
+                                      key=key,
+                                      key_type='complex',
+                                      value=value[:25].ljust(25, ' '),
+                                      message=message.upper())
+
         if message != "OK":
             block_exec = True
 
@@ -304,17 +387,29 @@ class ConfigHelper:
                 break
             else:
                 message = "OK" if self.__validate_rate_limiter__(res) else "error not a valid rate limiter "
-                print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
-                      f"type:{'complex'.ljust(10, ' ')} "
-                      f"value:{res[:25].ljust(25, ' ')} "
-                      f"validation:{message.upper()}")
+                # LS 2024.12.09 control changed
+                # print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+                #       f"type:{'complex'.ljust(10, ' ')} "
+                #       f"value:{res[:25].ljust(25, ' ')} "
+                #       f"validation:{message.upper()}")
+                self.__print_validation_key__(group="Env validation",
+                                              key=key,
+                                              key_type='complex',
+                                              value=value[:25].ljust(25, ' '),
+                                              message=message.upper())
+
                 if message != "OK":
                     block_exec = True
-
-        print(f"INFO      [Env validation] Mandatory env variables set: {not block_exec}")
+        # LS 2024.12.09 update
+        # print(f"INFO      [Env validation] Mandatory env variables set: {not block_exec}")
         if block_exec:
-            print(f"INFO      [Env validation] !!!Warning:The application can not start. Try to update the keys in "
-                  f"errors and restart the program.")
+            message = f"ERROR     [Gen validation ] Mandatory env variables set: {not block_exec}"
+            print(f"\033[91m{message}\033[0m")
+            message = (f"ERROR     [Gen Validation ] !!!Warning:The application can not start. Try to update the keys "
+                       f"in errors and restart the program.")
+            print(f"\033[91m{message}\033[0m")
+        else:
+            print(f"INFO      [Gen validation ] Mandatory env variables set: {not block_exec}")
         return block_exec
 
     def load_key(self, key, default, print_out: bool = True, mask_value: bool = False):
@@ -544,10 +639,13 @@ class ConfigHelper:
             if (k.startswith('SECURITY_TOKEN_KEY') or
                     k.startswith('SECURITY_REFRESH_TOKEN_KEY') or
                     k.startswith('AWS_SECRET_ACCESS_KEY')):
-                v = v[0].ljust(len(v) - 1, '*')
-                # print(temp)
-                # v = temp
-            kv[k] = v
+                # LS 2024.12.12 check value len
+                if len(v) > 0:
+                    v = v[0].ljust(len(v) - 1, '*')
+                else:
+                    v = ''
+            if len(k) > 0:
+                kv[k] = v
         return kv
 
     @staticmethod

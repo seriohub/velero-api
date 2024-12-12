@@ -166,6 +166,26 @@ route = '/get-repo-tags'
 async def repository_tags(db: Session = Depends(get_db)):
     return await info.last_tags_from_github(db)
 
+# LS 2024.12.12 retrieve latest version of Velero
+limiter_origins = endpoint_limiter.get_limiter_cust('info_get_repo_velero_tag')
+route = '/get-repo-velero-tag'
+
+
+@router.get(path=route,
+            tags=[tag_name],
+            summary='Get the latest tag from GitHub for Velero project',
+            description=route_description(tag=tag_name,
+                                          route=route,
+                                          limiter_calls=limiter_origins.max_request,
+                                          limiter_seconds=limiter_origins.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_origins.seconds,
+                                              max_requests=limiter_origins.max_request))],
+            response_model=Union[SuccessfulRequest, FailedRequest],
+            status_code=status.HTTP_200_OK)
+@handle_exceptions_endpoint
+async def repository_velero_tag(db: Session = Depends(get_db)):
+    return await info.last_tag_velero_from_github(db)
+
 
 limiter_origins = endpoint_limiter.get_limiter_cust('get_ui_comp')
 route = '/get-ui-comp'
