@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 ***
+## [v0.1.19] - 2024-12-15
+
+- authentication error fixed
+- added checking a new version of velero is released from the official repository (vmware-tanzu/velero)
 
 ## [v0.1.18] - 2024-08-01
 
