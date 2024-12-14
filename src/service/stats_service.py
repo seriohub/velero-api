@@ -34,28 +34,55 @@ class StatsService:
         failed = [x for x in resources if 'status' in x and 'phase' in x['status'] and x['status']['phase'] == 'Failed']
         failed_count = len(failed)
 
+        deleting = [x for x in resources if 'status' in x and 'phase' in x['status'] and x['status']['phase'] == 'deleting']
+        deleting_count = len(deleting)
+
+        failed_validation = [x for x in resources if
+                    'status' in x and 'phase' in x['status'] and x['status']['phase'] == 'FailedValidation']
+        failed_validation_count = len(failed_validation)
+
         scheduled = [x for x in resources if
                      'labels' in x['metadata'] and 'velero.io/schedule-name' in x['metadata']['labels']]
         scheduled_count = len(scheduled)
 
         res = {'count': count,
                # 'from_schedule_count': scheduled_count,
-               'stats': [{'label': 'Completed',
-                          'count': completed_count,
-                          'perc': round(100 * completed_count / count if count > 0 else 0, 1),
-                          'color': 'green'
-                          },
-                         {'label': 'Partial Failed',
-                          'count': partial_failed_count,
-                          'perc': round(100 * partial_failed_count / count if count > 0 else 0, 1),
-                          'color': 'orange'
-                          },
-                         {'label': 'Failed',
-                          'count': failed_count,
-                          'perc': round(100 * failed_count / count if count > 0 else 0, 1),
-                          'color': 'red'
-                          }]
-               }
+               'stats': []}
+        if completed_count > 0:
+            res['stats'].append(
+                {'label': 'Completed',
+                 'count': completed_count,
+                 'perc': round(100 * completed_count / count if count > 0 else 0, 1),
+                 }
+            )
+        if partial_failed_count > 0:
+            res['stats'].append(
+             {'label': 'Partial Failed',
+              'count': partial_failed_count,
+              'perc': round(100 * partial_failed_count / count if count > 0 else 0, 1),
+              })
+        if failed_count > 0:
+            res['stats'].append(
+                {'label': 'Failed',
+                 'count': failed_count,
+                 'perc': round(100 * failed_count / count if count > 0 else 0, 1),
+                 }
+            )
+        if failed_validation_count > 0:
+            res['stats'].append(
+                {'label': 'Failed Validation',
+                 'count': failed_validation_count,
+                 'perc': round(100 * failed_validation_count / count if count > 0 else 0, 1),
+                 }
+            )
+        if deleting_count > 0:
+            res['stats'].append(
+                {'label': 'Deleting',
+                 'count': deleting_count,
+                 'perc': round(100 * deleting_count / count if count > 0 else 0, 1),
+                 }
+            )
+
         if count_from_schedule:
             res['from_schedule_count'] = scheduled_count
         return res

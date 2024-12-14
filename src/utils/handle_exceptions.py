@@ -3,6 +3,7 @@ from functools import wraps
 import traceback
 from fastapi.responses import JSONResponse
 import os
+#import sentry_sdk
 
 # def handle_exceptions_instance_method(fn):
 #     from functools import wraps
@@ -68,6 +69,8 @@ def handle_exceptions_async_method(fn):
             print('E=%s, F=%s, L=%s' % (
                 str(Ex), traceback.extract_tb(exc_tb)[-1][0], traceback.extract_tb(exc_tb)[-1][1]))
 
+            #sentry_sdk.capture_exception(Ex)
+
             return {'success': False, 'error': {'title': 'Service method',
                                                 'description': str(Ex) +
                                                                ' - file name: ' + os.path.basename(str(traceback.extract_tb(exc_tb)[-1][0])) +
@@ -91,6 +94,8 @@ def handle_exceptions_controller(fn):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             print('E=%s, F=%s, L=%s' % (
                 str(Ex), traceback.extract_tb(exc_tb)[-1][0], traceback.extract_tb(exc_tb)[-1][1]))
+
+            #sentry_sdk.capture_exception(Ex)
 
             output = {'error': {'title': 'Controller Error',
                                 'description': str(Ex) +
@@ -116,6 +121,8 @@ def handle_exceptions_endpoint(fn):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             print('E=%s, F=%s, L=%s' % (
                 str(Ex), traceback.extract_tb(exc_tb)[-1][0], traceback.extract_tb(exc_tb)[-1][1]))
+
+            #sentry_sdk.capture_exception(Ex)
 
             output = {'error': {'title': 'Endpoint Error',
                                 'description': str(Ex) +

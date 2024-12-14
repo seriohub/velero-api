@@ -1,3 +1,5 @@
+import os
+
 import uvicorn
 import asyncio
 from multiprocessing import Process
@@ -15,6 +17,16 @@ from helpers.printer import PrintHelper
 
 from core.config import ConfigHelper
 
+# import sentry_sdk
+#
+# sentry_sdk.init(
+#     dsn="http://b9ec3373cc7ef4345b891b8bc728614d@127.0.0.1:9009/2",
+#     # Set traces_sample_rate to 1.0 to capture 100%
+#     # of transactions for performance monitoring.
+#     traces_sample_rate=1.0,
+#     release=os.getenv('BUILD_VERSION', 'dev'),
+#     environment=os.getenv('BUILD_VERSION', 'dev'),
+# )
 
 config_app = ConfigHelper()
 
