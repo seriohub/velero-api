@@ -19,6 +19,11 @@ config_app = ConfigHelper()
 
 
 class StatsService:
+    def __build_data__(self, phase, counter, total_count):
+        return {'label': phase,
+                'count': counter,
+                'perc': round(100 * counter / total_count if total_count > 0 else 0, 1),
+                }
 
     def __resources_stats(self, resources, count_from_schedule=False):
         count = len(resources)
@@ -34,11 +39,12 @@ class StatsService:
         failed = [x for x in resources if 'status' in x and 'phase' in x['status'] and x['status']['phase'] == 'Failed']
         failed_count = len(failed)
 
-        deleting = [x for x in resources if 'status' in x and 'phase' in x['status'] and x['status']['phase'] == 'deleting']
+        deleting = [x for x in resources if
+                    'status' in x and 'phase' in x['status'] and x['status']['phase'] == 'deleting']
         deleting_count = len(deleting)
 
         failed_validation = [x for x in resources if
-                    'status' in x and 'phase' in x['status'] and x['status']['phase'] == 'FailedValidation']
+                             'status' in x and 'phase' in x['status'] and x['status']['phase'] == 'FailedValidation']
         failed_validation_count = len(failed_validation)
 
         scheduled = [x for x in resources if
@@ -49,39 +55,59 @@ class StatsService:
                # 'from_schedule_count': scheduled_count,
                'stats': []}
         if completed_count > 0:
+            #     res['stats'].append(
+            #         {'label': 'Completed',
+            #          'count': completed_count,
+            #          'perc': round(100 * completed_count / count if count > 0 else 0, 1),
+            #          }
+            #     )
             res['stats'].append(
-                {'label': 'Completed',
-                 'count': completed_count,
-                 'perc': round(100 * completed_count / count if count > 0 else 0, 1),
-                 }
-            )
+                self.__build_data__(phase='Completed',
+                                    counter=completed_count,
+                                    total_count=count))
         if partial_failed_count > 0:
+            # res['stats'].append(
+            #     {'label': 'Partial Failed',
+            #      'count': partial_failed_count,
+            #      'perc': round(100 * partial_failed_count / count if count > 0 else 0, 1),
+            #      })
             res['stats'].append(
-             {'label': 'Partial Failed',
-              'count': partial_failed_count,
-              'perc': round(100 * partial_failed_count / count if count > 0 else 0, 1),
-              })
+                self.__build_data__(phase='Partial Failed',
+                                    counter=partial_failed_count,
+                                    total_count=count))
         if failed_count > 0:
+            # res['stats'].append(
+            #     {'label': 'Failed',
+            #      'count': failed_count,
+            #      'perc': round(100 * failed_count / count if count > 0 else 0, 1),
+            #      }
+            # )
             res['stats'].append(
-                {'label': 'Failed',
-                 'count': failed_count,
-                 'perc': round(100 * failed_count / count if count > 0 else 0, 1),
-                 }
-            )
+                self.__build_data__(phase='Failed',
+                                    counter=failed_count,
+                                    total_count=count))
         if failed_validation_count > 0:
+            # res['stats'].append(
+            #     {'label': 'Failed Validation',
+            #      'count': failed_validation_count,
+            #      'perc': round(100 * failed_validation_count / count if count > 0 else 0, 1),
+            #      }
+            # )
             res['stats'].append(
-                {'label': 'Failed Validation',
-                 'count': failed_validation_count,
-                 'perc': round(100 * failed_validation_count / count if count > 0 else 0, 1),
-                 }
-            )
+                self.__build_data__(phase='Failed Validation',
+                                    counter=failed_validation_count,
+                                    total_count=count))
         if deleting_count > 0:
+            # res['stats'].append(
+            #     {'label': 'Deleting',
+            #      'count': deleting_count,
+            #      'perc': round(100 * deleting_count / count if count > 0 else 0, 1),
+            #      }
+            # )
             res['stats'].append(
-                {'label': 'Deleting',
-                 'count': deleting_count,
-                 'perc': round(100 * deleting_count / count if count > 0 else 0, 1),
-                 }
-            )
+                self.__build_data__(phase='Deleting',
+                                    counter=deleting_count,
+                                    total_count=count))
 
         if count_from_schedule:
             res['from_schedule_count'] = scheduled_count
@@ -194,7 +220,8 @@ class StatsService:
         return {'success': True, 'data': payload}
 
     def __find_backup(self, backups, backup_name):
-        return next((item for item in backups if item['metadata']['labels']['velero.io/schedule-name'] == backup_name), None)
+        return next((item for item in backups if item['metadata']['labels']['velero.io/schedule-name'] == backup_name),
+                    None)
 
     def __get_cron_events(self, cron_string, days=7):
         """
@@ -230,10 +257,12 @@ class StatsService:
         for sc in schedules:
             tmp = {'schedule_name': sc['metadata']['name'],
                    'cron': sc['spec']['schedule'],
-                   'last': sc['status']['lastBackup'] if 'lastBackup' in sc['status'] and sc['status']['lastBackup'] else ''}
+                   'last': sc['status']['lastBackup'] if 'lastBackup' in sc['status'] and sc['status'][
+                       'lastBackup'] else ''}
 
             last_backup = self.__find_backup(backups, tmp['schedule_name'])
-            if tmp['last'] != '' and last_backup is not None and 'startTimestamp' in last_backup['status'] and 'completionTimestamp' in last_backup['status']:
+            if tmp['last'] != '' and last_backup is not None and 'startTimestamp' in last_backup[
+                'status'] and 'completionTimestamp' in last_backup['status']:
                 tmp['last_started'] = last_backup['status']['startTimestamp']
                 tmp['last_finished'] = last_backup['status']['completionTimestamp']
                 time1 = datetime.fromisoformat(tmp['last_started'].replace("Z", "+00:00"))
@@ -272,7 +301,8 @@ class StatsService:
 
                 # Increases the counter in the array
                 matrix[current_weekday][current_hour][current_minute] += 1
-                matrix_schedule_name[current_weekday][current_hour][current_minute] += (',' if matrix_schedule_name[current_weekday][current_hour][current_minute] else '') + event['schedule_name']
+                matrix_schedule_name[current_weekday][current_hour][current_minute] += (',' if matrix_schedule_name[
+                    current_weekday][current_hour][current_minute] else '') + event['schedule_name']
 
         return matrix, matrix_schedule_name
 

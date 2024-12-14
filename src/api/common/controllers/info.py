@@ -49,7 +49,8 @@ class Info:
 
     @handle_exceptions_controller
     async def last_tags_from_github(self, db: SessionLocal):
-        payload = await infoService.last_tags_from_github(db)
+        payload = await infoService.last_tags_from_github(db,
+                                                          check_version=True)
 
         if not payload['success']:
             response = FailedRequest(**payload['error'])
@@ -60,7 +61,9 @@ class Info:
 
     @handle_exceptions_controller
     async def last_tag_velero_from_github(self, db: SessionLocal):
-        payload = await infoService.last_tags_from_github(db, only_velero=True)
+        payload = await infoService.last_tags_from_github(db,
+                                                          check_version=True,
+                                                          only_velero=True)
 
         if not payload['success']:
             response = FailedRequest(**payload['error'])

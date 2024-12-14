@@ -177,14 +177,13 @@ class InfoService:
             tags = response.json()
 
             if check_last_release:
-                latest_tag = tags.get("tag_name")
+                latest_tag = f"{tags.get('tag_name')} published at {tags.get('published_at')}"
             else:
                 # Sort the tags based on the tag name (assuming semantic versioning)
                 # tags.sort(key=lambda tag: tag['name'], reverse=True)
                 tags.sort(key=lambda tag: extract_version_numbers(tag['name']), reverse=True)
-
                 # The first tag in the sorted list is the latest
-                latest_tag = tags[0]['name']
+                latest_tag = f"{tags[0]['name']}"
             self.print_ls.info(f"The latest tag for the repo {repo} is: {latest_tag}")
             return latest_tag
         else:
@@ -217,7 +216,7 @@ class InfoService:
         return {'success': True, 'data': output}
 
     @handle_exceptions_async_method
-    async def last_tags_from_github(self, db: SessionLocal, only_velero=False):
+    async def last_tags_from_github(self, db: SessionLocal, check_version=True, only_velero=False):
         in_memory = False
         data_is_empty = True
         # Check in memory
@@ -261,7 +260,7 @@ class InfoService:
             # LS 2024.12.12 add last version of velero
             velero = await self.__get_last_version(repo="velero",
                                                    owner="vmware-tanzu",
-                                                   check_last_release=False)
+                                                   check_last_release=check_version)
 
             output = self.__prepare_json_out(api,
                                              ui,
