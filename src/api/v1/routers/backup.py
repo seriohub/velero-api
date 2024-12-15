@@ -91,23 +91,24 @@ async def backup_describe(resource_name=None):
 
 
 limiter_del = endpoint_limiter.get_limiter_cust('backup_delete')
-route = '/backup/delete'
+route = '/backup'
 
 
-@router.get(path=route,
-            tags=[tag_name],
-            summary='Delete a backup',
-            description=route_description(tag=tag_name,
-                                          route=route,
-                                          limiter_calls=limiter_del.max_request,
-                                          limiter_seconds=limiter_del.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_del.seconds,
-                                              max_requests=limiter_del.max_request))],
-            response_model=Union[SuccessfulRequest, FailedRequest],
-            status_code=status.HTTP_200_OK)
+@router.delete(path=route,
+               tags=[tag_name],
+               summary='Delete a backup',
+               description=route_description(tag=tag_name,
+                                             route=route,
+                                             limiter_calls=limiter_del.max_request,
+                                             limiter_seconds=limiter_del.seconds),
+               dependencies=[Depends(RateLimiter(interval_seconds=limiter_del.seconds,
+                                                 max_requests=limiter_del.max_request))],
+               response_model=Union[SuccessfulRequest, FailedRequest],
+               status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def backup_delete(resource_name=None):
-    return await backup.delete(resource_name)
+async def backup_delete(info: Request):
+    req_info = await info.json()
+    return await backup.delete(backup_name=req_info['resource_name'])
 
 
 limiter_setting = endpoint_limiter.get_limiter_cust('backup_create_settings')
@@ -193,7 +194,7 @@ limiter_update_expiration = endpoint_limiter.get_limiter_cust('backup_update_exp
 route = '/backup/update-expiration'
 
 
-@router.get(path=route,
+@router.patch(path=route,
             tags=['Backup'],
             summary='Update expiration date for a backup',
             description=route_description(tag=tag_name,
@@ -204,8 +205,9 @@ route = '/backup/update-expiration'
                                               max_requests=limiter_update_expiration.max_request))],
             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def update_expiration(backup_name=None, expiration=None):
-    return await backup.update_expiration(backup_name, expiration)
+async def update_expiration(info: Request):
+    req_info = await info.json()
+    return await backup.update_expiration(backup_name=req_info['backup_name'], expiration=req_info['expiration'])
 
 
 limiter_storage_classes = endpoint_limiter.get_limiter_cust('backup_get_storage_classes')

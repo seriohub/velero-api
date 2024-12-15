@@ -104,7 +104,10 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, secret_access_key, algorithm=algorithm)
+    # LS 2024.12.12 check token key
+    # encoded_jwt = jwt.encode(to_encode, secret_access_key, algorithm=algorithm)
+    access_key = config.get_security_access_token_key()
+    encoded_jwt = jwt.encode(to_encode, access_key, algorithm=algorithm)
     return encoded_jwt
 
 
@@ -117,7 +120,10 @@ def create_refresh_token(data: dict, expires_delta: timedelta = None):
         expire = datetime.utcnow() + timedelta(days=7)
 
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, secret_refresh_key, algorithm=algorithm)
+    #LS 2024.12.12 check refresh key token
+    # encoded_jwt = jwt.encode(to_encode, secret_refresh_key, algorithm=algorithm)
+    refresh_key = config.get_security_refresh_token_key()
+    encoded_jwt = jwt.encode(to_encode, refresh_key, algorithm=algorithm)
     return encoded_jwt
 
 
@@ -125,7 +131,11 @@ def verify_refresh_token(token: str):
     print_ls.debug(f"verify_refresh_token")
     try:
         username = ''
-        payload = jwt.decode(token, secret_refresh_key, algorithms=[algorithm])
+        # LS 2024.12.12 check refresh token
+        # payload = jwt.decode(token, secret_refresh_key, algorithms=[algorithm])
+        refresh_key = config.get_security_refresh_token_key()
+        payload = jwt.decode(token, refresh_key, algorithms=[algorithm])
+
         if payload is not None:
             print_ls.debug(f"verify_refresh_token: {payload}")
             username: str = payload.get("sub")

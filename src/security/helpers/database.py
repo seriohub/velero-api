@@ -68,12 +68,12 @@ class RefreshToken(Base):
 class ProjectsVersion(Base):
     __tablename__ = 'pv'
 
-    pv_1 = Column(String(15), nullable=True)
-    pv_2 = Column(String(15), nullable=True)
-    pv_3 = Column(String(15), nullable=True)
-    pv_4 = Column(String(15), nullable=True)
-    pv_5 = Column(String(15), nullable=True)
-    pv_6 = Column(String(15), nullable=True)
+    pv_1 = Column(String(30), nullable=True)
+    pv_2 = Column(String(30), nullable=True)
+    pv_3 = Column(String(30), nullable=True)
+    pv_4 = Column(String(30), nullable=True)
+    pv_5 = Column(String(30), nullable=True)
+    pv_6 = Column(String(30), nullable=True)
     time_created = Column(DateTimeA(timezone=True), primary_key=True)
     time_updated = Column(DateTimeA(timezone=True), onupdate=func.now())
 

@@ -28,13 +28,14 @@ class InfoService:
         self.last_version_data = {}
         self.last_version_scan_datetime = datetime.utcnow()
 
-    def __prepare_json_out(self, api, ui, helm, watchdog, timestamp):
+    def __prepare_json_out(self, api, ui, helm, watchdog, velero, timestamp):
         self.print_ls.info(f"__prepare_json_out")
         output = {
             'api': '' if api is None else api,
             'ui': '' if ui is None else ui,
             'helm': '' if helm is None else helm,
             'watchdog': '' if watchdog is None else watchdog,
+            'velero': '' if velero is None else velero,
             'datetime': timestamp.strftime("%d/%m/%Y %H:%M:%S")
         }
         return output
@@ -135,16 +136,18 @@ class InfoService:
             return data
         return None
 
-    def __save_last_version_from_db(self, api, ui, helm, watchdog, db: SessionLocal):
+    def __save_last_version_from_db(self, api, ui, helm, watchdog, velero, db: SessionLocal):
         self.print_ls.info(f"__save_last_version_from_db")
         old_data = db.query(ProjectsVersion).first()
         if old_data:
             db.delete(old_data)
+        # LS 2024.12.12 add velero version
         new_data = ProjectsVersion(time_created=datetime.utcnow(),
                                    pv_1=api,
                                    pv_2=ui,
                                    pv_3=helm,
-                                   pv_4=watchdog)
+                                   pv_4=watchdog,
+                                   pv_5=velero)
 
         db.add(new_data)
         db.commit()
@@ -156,11 +159,14 @@ class InfoService:
                            f"threshold {self.config_app.get_github_scrapy_versions_minutes()}")
         return (diff.total_seconds() / 60) > self.config_app.get_github_scrapy_versions_minutes()
 
-    async def __get_last_version(self, repo):
-
-        owner = "seriohub"
+    async def __get_last_version(self, repo, owner="seriohub", check_last_release=False):
+        # LS 2024.12.12 moved to parameter
+        #owner = "seriohub"
         # GitHub API URL for fetching all tags
-        url = f"https://api.github.com/repos/{owner}/{repo}/tags"
+        path = "tags"
+        if check_last_release:
+            path = "releases/latest"
+        url = f"https://api.github.com/repos/{owner}/{repo}/{path}"
 
         # Make the request
         response = requests.get(url)
@@ -170,12 +176,14 @@ class InfoService:
             # Extract the tags from the response
             tags = response.json()
 
-            # Sort the tags based on the tag name (assuming semantic versioning)
-            # tags.sort(key=lambda tag: tag['name'], reverse=True)
-            tags.sort(key=lambda tag: extract_version_numbers(tag['name']), reverse=True)
-
-            # The first tag in the sorted list is the latest
-            latest_tag = tags[0]['name']
+            if check_last_release:
+                latest_tag = f"{tags.get('tag_name')} published at {tags.get('published_at')}"
+            else:
+                # Sort the tags based on the tag name (assuming semantic versioning)
+                # tags.sort(key=lambda tag: tag['name'], reverse=True)
+                tags.sort(key=lambda tag: extract_version_numbers(tag['name']), reverse=True)
+                # The first tag in the sorted list is the latest
+                latest_tag = f"{tags[0]['name']}"
             self.print_ls.info(f"The latest tag for the repo {repo} is: {latest_tag}")
             return latest_tag
         else:
@@ -208,7 +216,7 @@ class InfoService:
         return {'success': True, 'data': output}
 
     @handle_exceptions_async_method
-    async def last_tags_from_github(self, db: SessionLocal):
+    async def last_tags_from_github(self, db: SessionLocal, check_version=True, only_velero=False):
         in_memory = False
         data_is_empty = True
         # Check in memory
@@ -226,6 +234,7 @@ class InfoService:
                                                                  data.pv_2,
                                                                  data.pv_3,
                                                                  data.pv_4,
+                                                                 data.pv_5,
                                                                  data.time_created)
                 self.last_version_scan_datetime = data.time_created
         # Verify the data
@@ -243,18 +252,41 @@ class InfoService:
             output = self.last_version_data
         else:
             self.print_ls.info(f"scrapy the last version from github")
-            api = await self.__get_last_version("velero-api")
-            helm = await self.__get_last_version("velero-helm")
-            watchdog = await self.__get_last_version("velero-watchdog")
-            ui = await self.__get_last_version("velero-ui")
+            api = await self.__get_last_version(repo="velero-api")
+            helm = await self.__get_last_version(repo="velero-helm")
+            watchdog = await self.__get_last_version(repo="velero-watchdog")
+            ui = await self.__get_last_version(repo="velero-ui")
 
-            output = self.__prepare_json_out(api, ui, helm, watchdog, datetime.utcnow())
+            # LS 2024.12.12 add last version of velero
+            velero = await self.__get_last_version(repo="velero",
+                                                   owner="vmware-tanzu",
+                                                   check_last_release=check_version)
+
+            output = self.__prepare_json_out(api,
+                                             ui,
+                                             helm,
+                                             watchdog,
+                                             velero,
+                                             datetime.utcnow())
 
             self.last_version_data = output
             self.last_version_scan_datetime = datetime.utcnow()
-            self.__save_last_version_from_db(api, ui, helm, watchdog, db)
+            self.__save_last_version_from_db(api,
+                                             ui,
+                                             helm,
+                                             watchdog,
+                                             velero,
+                                             db)
 
-        return {'success': True, 'data': output}
+        # LS 2024.12.12 filter the velero tag if required
+        if only_velero:
+            output_data = {'velero': output["velero"],
+                           "datetime": output["datetime"]}
+        else:
+            output_data = output.copy()
+            del output_data["velero"]
+
+        return {'success': True, 'data': output_data}
 
     @handle_exceptions_async_method
     async def ui_compatibility(self, version: str):
@@ -273,7 +305,7 @@ class InfoService:
                 is_comp = False
                 api_version = self.config_app.get_build_version()
                 # retrieve data from github
-                data_ui, data_api, error = self.__retrieve_data_from_md_file(ui_version =version,
+                data_ui, data_api, error = self.__retrieve_data_from_md_file(ui_version=version,
                                                                              api_version=api_version)
                 if data_ui is None:
                     return {'success': False, 'error': {'title': 'Error get data from GitHub repository',

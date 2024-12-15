@@ -114,27 +114,28 @@ limiter_up = endpoint_limiter.get_limiter_cust('schedule_unpause')
 route = '/schedule/unpause'
 
 
-@router.get(path=route,
-            tags=[tag_name],
-            summary='Set unpause a schedule',
-            description=route_description(tag=tag_name,
-                                          route=route,
-                                          limiter_calls=limiter_up.max_request,
-                                          limiter_seconds=limiter_up.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_up.seconds,
-                                              max_requests=limiter_up.max_request))],
-            response_model=Union[SuccessfulRequest, FailedRequest],
-            status_code=status.HTTP_200_OK)
+@router.patch(path=route,
+              tags=[tag_name],
+              summary='Set unpause a schedule',
+              description=route_description(tag=tag_name,
+                                            route=route,
+                                            limiter_calls=limiter_up.max_request,
+                                            limiter_seconds=limiter_up.seconds),
+              dependencies=[Depends(RateLimiter(interval_seconds=limiter_up.seconds,
+                                                max_requests=limiter_up.max_request))],
+              response_model=Union[SuccessfulRequest, FailedRequest],
+              status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def schedule_describe(resource_name=None):
-    return await schedule.unpause(resource_name)
+async def schedule_unpause(info: Request):
+    req_info = await info.json()
+    return await schedule.unpause(schedule_name=req_info['resource_name'])
 
 
 limiter_p = endpoint_limiter.get_limiter_cust('schedule_pause')
 route = '/schedule/pause'
 
 
-@router.get(path=route,
+@router.patch(path=route,
             tags=[tag_name],
             summary='Set in pause aschedule',
             description=route_description(tag=tag_name,
@@ -146,28 +147,30 @@ route = '/schedule/pause'
             response_model=Union[SuccessfulRequest, FailedRequest],
             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def schedule_describe(resource_name=None):
-    return await schedule.pause(resource_name)
+async def schedule_pause(info: Request):
+    req_info = await info.json()
+    return await schedule.pause(schedule_name=req_info['resource_name'])
 
 
 limiter_delete = endpoint_limiter.get_limiter_cust('schedule_delete')
-route = '/schedule/delete'
+route = '/schedule'
 
 
-@router.get(path=route,
-            tags=[tag_name],
-            summary='Delete a schedule',
-            description=route_description(tag=tag_name,
-                                          route=route,
-                                          limiter_calls=limiter_delete.max_request,
-                                          limiter_seconds=limiter_delete.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_delete.seconds,
-                                              max_requests=limiter_delete.max_request))],
-            response_model=Union[SuccessfulRequest, FailedRequest],
-            status_code=status.HTTP_200_OK)
+@router.delete(path=route,
+               tags=[tag_name],
+               summary='Delete a schedule',
+               description=route_description(tag=tag_name,
+                                             route=route,
+                                             limiter_calls=limiter_delete.max_request,
+                                             limiter_seconds=limiter_delete.seconds),
+               dependencies=[Depends(RateLimiter(interval_seconds=limiter_delete.seconds,
+                                                 max_requests=limiter_delete.max_request))],
+               response_model=Union[SuccessfulRequest, FailedRequest],
+               status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def schedule_delete(resource_name=None):
-    return await schedule.delete(resource_name)
+async def schedule_delete(info: Request):
+    req_info = await info.json()
+    return await schedule.delete(schedule_name=req_info['resource_name'])
 
 
 limiter_update = endpoint_limiter.get_limiter_cust('schedule_update')

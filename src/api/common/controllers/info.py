@@ -1,4 +1,3 @@
-
 from fastapi.responses import JSONResponse
 
 from helpers.printer import PrintHelper
@@ -49,8 +48,22 @@ class Info:
         return JSONResponse(content=response.toJSON(), status_code=200)
 
     @handle_exceptions_controller
-    async def last_tags_from_github(self,  db: SessionLocal):
-        payload = await infoService.last_tags_from_github(db)
+    async def last_tags_from_github(self, db: SessionLocal):
+        payload = await infoService.last_tags_from_github(db,
+                                                          check_version=True)
+
+        if not payload['success']:
+            response = FailedRequest(**payload['error'])
+            return JSONResponse(content=response.toJSON(), status_code=400)
+
+        response = SuccessfulRequest(payload=payload['data'])
+        return JSONResponse(content=response.toJSON(), status_code=200)
+
+    @handle_exceptions_controller
+    async def last_tag_velero_from_github(self, db: SessionLocal):
+        payload = await infoService.last_tags_from_github(db,
+                                                          check_version=True,
+                                                          only_velero=True)
 
         if not payload['success']:
             response = FailedRequest(**payload['error'])

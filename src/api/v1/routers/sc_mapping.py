@@ -92,7 +92,7 @@ async def update_storages_classes_map(items: StorageClassMap):
 
 
 limiter_sc_delete = endpoint_limiter.get_limiter_cust('sc_change_storage_classes_config_map_delete')
-route = '/sc/change-storage-classes-config-map/delete'
+route = '/sc/change-storage-classes-config-map'
 
 
 @router.delete(path=route,

@@ -84,21 +84,22 @@ async def restore_describe(resource_name=None):
 
 
 limiter_delete = endpoint_limiter.get_limiter_cust('restore_delete')
-route = '/restore/delete'
-@router.get(path=route,
-            tags=[tag_name],
-            summary='Delete restore operation',
-            description=route_description(tag=tag_name,
-                                          route=route,
-                                          limiter_calls=limiter_delete.max_request,
-                                          limiter_seconds=limiter_delete.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_delete.seconds,
-                                              max_requests=limiter_delete.max_request))],
-            response_model=Union[SuccessfulRequest, FailedRequest],
-            status_code=status.HTTP_200_OK)
+route = '/restore'
+@router.delete(path=route,
+               tags=[tag_name],
+               summary='Delete restore operation',
+               description=route_description(tag=tag_name,
+                                             route=route,
+                                             limiter_calls=limiter_delete.max_request,
+                                             limiter_seconds=limiter_delete.seconds),
+               dependencies=[Depends(RateLimiter(interval_seconds=limiter_delete.seconds,
+                                                 max_requests=limiter_delete.max_request))],
+               response_model=Union[SuccessfulRequest, FailedRequest],
+               status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def restore_delete(resource_name=None):
-    return await restore.delete(resource_name)
+async def restore_delete(info: Request):
+    req_info = await info.json()
+    return await restore.delete(restore_name=req_info['resource_name'])
 
 
 limiter_create = endpoint_limiter.get_limiter_cust('restore_create')
