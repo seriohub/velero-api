@@ -34,7 +34,7 @@ class ConfigHelper:
     def __init__(self, debug=False):
         self.debug_on = debug
         res = load_dotenv()
-        print(f"INFO      [ConfigHelper] initialization:{res} ")
+        # print(f"INFO      [ConfigHelper] initialization:{res} ")
 
     @staticmethod
     def __print_validation_key__(group='Env validation',
