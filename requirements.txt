@@ -43,3 +43,4 @@ wsproto==1.2.0
 croniter~=2.0.5
 minio==7.2.7
 nats-py==2.8.0
+aiohttp==3.11.11
