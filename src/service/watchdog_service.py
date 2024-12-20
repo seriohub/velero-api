@@ -78,7 +78,6 @@ class WatchdogService:
         #     return {'success': True, 'data': output['data']['payload']}
         return await self.__do_api_call(url)
 
-
     @handle_exceptions_async_method
     async def send_report(self):
         # protocol = 'http://'
