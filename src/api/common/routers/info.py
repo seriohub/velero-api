@@ -163,8 +163,9 @@ route = '/get-repo-tags'
             response_model=Union[SuccessfulRequest, FailedRequest],
             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def repository_tags(db: Session = Depends(get_db)):
-    return await info.last_tags_from_github(db)
+async def repository_tags(force_scrapy: bool = False, db: Session = Depends(get_db)):
+    return await info.last_tags_from_github(force_refresh=force_scrapy,
+                                            db=db)
 
 # LS 2024.12.12 retrieve latest version of Velero
 limiter_origins = endpoint_limiter.get_limiter_cust('info_get_repo_velero_tag')
@@ -183,8 +184,9 @@ route = '/get-repo-velero-tag'
             response_model=Union[SuccessfulRequest, FailedRequest],
             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def repository_velero_tag(db: Session = Depends(get_db)):
-    return await info.last_tag_velero_from_github(db)
+async def repository_velero_tag(force_scrapy: bool = False, db: Session = Depends(get_db)):
+    return await info.last_tag_velero_from_github(force_refresh=force_scrapy,
+                                                  db=db)
 
 
 limiter_origins = endpoint_limiter.get_limiter_cust('get_ui_comp')

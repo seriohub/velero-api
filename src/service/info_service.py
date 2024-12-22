@@ -1,6 +1,10 @@
 import base64
 import platform
+
+import aiohttp
 import requests
+import starlette.status
+
 from core.config import ConfigHelper
 from helpers.printer import PrintHelper
 from utils.handle_exceptions import handle_exceptions_async_method
@@ -159,7 +163,20 @@ class InfoService:
                            f"threshold {self.config_app.get_github_scrapy_versions_minutes()}")
         return (diff.total_seconds() / 60) > self.config_app.get_github_scrapy_versions_minutes()
 
-    async def __get_last_version(self, repo, owner="seriohub", check_last_release=False):
+    async def __do_api_call(self, url):
+        self.print_ls.debug(f'__do_api_call URL {url}')
+        timeout = aiohttp.ClientTimeout(total=10)  # Increase total timeout to 10 seconds
+        try:
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.get(url) as response:
+                    output = await response.json()
+                    return {'status': response.status, 'data': output}
+
+        except aiohttp.ClientError as e:
+            self.print_ls.error(f"[{url}] Error during async request: {e}")
+            return {'status': starlette.status.HTTP_404_NOT_FOUND  , 'data': None}
+
+    async def __get_last_version(self, repo, owner="seriohub", check_last_release=False) -> str:
         # LS 2024.12.12 moved to parameter
         #owner = "seriohub"
         # GitHub API URL for fetching all tags
@@ -169,25 +186,26 @@ class InfoService:
         url = f"https://api.github.com/repos/{owner}/{repo}/{path}"
 
         # Make the request
-        response = requests.get(url)
+        # response = requests.get(url)
+        response = await self.__do_api_call(url)
+        if response['status'] == 200:
+            try:
+                # data = await response.json()
+                data = response['data']
+                if check_last_release:
+                    latest_tag = f"{data.get('tag_name')} published at {data.get('published_at')}"
+                else:
+                    tags = data
+                    tags.sort(key=lambda tag: extract_version_numbers(tag["name"]), reverse=True)
+                    latest_tag = tags[0]["name"]
 
-        # Check if the request was successful
-        if response.status_code == 200:
-            # Extract the tags from the response
-            tags = response.json()
-
-            if check_last_release:
-                latest_tag = f"{tags.get('tag_name')} published at {tags.get('published_at')}"
-            else:
-                # Sort the tags based on the tag name (assuming semantic versioning)
-                # tags.sort(key=lambda tag: tag['name'], reverse=True)
-                tags.sort(key=lambda tag: extract_version_numbers(tag['name']), reverse=True)
-                # The first tag in the sorted list is the latest
-                latest_tag = f"{tags[0]['name']}"
-            self.print_ls.info(f"The latest tag for the repo {repo} is: {latest_tag}")
-            return latest_tag
+                self.print_ls.info(f"The latest tag for the repo {repo} is: {latest_tag}")
+                return latest_tag
+            except Exception as e:
+                self.print_ls.error(f"Error processing response for {repo}: {e}")
+                return "-"
         else:
-            self.print_ls.wrn(f"Failed to fetch the tags for the repo {repo}. Status code: {response.status_code}")
+            self.print_ls.wrn(f"Failed to fetch tags for repo {repo}. Status code: {response.status}")
             return "-"
 
     @handle_exceptions_async_method
@@ -216,34 +234,37 @@ class InfoService:
         return {'success': True, 'data': output}
 
     @handle_exceptions_async_method
-    async def last_tags_from_github(self, db: SessionLocal, check_version=True, only_velero=False):
+    async def last_tags_from_github(self, db: SessionLocal, check_version=True, only_velero=False, force_refresh=False):
         in_memory = False
         data_is_empty = True
         # Check in memory
-        if len(self.last_version_data) > 0:
-            data_is_empty = False
-            in_memory = not (await self.__is_elapsed_time_to_scrapy())
-        # Check in db
-        if not in_memory:
-            self.print_ls.info(f"Find in db")
-            # get data from db
-            data = self.__get_last_version_from_db(db)
-            if data is not None:
-                data_is_empty = False
-                self.last_version_data = self.__prepare_json_out(data.pv_1,
-                                                                 data.pv_2,
-                                                                 data.pv_3,
-                                                                 data.pv_4,
-                                                                 data.pv_5,
-                                                                 data.time_created)
-                self.last_version_scan_datetime = data.time_created
-        # Verify the data
-        if not in_memory:
+        if not force_refresh:
             if len(self.last_version_data) > 0:
                 data_is_empty = False
                 in_memory = not (await self.__is_elapsed_time_to_scrapy())
+            # Check in db
+            if not in_memory:
+                self.print_ls.info(f"Find in db")
+                # get data from db
+                data = self.__get_last_version_from_db(db)
+                if data is not None:
+                    data_is_empty = False
+                    self.last_version_data = self.__prepare_json_out(data.pv_1,
+                                                                     data.pv_2,
+                                                                     data.pv_3,
+                                                                     data.pv_4,
+                                                                     data.pv_5,
+                                                                     data.time_created)
+                    self.last_version_scan_datetime = data.time_created
+            # Verify the data
+            if not in_memory:
+                if len(self.last_version_data) > 0:
+                    data_is_empty = False
+                    in_memory = not (await self.__is_elapsed_time_to_scrapy())
 
-        self.print_ls.info(f"Dict {'is empty' if data_is_empty else 'is not empty'} and use memory {in_memory}")
+            self.print_ls.info(f"Dict {'is empty' if data_is_empty else 'is not empty'} and use memory {in_memory}")
+        else:
+            self.print_ls.info(f"Force scrapy data")
 
         if in_memory:
             self.print_ls.info(f"get in-memory data (no scrapy is done). "
