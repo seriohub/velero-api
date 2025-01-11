@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ***
 
-## [v0.1.20] - 2024-01-11
+## [v0.1.20] - 2025-01-11
 
 - Fix watchdog sync call
 - Added forced Scrapy repository version from GitHub
