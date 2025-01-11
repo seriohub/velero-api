@@ -48,8 +48,9 @@ class Info:
         return JSONResponse(content=response.toJSON(), status_code=200)
 
     @handle_exceptions_controller
-    async def last_tags_from_github(self, db: SessionLocal):
+    async def last_tags_from_github(self, force_refresh: bool, db: SessionLocal):
         payload = await infoService.last_tags_from_github(db,
+                                                          force_refresh=force_refresh,
                                                           check_version=True)
 
         if not payload['success']:
@@ -60,8 +61,9 @@ class Info:
         return JSONResponse(content=response.toJSON(), status_code=200)
 
     @handle_exceptions_controller
-    async def last_tag_velero_from_github(self, db: SessionLocal):
+    async def last_tag_velero_from_github(self, force_refresh: bool, db: SessionLocal):
         payload = await infoService.last_tags_from_github(db,
+                                                          force_refresh=force_refresh,
                                                           check_version=True,
                                                           only_velero=True)
 

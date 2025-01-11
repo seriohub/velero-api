@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 
 ***
+
+## [v0.1.20] - 2024-01-11
+
+- Fix watchdog sync call
+- Added forced Scrapy repository version from GitHub
+
 ## [v0.1.19] - 2024-12-15
 
 - authentication error fixed
@@ -129,6 +135,12 @@ All notable changes to this project will be documented in this file.
 
 
 ***
+
+[v0.1.20] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.20](https://github.com/seriohub/velero-api/releases/tag/v0.1.20)
+
+[v0.1.19] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.19](https://github.com/seriohub/velero-api/releases/tag/v0.1.19)
+
+[v0.1.18] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.18](https://github.com/seriohub/velero-api/releases/tag/v0.1.18)
 
 [v0.1.17] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.17](https://github.com/seriohub/velero-api/releases/tag/v0.1.17)
 
