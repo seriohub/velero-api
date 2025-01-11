@@ -314,7 +314,7 @@ class InfoService:
         self.print_ls.info(f"ui_compatibility version :{version}")
 
         # avoid error in developer mode
-        if version == "dev":
+        if version == "dev" or version == "local dev":
             output = {'compatibility': True}
             return {'success': True, 'data': output}
 
