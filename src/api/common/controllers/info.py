@@ -1,6 +1,5 @@
 from fastapi.responses import JSONResponse
 
-from helpers.printer import PrintHelper
 from security.helpers.database import SessionLocal
 from utils.handle_exceptions import handle_exceptions_controller
 from core.config import ConfigHelper
@@ -34,17 +33,6 @@ class Info:
         payload = configApp.get_origins()
 
         response = SuccessfulRequest(payload=payload)
-        return JSONResponse(content=response.toJSON(), status_code=200)
-
-    @handle_exceptions_controller
-    async def watchdog_online(self):
-        payload = await watchdog.online()
-
-        if not payload['success']:
-            response = FailedRequest(**payload['error'])
-            return JSONResponse(content=response.toJSON(), status_code=400)
-
-        response = SuccessfulRequest(payload=payload['data'])
         return JSONResponse(content=response.toJSON(), status_code=200)
 
     @handle_exceptions_controller

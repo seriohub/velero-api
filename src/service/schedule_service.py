@@ -2,9 +2,12 @@ import json
 import os
 
 from utils.process import run_process_check_output, run_process_check_call
-from utils.commons import add_id_to_list, parse_create_parameters, convert_to_list
+from utils.commons import parse_create_parameters, convert_to_list
 from utils.handle_exceptions import handle_exceptions_async_method
 
+from service.k8s_service import K8sService
+
+k8s = K8sService()
 
 class ScheduleService:
 
@@ -21,7 +24,7 @@ class ScheduleService:
         schedules = json.loads(output['data'])
         schedules = convert_to_list(schedules)
 
-        add_id_to_list(schedules['items'])
+        # add_id_to_list(schedules['items'])
 
         return {'success': True, 'data': schedules['items']}
 
@@ -79,3 +82,11 @@ class ScheduleService:
             return output
 
         return {'success': True}
+
+    @handle_exceptions_async_method
+    async def update(self, new_data):
+        return await k8s.update_velero_schedule(new_data=new_data)
+
+    # @handle_exceptions_async_method
+    # async def get_manifest(self, schedule_name):
+    #     return await k8s.get_backup_manifest(resource_type="schedules", resource_name=schedule_name)

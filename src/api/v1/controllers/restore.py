@@ -9,6 +9,10 @@ from api.common.response_model.message import Message
 
 from service.restore_service import RestoreService
 
+from api.v1.schemas.delete_restore import DeleteRestore
+from api.v1.schemas.create_restore import CreateRestore
+
+
 serviceRestore = RestoreService()
 
 class Restore:
@@ -25,28 +29,28 @@ class Restore:
         return JSONResponse(content=response.toJSON(), status_code=200)
 
     @handle_exceptions_controller
-    async def create(self, req_info):
-        resource_type = req_info['resource_type']
-        backup_name = req_info['resource_name']
+    async def create(self, create_restore: CreateRestore):
+        # resource_type = req_info['resource_type']
+        # backup_name = req_info['resource_name']
 
-        if backup_name == '':
+        if create_restore.resourceName == '':
             failed_response = FailedRequest(title="Error",
                                             description="Invalid request. You can only provide a backup name.")
             return JSONResponse(content=failed_response.toJSON(), status_code=400)
 
-        if not is_valid_name(backup_name):
+        if not is_valid_name(create_restore.resourceName):
             failed_response = FailedRequest(title="Error",
                                             description="Invalid resource name.")
             return JSONResponse(content=failed_response.toJSON(), status_code=400)
 
-        payload = await serviceRestore.create(req_info=req_info)
+        payload = await serviceRestore.create(create_restore=create_restore)
 
         if not payload['success']:
             response = FailedRequest(**payload['error'])
             return JSONResponse(content=response.toJSON(), status_code=400)
 
         msg = Message(title='Create Restore',
-                      description=f"Restore from {resource_type} {backup_name} created successfully",
+                      description=f"Restore from {create_restore.resourceType} {create_restore.resourceName} created successfully",
                       type='INFO')
         response = SuccessfulRequest(notifications=[msg.toJSON()])
         return JSONResponse(content=response.toJSON(), status_code=201)
@@ -84,20 +88,20 @@ class Restore:
         return JSONResponse(content=response.toJSON(), status_code=200)
 
     @handle_exceptions_controller
-    async def delete(self, restore_name):
-        if not restore_name:
+    async def delete(self, delete_restore: DeleteRestore):
+        if not delete_restore.resourceName:
             failed_response = FailedRequest(title="Error",
                                             description="Restore name is required.")
             return JSONResponse(content=failed_response.toJSON(), status_code=400)
 
-        payload = await serviceRestore.delete(restore_name=restore_name)
+        payload = await serviceRestore.delete(restore_name=delete_restore.resourceName)
 
         if not payload['success']:
             response = FailedRequest(**payload['error'])
             return JSONResponse(content=response.toJSON(), status_code=400)
 
         msg = Message(title='Delete restore',
-                      description=f"Restore {restore_name} deleted request done!",
+                      description=f"Restore {delete_restore.resourceName} deleted request done!",
                       type='INFO')
         response = SuccessfulRequest(notifications=[msg.toJSON()])
         return JSONResponse(content=response.toJSON(), status_code=200)

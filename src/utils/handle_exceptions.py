@@ -3,7 +3,8 @@ from functools import wraps
 import traceback
 from fastapi.responses import JSONResponse
 import os
-#import sentry_sdk
+
+# import sentry_sdk
 
 # def handle_exceptions_instance_method(fn):
 #     from functools import wraps
@@ -57,7 +58,7 @@ import os
 #     return wrapper
 
 
-# ok per service
+# for service
 def handle_exceptions_async_method(fn):
     @wraps(fn)
     async def wrapper(*args, **kw):

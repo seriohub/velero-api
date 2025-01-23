@@ -1,4 +1,4 @@
-import re
+# import re
 import uuid
 
 from sqlalchemy import create_engine, Column, String, Boolean, DateTime as DateTimeA, ForeignKey, orm
@@ -8,7 +8,7 @@ from sqlalchemy.sql import func
 
 from core.config import ConfigHelper
 from helpers.database import GUID
-from sqlalchemy.dialects.postgresql import UUID
+# from sqlalchemy.dialects.postgresql import UUID
 
 from helpers.printer import PrintHelper
 

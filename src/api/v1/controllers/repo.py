@@ -1,3 +1,4 @@
+import os
 from fastapi.responses import JSONResponse
 
 from utils.handle_exceptions import handle_exceptions_controller
@@ -6,10 +7,15 @@ from api.common.response_model.successful_request import SuccessfulRequest
 from api.common.response_model.failed_request import FailedRequest
 from api.common.response_model.message import Message
 
+from api.v1.schemas.unlock_restic_repo import UnlockResticRepo
+
 from service.repo_service import RepoService
+from service.backup_location_service import BackupLocationService
+from service.k8s_service import K8sService
 
 repoService = RepoService()
-
+bSL = BackupLocationService()
+k8s = K8sService()
 
 class Repo:
 
@@ -47,8 +53,25 @@ class Repo:
         return JSONResponse(content=response.toJSON(), status_code=200)
 
     @handle_exceptions_controller
-    async def get_locks(self, repository_url):
-        payload = await repoService.get_locks(repository_url)
+    async def get_locks(self, bsl, repository_url):
+        # output = await bSL.get(backup_storage_location=bsl)
+        # bs = output['data'][0]
+        # print(bs)
+        # if 'credentials' in bs['spec']:
+        #     secret_name = bs['spec']['credentials']['name']
+        #     secret_key = bs['spec']['credentials']['key']
+        #     credentials = await k8s.get_credential(secret_name, secret_key)
+        # else:
+        #     credentials = await k8s.get_default_credential()
+        #
+        # credentials = credentials['data']
+        aws_access_key_id, aws_secret_access_key = await bSL.credentials(backup_storage_location=bsl)
+        env = {
+            **os.environ,
+            "AWS_ACCESS_KEY_ID": aws_access_key_id,
+            "AWS_SECRET_ACCESS_KEY": aws_secret_access_key
+        }
+        payload = await repoService.get_locks(env, repository_url)
 
         if not payload['success']:
             response = FailedRequest(**payload['error'])
@@ -62,8 +85,15 @@ class Repo:
         return JSONResponse(content=response.toJSON(), status_code=200)
 
     @handle_exceptions_controller
-    async def unlock(self, repository_url, remove_all):
-        payload = await repoService.unlock(repository_url, remove_all)
+    async def unlock(self, unlock_repo: UnlockResticRepo):
+
+        aws_access_key_id, aws_secret_access_key = await bSL.credentials(backup_storage_location=unlock_repo.bsl)
+        env = {
+            **os.environ,
+            "AWS_ACCESS_KEY_ID": aws_access_key_id,
+            "AWS_SECRET_ACCESS_KEY": aws_secret_access_key
+        }
+        payload = await repoService.unlock(env, unlock_repo.bsl, unlock_repo.repositoryUrl, unlock_repo.removeAll)
 
         if not payload['success']:
             response = FailedRequest(**payload['error'])
@@ -73,8 +103,15 @@ class Repo:
         return JSONResponse(content=response.toJSON(), status_code=200)
 
     @handle_exceptions_controller
-    async def check(self, repository_url):
-        payload = await repoService.check(repository_url)
+    async def check(self, bsl, repository_url):
+
+        aws_access_key_id, aws_secret_access_key = await bSL.credentials(backup_storage_location=bsl)
+        env = {
+            **os.environ,
+            "AWS_ACCESS_KEY_ID": aws_access_key_id,
+            "AWS_SECRET_ACCESS_KEY": aws_secret_access_key
+        }
+        payload = await repoService.check(env, repository_url)
 
         if not payload['success']:
             response = FailedRequest(**payload['error'])

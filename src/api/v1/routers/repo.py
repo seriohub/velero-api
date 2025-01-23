@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Request, Depends, status
 from typing import Union
 
 from core.config import ConfigHelper
@@ -13,6 +13,8 @@ from api.common.response_model.successful_request import SuccessfulRequest
 
 from api.v1.controllers.repo import Repo
 
+from api.v1.schemas.unlock_restic_repo import UnlockResticRepo
+
 router = APIRouter()
 repo = Repo()
 config_app = ConfigHelper()
@@ -26,19 +28,17 @@ endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')
 
-limiter = endpoint_limiter.get_limiter_cust("repo_get")
-route = '/repo/get'
-
-
+limiter_repos = endpoint_limiter.get_limiter_cust("repos")
+route = '/repos'
 @router.get(path=route,
             tags=[tag_name],
             summary='Get backups repository',
             description=route_description(tag=tag_name,
                                           route=route,
-                                          limiter_calls=limiter.max_request,
-                                          limiter_seconds=limiter.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                              max_requests=limiter.max_request))],
+                                          limiter_calls=limiter_repos.max_request,
+                                          limiter_seconds=limiter_repos.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_repos.seconds,
+                                              max_requests=limiter_repos.max_request))],
             response_model=Union[SuccessfulRequest, FailedRequest],
             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
@@ -46,19 +46,17 @@ async def get():
     return await repo.get()
 
 
-limiter = endpoint_limiter.get_limiter_cust("repo_size_get")
-route = '/repo/size/get'
-
-
+limiter_size = endpoint_limiter.get_limiter_cust("repo_size")
+route = '/repo/size'
 @router.get(path=route,
             tags=[tag_name],
             summary='Get size (Mb) of a repository',
             description=route_description(tag=tag_name,
                                           route=route,
-                                          limiter_calls=limiter.max_request,
-                                          limiter_seconds=limiter.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                              max_requests=limiter.max_request))],
+                                          limiter_calls=limiter_size.max_request,
+                                          limiter_seconds=limiter_size.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_size.seconds,
+                                              max_requests=limiter_size.max_request))],
             response_model=Union[SuccessfulRequest, FailedRequest],
             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
@@ -76,61 +74,55 @@ async def get(repository_url: str = None,
                                       )
 
 
-limiter = endpoint_limiter.get_limiter_cust("repo_lock_check")
-route = '/repo/locks/get'
-
-
+limiter_locks = endpoint_limiter.get_limiter_cust("repo_lock_check")
+route = '/repo/locks'
 @router.get(path=route,
             tags=[tag_name],
             summary='Get repository locks',
             description=route_description(tag=tag_name,
                                           route=route,
-                                          limiter_calls=limiter.max_request,
-                                          limiter_seconds=limiter.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                              max_requests=limiter.max_request))],
+                                          limiter_calls=limiter_locks.max_request,
+                                          limiter_seconds=limiter_locks.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_locks.seconds,
+                                              max_requests=limiter_locks.max_request))],
             response_model=Union[SuccessfulRequest, FailedRequest],
             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def get(repository_url: str = None):
-    return await repo.get_locks(repository_url)
+async def get_locks(bsl: str, repository_url: str = None):
+    return await repo.get_locks(bsl, repository_url)
 
 
-limiter = endpoint_limiter.get_limiter_cust("repo_unlock")
+limiter_unlock = endpoint_limiter.get_limiter_cust("repo_unlock")
 route = '/repo/unlock'
-
-
-@router.get(path=route,
-            tags=[tag_name],
-            summary='Unlock restic repository',
-            description=route_description(tag=tag_name,
-                                          route=route,
-                                          limiter_calls=limiter.max_request,
-                                          limiter_seconds=limiter.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                              max_requests=limiter.max_request))],
-            response_model=Union[SuccessfulRequest, FailedRequest],
-            status_code=status.HTTP_200_OK)
+@router.post(path=route,
+             tags=[tag_name],
+             summary='Unlock restic repository',
+             description=route_description(tag=tag_name,
+                                           route=route,
+                                           limiter_calls=limiter_unlock.max_request,
+                                           limiter_seconds=limiter_unlock.seconds),
+             dependencies=[Depends(RateLimiter(interval_seconds=limiter_unlock.seconds,
+                                               max_requests=limiter_unlock.max_request))],
+             response_model=Union[SuccessfulRequest, FailedRequest],
+             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def get(repository_url: str = None, remove_all: bool = False):
-    return await repo.unlock(repository_url, remove_all)
+async def unlock(unlock_repo: UnlockResticRepo):
+    return await repo.unlock(unlock_repo=unlock_repo)
 
 
-limiter = endpoint_limiter.get_limiter_cust("repo_check")
+limiter_check = endpoint_limiter.get_limiter_cust("repo_check")
 route = '/repo/check'
-
-
 @router.get(path=route,
             tags=[tag_name],
             summary='Check restic repository',
             description=route_description(tag=tag_name,
                                           route=route,
-                                          limiter_calls=limiter.max_request,
-                                          limiter_seconds=limiter.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                              max_requests=limiter.max_request))],
+                                          limiter_calls=limiter_check.max_request,
+                                          limiter_seconds=limiter_check.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_check.seconds,
+                                              max_requests=limiter_check.max_request))],
             response_model=Union[SuccessfulRequest, FailedRequest],
             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def check(repository_url: str = None):
-    return await repo.check(repository_url)
+async def check(bsl: str, repository_url: str = None):
+    return await repo.check(bsl, repository_url)

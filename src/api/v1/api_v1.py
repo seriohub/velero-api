@@ -1,8 +1,8 @@
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from fastapi import FastAPI, Depends, APIRouter
 # from helpers.printer import PrintHelper
-from core.config import ConfigHelper
-from fastapi.responses import JSONResponse
+# from core.config import ConfigHelper
+# from fastapi.responses import JSONResponse
 
 from api.v1.routers import (sc_mapping,
                             repo,
@@ -14,10 +14,11 @@ from api.v1.routers import (sc_mapping,
                             schedule,
                             backup_location,
                             setup,
-                            watchdog)
+                            watchdog,
+                            pod_volume_backup)
 from security.routers import authentication, user
 
-from app_data import __version__, __app_name__, __app_description__, __app_summary__
+# from app_data import __version__, __app_name__, __app_description__, __app_summary__
 from security.service.helpers.users import get_current_active_user
 
 
@@ -76,6 +77,8 @@ v1.include_router(repo.router,
 v1.include_router(backup_location.router,
                   dependencies=[Depends(get_current_active_user)])
 v1.include_router(snapshot_location.router,
+                  dependencies=[Depends(get_current_active_user)])
+v1.include_router(pod_volume_backup.router,
                   dependencies=[Depends(get_current_active_user)])
 v1.include_router(sc_mapping.router,
                   dependencies=[Depends(get_current_active_user)])

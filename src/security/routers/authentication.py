@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi import APIRouter
-from requests import Response
-from sqlalchemy.ext.asyncio import AsyncSession
+# from requests import Response
+# from sqlalchemy.ext.asyncio import AsyncSession
 
 # from fastapi.security import OAuth2PasswordRequestForm
 from security.helpers.request import OAuth2PasswordAndRefreshRequestForm
@@ -15,7 +15,7 @@ from utils.commons import route_description
 from helpers.printer import PrintHelper
 
 from core.config import ConfigHelper
-from utils.handle_exceptions import handle_exceptions_async_method
+# from utils.handle_exceptions import handle_exceptions_async_method
 
 config = ConfigHelper()
 router = APIRouter()
@@ -32,8 +32,6 @@ endpoint_limiter = LimiterRequests(printer=print_ls,
 
 limiter = endpoint_limiter.get_limiter_cust('token')
 route = '/token'
-
-
 @router.post(path=route,
              tags=[tag_name],
              summary='Release a new token',

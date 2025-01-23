@@ -4,7 +4,8 @@
     
     {
         "data": {
-            ...
+            "payload": ...,
+            "metadata": ...,
         }
     }
 

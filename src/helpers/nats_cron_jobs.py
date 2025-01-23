@@ -1,6 +1,6 @@
-from fastapi import WebSocket, WebSocketDisconnect
-from typing import Dict
-import json
+# from fastapi import WebSocket, WebSocketDisconnect
+# from typing import Dict
+# import json
 
 from core.config import ConfigHelper
 from helpers.nats_cron_job import NatsCronJob
@@ -18,39 +18,39 @@ class NatsCronJobs:
 
     def __init_default_api(self):
         self.print_ls.debug(f"__init_default_api")
-        self.add_job(endpoint="/v1/stats/get",
+        self.add_job(endpoint="/v1/stats",
                      credential=True,
                      interval=config.get_nats_cron_update_sec_statistic())
 
-        self.add_job(endpoint="/info/health-k8s",
+        self.add_job(endpoint="/health/k8s",
                      credential=False,
                      interval=config.get_nats_cron_update_sec_statistic())
 
-        self.add_job(endpoint="/v1/backup/get",
+        self.add_job(endpoint="/v1/backups",
                      credential=True,
                      interval=config.get_nats_cron_update_sec_backup())
 
-        self.add_job(endpoint="/v1/restore/get",
+        self.add_job(endpoint="/v1/restores",
                      credential=True,
                      interval=config.get_nats_cron_update_sec_restore())
 
-        self.add_job(endpoint="/v1/schedule/get",
+        self.add_job(endpoint="/v1/schedules",
                      credential=True,
                      interval=config.get_nats_cron_update_sec_schedules())
 
-        self.add_job(endpoint="/v1/backup-location/get",
+        self.add_job(endpoint="/v1/bsl",
                      credential=True,
                      interval=config.get_nats_cron_update_sec_backup_location())
 
-        self.add_job(endpoint="/v1/snapshot-location/get",
+        self.add_job(endpoint="/v1/vsl",
                      credential=True,
                      interval=config.get_nats_cron_update_sec_storage_location())
 
-        self.add_job(endpoint="/v1/repo/get",
+        self.add_job(endpoint="/v1/repos",
                      credential=True,
                      interval=config.get_nats_cron_update_sec_repositories())
 
-        self.add_job(endpoint="/v1/sc/change-storage-classes-config-map/get",
+        self.add_job(endpoint="/v1/sc-mapping",
                      credential=True,
                      interval=config.get_nats_cron_update_sec_sc_mapping())
 

@@ -2,6 +2,7 @@ import subprocess
 import asyncio
 import json
 from fastapi import WebSocketDisconnect
+import os
 
 from core.config import ConfigHelper
 from core.context import current_user_var, cp_user
@@ -16,8 +17,8 @@ if config.get_enable_nats():
 print_ls = PrintHelper('[bash tracer]',
                        level=config.get_internal_log_level())
 
-async def send_message(message):
 
+async def send_message(message):
     try:
         print_ls.debug(message)
         # await manager.broadcast(message)
@@ -42,7 +43,7 @@ async def send_message(message):
         print_ls.error('send message error')
 
 
-async def run_process_check_output(cmd, publish_message=True, cwd='./'):
+async def run_process_check_output(cmd, publish_message=True, cwd='./', env=None):
     try:
         output = ''
         if publish_message:
@@ -55,7 +56,8 @@ async def run_process_check_output(cmd, publish_message=True, cwd='./'):
         process = await asyncio.create_subprocess_exec(*cmd,
                                                        stdout=asyncio.subprocess.PIPE,
                                                        stderr=asyncio.subprocess.STDOUT,
-                                                       cwd=cwd)
+                                                       cwd=cwd,
+                                                       env={**os.environ} if not env else env)
 
         # Wait for the process to complete and capture the output
         stdout, stderr = await process.communicate()
@@ -76,7 +78,8 @@ async def run_process_check_output(cmd, publish_message=True, cwd='./'):
         # print("Error", e)
         print_ls.error("Error" + str(e))
         error = {'success': False, 'error': {'title': 'Run Process Check Output Error',
-                                             'description': str(' '.join(cmd)) + '\n' + str(e.stderr.decode('utf-8').strip())
+                                             'description': str(' '.join(cmd)) + '\n' + str(
+                                                 e.stderr.decode('utf-8').strip())
                                              }
                  }
         return error
@@ -100,7 +103,7 @@ async def run_process_check_call(cmd, publish_message=True):
         # Starts the secondary process asynchronously
         process = await asyncio.create_subprocess_exec(*cmd,
                                                        stdout=asyncio.subprocess.PIPE,
-                                                       stderr=asyncio.subprocess.STDOUT,)
+                                                       stderr=asyncio.subprocess.STDOUT, )
 
         # Wait for the completion of the process
         await process.wait()

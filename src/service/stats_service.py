@@ -40,7 +40,7 @@ class StatsService:
         failed_count = len(failed)
 
         deleting = [x for x in resources if
-                    'status' in x and 'phase' in x['status'] and x['status']['phase'] == 'deleting']
+                    'status' in x and 'phase' in x['status'] and x['status']['phase'] == 'Deleting']
         deleting_count = len(deleting)
 
         failed_validation = [x for x in resources if

@@ -1,13 +1,13 @@
 from fastapi import FastAPI, APIRouter
-from fastapi.middleware.cors import CORSMiddleware
+# from fastapi.middleware.cors import CORSMiddleware
 
-from api.common.routers import info, health
+from api.common.routers import info, health, agent
 
-from app_data import __version__, __app_name__, __app_description__, __app_summary__
+# from app_data import __version__, __app_name__, __app_description__, __app_summary__
 
-from core.config import ConfigHelper
+# from core.config import ConfigHelper
 
-config = ConfigHelper()
+# config = ConfigHelper()
 appInfo = APIRouter()
 # # docs and redoc
 # docs_url = '/docs'
@@ -40,5 +40,6 @@ appInfo = APIRouter()
 # )
 #
 
+# appInfo.include_router(health.router)
 appInfo.include_router(info.router)
-appInfo.include_router(health.router)
+appInfo.include_router(agent.router)

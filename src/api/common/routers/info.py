@@ -39,25 +39,25 @@ config_app = ConfigHelper()
 print_ls = PrintHelper('[common.routers.info]',
                        level=config_app.get_internal_log_level())
 
-tag_name = "Agent info"
+tag_name = "Info"
 
 endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')
-limiter = endpoint_limiter.get_limiter_cust('info')
-route = '/get'
 
 
+limiter_app = endpoint_limiter.get_limiter_cust('info_app')
+route = '/app'
 @router.get(path=route,
             tags=[tag_name],
             summary='Get app info',
             description=route_description(tag=tag_name,
                                           route=route,
-                                          limiter_calls=limiter.max_request,
-                                          limiter_seconds=limiter.seconds),
+                                          limiter_calls=limiter_app.max_request,
+                                          limiter_seconds=limiter_app.seconds),
 
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                              max_requests=limiter.max_request))],
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_app.seconds,
+                                              max_requests=limiter_app.max_request))],
             response_model=Union[SuccessfulRequest, FailedRequest],
             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
@@ -81,23 +81,18 @@ async def get_app_info():
     return JSONResponse(content=response.toJSON(), status_code=200)
 
 
-endpoint_limiter = LimiterRequests(printer=print_ls,
-                                   tags=tag_name,
-                                   default_key='L1')
-limiter = endpoint_limiter.get_limiter_cust('platform')
+limiter_arch = endpoint_limiter.get_limiter_cust('info_arch')
 route = '/arch'
-
-
 @router.get(path=route,
             tags=[tag_name],
             summary='Get app identify api architecture',
             description=route_description(tag=tag_name,
                                           route=route,
-                                          limiter_calls=limiter.max_request,
-                                          limiter_seconds=limiter.seconds),
+                                          limiter_calls=limiter_arch.max_request,
+                                          limiter_seconds=limiter_arch.seconds),
 
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                              max_requests=limiter.max_request))],
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_arch.seconds,
+                                              max_requests=limiter_arch.max_request))],
             response_model=Union[SuccessfulRequest, FailedRequest],
             status_code=status.HTTP_200_OK
             )
@@ -108,8 +103,6 @@ async def get_architecture():
 
 limiter_origins = endpoint_limiter.get_limiter_cust('info_origins')
 route = '/origins'
-
-
 @router.get(path=route,
             tags=[tag_name],
             summary='Get api origins',
@@ -126,40 +119,38 @@ async def k8s_nodes_origins():
     return await info.get_origins()
 
 
-limiter_origins = endpoint_limiter.get_limiter_cust('info_watchdog')
-
-route = '/watchdog'
-
-
+limiter_comp = endpoint_limiter.get_limiter_cust('info_compatibility_table')
+route = '/compatibility-table'
 @router.get(path=route,
             tags=[tag_name],
-            summary='Get info watchdog',
+            summary='Obtain compatibility of the user interface version with the other components of the project.',
             description=route_description(tag=tag_name,
                                           route=route,
-                                          limiter_calls=limiter_origins.max_request,
-                                          limiter_seconds=limiter_origins.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_origins.seconds,
-                                              max_requests=limiter_origins.max_request))],
+                                          limiter_calls=limiter_comp.max_request,
+                                          limiter_seconds=limiter_comp.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_comp.seconds,
+                                              max_requests=limiter_comp.max_request))],
             response_model=Union[SuccessfulRequest, FailedRequest],
             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def watchdog_config():
-    return await info.watchdog_online()
+async def ui_compatibility(version: str):
+    return await info.ui_compatibility(version)
 
 
-limiter_origins = endpoint_limiter.get_limiter_cust('info_get_repo_tags')
-route = '/get-repo-tags'
+tag_name = "Info software versions"
 
 
+limiter_vui_repo_tags = endpoint_limiter.get_limiter_cust('info_vui_repo_tags')
+route = '/vui-repo-tags'
 @router.get(path=route,
             tags=[tag_name],
-            summary='Get the latest tag from GitHub for projects affected by velero-api',
+            summary='Get the latest tag from GitHub for vui projects',
             description=route_description(tag=tag_name,
                                           route=route,
-                                          limiter_calls=limiter_origins.max_request,
-                                          limiter_seconds=limiter_origins.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_origins.seconds,
-                                              max_requests=limiter_origins.max_request))],
+                                          limiter_calls=limiter_vui_repo_tags.max_request,
+                                          limiter_seconds=limiter_vui_repo_tags.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_vui_repo_tags.seconds,
+                                              max_requests=limiter_vui_repo_tags.max_request))],
             response_model=Union[SuccessfulRequest, FailedRequest],
             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
@@ -167,43 +158,21 @@ async def repository_tags(force_scrapy: bool = False, db: Session = Depends(get_
     return await info.last_tags_from_github(force_refresh=force_scrapy,
                                             db=db)
 
-# LS 2024.12.12 retrieve latest version of Velero
-limiter_origins = endpoint_limiter.get_limiter_cust('info_get_repo_velero_tag')
-route = '/get-repo-velero-tag'
 
-
+limiter_velero_repo_tags = endpoint_limiter.get_limiter_cust('info_velero_repo_tag')
+route = '/velero-repo-tag'
 @router.get(path=route,
             tags=[tag_name],
             summary='Get the latest tag from GitHub for Velero project',
             description=route_description(tag=tag_name,
                                           route=route,
-                                          limiter_calls=limiter_origins.max_request,
-                                          limiter_seconds=limiter_origins.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_origins.seconds,
-                                              max_requests=limiter_origins.max_request))],
+                                          limiter_calls=limiter_velero_repo_tags.max_request,
+                                          limiter_seconds=limiter_velero_repo_tags.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_velero_repo_tags.seconds,
+                                              max_requests=limiter_velero_repo_tags.max_request))],
             response_model=Union[SuccessfulRequest, FailedRequest],
             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
 async def repository_velero_tag(force_scrapy: bool = False, db: Session = Depends(get_db)):
     return await info.last_tag_velero_from_github(force_refresh=force_scrapy,
                                                   db=db)
-
-
-limiter_origins = endpoint_limiter.get_limiter_cust('get_ui_comp')
-route = '/get-ui-comp'
-
-
-@router.get(path=route,
-            tags=[tag_name],
-            summary='Obtain compatibility of the user interface version with the other components of the project.',
-            description=route_description(tag=tag_name,
-                                          route=route,
-                                          limiter_calls=limiter_origins.max_request,
-                                          limiter_seconds=limiter_origins.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_origins.seconds,
-                                              max_requests=limiter_origins.max_request))],
-            response_model=Union[SuccessfulRequest, FailedRequest],
-            status_code=status.HTTP_200_OK)
-@handle_exceptions_endpoint
-async def ui_compatibility(version: str):
-    return await info.ui_compatibility(version)

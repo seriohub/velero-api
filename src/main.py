@@ -1,4 +1,4 @@
-import os
+# import os
 
 import uvicorn
 import asyncio
@@ -16,6 +16,8 @@ from helpers.velero_client import VeleroClient
 from helpers.printer import PrintHelper
 
 from core.config import ConfigHelper
+
+import uvicorn_filter
 
 # import sentry_sdk
 #

@@ -2,23 +2,23 @@ import os
 import shutil
 import json
 import re
-import time
+# import time
 
 from kubernetes import client, config
 
 from core.config import ConfigHelper
 
-from utils.commons import filter_in_progress, add_id_to_list, logs_string_to_list, parse_create_parameters, extract_path
+from utils.commons import filter_in_progress, logs_string_to_list, parse_create_parameters, extract_path
 from utils.process import run_process_check_output, run_process_check_call
 from utils.handle_exceptions import handle_exceptions_async_method
 
 from helpers.printer import PrintHelper
 from utils.commons import convert_to_list
-from service.k8s_service import K8sService
 
+from service.k8s_service import K8sService
 from service.backup_location_service import BackupLocationService
 from service.snapshot_location_service import SnapshotLocationService
-
+from api.v1.schemas.create_backup import CreateBackup
 
 k8sService = K8sService()
 backupLocation = BackupLocationService()
@@ -72,19 +72,16 @@ class BackupService:
                                   'metadata' in item and 'name' in item['metadata']]
         valid_resources = (await k8sService.get_resources())['data']
 
-        output = {'namespaces': namespaces,
-                  'backup_location': backup_location_list,
-                  'snapshot_location': snapshot_location_list,
-                  'resources': valid_resources
-                  }
+        output = {'namespaces': namespaces, 'backup_location': backup_location_list,
+                  'snapshot_location': snapshot_location_list, 'resources': valid_resources}
 
         return {'success': True, 'data': output}
 
     @handle_exceptions_async_method
     async def get(self, schedule_name=None, only_last_for_schedule=False, in_progress=False, publish_message=True):
-        output = await run_process_check_output(['velero', 'backup', 'get', '-o', 'json',
-                                                 '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')],
-                                                publish_message=publish_message)
+        output = await run_process_check_output(
+            ['velero', 'backup', 'get', '-o', 'json', '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')],
+            publish_message=publish_message)
         # output2 = k8sService.get_velero_backups()
 
         if not output['success']:
@@ -104,15 +101,15 @@ class BackupService:
         if in_progress:
             backups['items'] = filter_in_progress(backups['items'])
 
-        add_id_to_list(backups['items'])
+        # add_id_to_list(backups['items'])
 
         return {'success': True, 'data': backups['items']}
 
     @handle_exceptions_async_method
     async def logs(self, backup_name):
 
-        output = await run_process_check_output(['velero', 'backup', 'logs', backup_name,
-                                                 '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')])
+        output = await run_process_check_output(
+            ['velero', 'backup', 'logs', backup_name, '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')])
         if not output['success']:
             return output
 
@@ -120,10 +117,9 @@ class BackupService:
 
     @handle_exceptions_async_method
     async def describe(self, backup_name):
-
-        output = await run_process_check_output(['velero', 'backup', 'describe', backup_name,
-                                                 '--colorized=false', '--details', '-o', 'json',
-                                                 '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')])
+        output = await run_process_check_output(
+            ['velero', 'backup', 'describe', backup_name, '--colorized=false', '--details', '-o', 'json', '-n',
+             os.getenv('K8S_VELERO_NAMESPACE', 'velero')])
         if not output['success']:
             return output
 
@@ -132,18 +128,17 @@ class BackupService:
     @handle_exceptions_async_method
     async def delete(self, backup_name):
 
-        output = await run_process_check_call(['velero', 'backup', 'delete', backup_name, '--confirm',
-                                               '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')])
+        output = await run_process_check_call(
+            ['velero', 'backup', 'delete', backup_name, '--confirm', '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')])
         if not output['success']:
             return output
 
         return {'success': True}
 
     @handle_exceptions_async_method
-    async def create(self, info):
+    async def create(self, info: CreateBackup):
 
-        cmd = ['velero', 'backup', 'create', info.name,
-               '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')]
+        cmd = ['velero', 'backup', 'create', info.name, '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')]
 
         cmd += parse_create_parameters(info)
 
@@ -154,9 +149,9 @@ class BackupService:
         return {'success': True}
 
     @handle_exceptions_async_method
-    async def create_from_schedule(self, info):
-        cmd = ['velero', 'backup', 'create', '--from-schedule', info['scheduleName'],
-               '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')]
+    async def create_from_schedule(self, schedule_name):
+        cmd = ['velero', 'backup', 'create', '--from-schedule', schedule_name, '-n',
+               os.getenv('K8S_VELERO_NAMESPACE', 'velero')]
 
         output = await run_process_check_call(cmd)
         if not output['success']:
@@ -175,26 +170,15 @@ class BackupService:
         resource = 'backups'
 
         # get backup object
-        backup = api_instance.get_namespaced_custom_object(
-            group='velero.io',
-            version='v1',
-            namespace=namespace,
-            plural=resource,
-            name=backup_name,
-        )
+        backup = api_instance.get_namespaced_custom_object(group='velero.io', version='v1', namespace=namespace,
+                                                           plural=resource, name=backup_name, )
 
         # edit ttl field
         backup['status']['expiration'] = expiration
 
         # update ttl field
-        api_instance.replace_namespaced_custom_object(
-            group='velero.io',
-            version='v1',
-            namespace=namespace,
-            plural=resource,
-            name=backup_name,
-            body=backup,
-        )
+        api_instance.replace_namespaced_custom_object(group='velero.io', version='v1', namespace=namespace,
+                                                      plural=resource, name=backup_name, body=backup, )
 
         return {'success': True}
 
@@ -211,13 +195,8 @@ class BackupService:
         resource = 'backups'
 
         # get backup object
-        backup = api_instance.get_namespaced_custom_object(
-            group="velero.io",
-            version="v1",
-            namespace=namespace,
-            plural=resource,
-            name=backup_name,
-        )
+        backup = api_instance.get_namespaced_custom_object(group="velero.io", version="v1", namespace=namespace,
+                                                           plural=resource, name=backup_name, )
         return {'success': True, 'data': backup['status']['expiration']}
 
     @handle_exceptions_async_method
@@ -235,8 +214,7 @@ class BackupService:
         if os.path.exists(path):
             shutil.rmtree(path)
         # download all kubernetes manifests for a backup
-        cmd = ['velero', 'backup', 'download', backup_name,
-               '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')]
+        cmd = ['velero', 'backup', 'download', backup_name, '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')]
 
         output = await run_process_check_output(cmd, cwd=tmp_folder)
         if not output['success']:
@@ -254,7 +232,8 @@ class BackupService:
             return output
 
         # extract pvc data
-        persistent_volume_claims = os.path.join(tmp_folder, backup_name, 'resources', 'persistentvolumeclaims', 'namespaces')
+        persistent_volume_claims = os.path.join(tmp_folder, backup_name, 'resources', 'persistentvolumeclaims',
+                                                'namespaces')
 
         backup_storage_classes = []
         if os.path.isdir(persistent_volume_claims):
@@ -273,3 +252,7 @@ class BackupService:
                             f.close()
 
         return {'success': True, 'data': backup_storage_classes}
+
+    # @handle_exceptions_async_method
+    # async def get_manifest(self, backup_name):
+    #     return await k8sService.get_backup_manifest(resource_type="backups", resource_name=backup_name)

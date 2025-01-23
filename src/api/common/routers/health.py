@@ -24,24 +24,23 @@ config_app = ConfigHelper()
 print_ls = PrintHelper('[common.routers.health]',
                        level=config_app.get_internal_log_level())
 
-tag_name = 'Agent health'
+tag_name = 'Health'
 
 endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')
-limiter_status = endpoint_limiter.get_limiter_cust('info_health')
-route = '/health'
 
-
+limiter_utc = endpoint_limiter.get_limiter_cust('health_utc')
+route = '/utc'
 @router.get(path=route,
             tags=[tag_name],
             summary='UTC time',
             description=route_description(tag=tag_name,
                                           route=route,
-                                          limiter_calls=limiter_status.max_request,
-                                          limiter_seconds=limiter_status.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_status.seconds,
-                                              max_requests=limiter_status.max_request))],
+                                          limiter_calls=limiter_utc.max_request,
+                                          limiter_seconds=limiter_utc.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_utc.seconds,
+                                              max_requests=limiter_utc.max_request))],
             response_model=dict,
             status_code=status.HTTP_200_OK
             )
@@ -50,19 +49,17 @@ async def get_health() -> dict:
     return {'timestamp': datetime.utcnow().strftime('%B %d %Y - %H:%M:%S')}
 
 
-limiter_status_h = endpoint_limiter.get_limiter_cust('info_health_k8s')
-route = '/health-k8s'
-
-
+limiter_k8s = endpoint_limiter.get_limiter_cust('health_k8s')
+route = '/k8s'
 @router.get(path=route,
             tags=[tag_name],
             summary='Get K8s connection an api status',
             description=route_description(tag=tag_name,
                                           route=route,
-                                          limiter_calls=limiter_status_h.max_request,
-                                          limiter_seconds=limiter_status_h.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_status_h.seconds,
-                                              max_requests=limiter_status_h.max_request))],
+                                          limiter_calls=limiter_k8s.max_request,
+                                          limiter_seconds=limiter_k8s.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_k8s.seconds,
+                                              max_requests=limiter_k8s.max_request))],
             response_model=Union[SuccessfulRequest, FailedRequest],
             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, Request, status, Depends
 from typing import Union
 
 from core.config import ConfigHelper
@@ -47,28 +47,24 @@ async def watchdog_config():
 
 limiter_v = endpoint_limiter_setup.get_limiter_cust('watchdog_send_report')
 route = '/watchdog/send-report'
-
-
-@router.get(path=route,
-            tags=[tag_name],
-            summary='Send report',
-            description=route_description(tag=tag_name,
-                                          route=route,
-                                          limiter_calls=limiter_v.max_request,
-                                          limiter_seconds=limiter_v.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_v.seconds,
-                                              max_requests=limiter_v.max_request))],
-            response_model=Union[SuccessfulRequest, FailedRequest],
-            status_code=status.HTTP_200_OK)
+@router.post(path=route,
+             tags=[tag_name],
+             summary='Send report',
+             description=route_description(tag=tag_name,
+                                           route=route,
+                                           limiter_calls=limiter_v.max_request,
+                                           limiter_seconds=limiter_v.seconds),
+             dependencies=[Depends(RateLimiter(interval_seconds=limiter_v.seconds,
+                                               max_requests=limiter_v.max_request))],
+             response_model=Union[SuccessfulRequest, FailedRequest],
+             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
 async def send_report():
     return await watchdog.send_report()
 
 
-limiter_setup = endpoint_limiter_setup.get_limiter_cust('watchdog_get_config')
-route = '/watchdog/get-config'
-
-
+limiter_setup = endpoint_limiter_setup.get_limiter_cust('watchdog_config')
+route = '/watchdog/config'
 @router.get(path=route,
             tags=[tag_name],
             summary='Get all env variables',
@@ -85,10 +81,8 @@ async def app_config():
     return await watchdog.get_env()
 
 
-limiter_setup = endpoint_limiter_setup.get_limiter_cust('watchdog_get_cron')
-route = '/watchdog/get-cron'
-
-
+limiter_setup = endpoint_limiter_setup.get_limiter_cust('watchdog_cron')
+route = '/watchdog/cron'
 @router.get(path=route,
             tags=[tag_name],
             summary='Get cron',
@@ -105,25 +99,25 @@ async def app_config():
     return await watchdog.get_cron()
 
 
-limiter_v = endpoint_limiter_setup.get_limiter_cust('watchdog_send_tn')
+limiter_v = endpoint_limiter_setup.get_limiter_cust('watchdog_send-test-notification')
 route = '/watchdog/send-test-notification'
-
-
-@router.get(path=route,
-            tags=[tag_name],
-            summary='Send a test message to verify channel settings',
-            description=route_description(tag=tag_name,
-                                          route=route,
-                                          limiter_calls=limiter_v.max_request,
-                                          limiter_seconds=limiter_v.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_v.seconds,
-                                              max_requests=limiter_v.max_request))],
-            response_model=Union[SuccessfulRequest, FailedRequest],
-            status_code=status.HTTP_200_OK)
+@router.post(path=route,
+             tags=[tag_name],
+             summary='Send a test message to verify channel settings',
+             description=route_description(tag=tag_name,
+                                           route=route,
+                                           limiter_calls=limiter_v.max_request,
+                                           limiter_seconds=limiter_v.seconds),
+             dependencies=[Depends(RateLimiter(interval_seconds=limiter_v.seconds,
+                                               max_requests=limiter_v.max_request))],
+             response_model=Union[SuccessfulRequest, FailedRequest],
+             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def send_test_notification(email: bool = True,
-                                 telegram: bool = True,
-                                 slack: bool = True):
-    return await watchdog.send_test_notification(email,
-                                                 telegram,
-                                                 slack)
+async def send_test_notification(info: Request):
+    req_info = await info.json()
+    # email: bool = True,
+    # telegram: bool = True,
+    # slack: bool = True
+    return await watchdog.send_test_notification(req_info['email'],
+                                                 req_info['telegram'],
+                                                 req_info['slack'])

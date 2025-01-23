@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, status
-from fastapi import Request
+# from fastapi import Request
 from typing import Union
 
 from core.config import ConfigHelper
@@ -13,7 +13,8 @@ from api.common.response_model.failed_request import FailedRequest
 from api.common.response_model.successful_request import SuccessfulRequest
 
 from api.v1.controllers.restore import Restore
-
+from api.v1.schemas.delete_restore import DeleteRestore
+from api.v1.schemas.create_restore import CreateRestore
 
 router = APIRouter()
 restore = Restore()
@@ -29,17 +30,17 @@ endpoint_limiter = LimiterRequests(printer=print_ls,
                                    default_key='L1')
 
 
-limiter = endpoint_limiter.get_limiter_cust("restore_get")
-route = '/restore/get'
+limiter_restores = endpoint_limiter.get_limiter_cust("restores")
+route = '/restores'
 @router.get(path=route,
             tags=[tag_name],
-            summary='Get backups repository',
+            summary='Get restores',
             description=route_description(tag=tag_name,
                                           route=route,
-                                          limiter_calls=limiter.max_request,
-                                          limiter_seconds=limiter.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
-                                              max_requests=limiter.max_request))],
+                                          limiter_calls=limiter_restores.max_request,
+                                          limiter_seconds=limiter_restores.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_restores.seconds,
+                                              max_requests=limiter_restores.max_request))],
             response_model=Union[SuccessfulRequest, FailedRequest],
             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
@@ -51,7 +52,7 @@ limiter_logs = endpoint_limiter.get_limiter_cust('restore_logs')
 route = '/restore/logs'
 @router.get(path=route,
             tags=[tag_name],
-            summary='Get logs for restore operation',
+            summary='Get logs for restore',
             description=route_description(tag=tag_name,
                                           route=route,
                                           limiter_calls=limiter_logs.max_request,
@@ -69,7 +70,7 @@ limiter_des = endpoint_limiter.get_limiter_cust('restore_describe')
 route = '/restore/describe'
 @router.get(path=route,
             tags=[tag_name],
-            summary='Get detail for restore operation',
+            summary='Get detail for restore',
             description=route_description(tag=tag_name,
                                           route=route,
                                           limiter_calls=limiter_des.max_request,
@@ -83,11 +84,11 @@ async def restore_describe(resource_name=None):
     return await restore.describe(resource_name)
 
 
-limiter_delete = endpoint_limiter.get_limiter_cust('restore_delete')
+limiter_delete = endpoint_limiter.get_limiter_cust('restore')
 route = '/restore'
 @router.delete(path=route,
                tags=[tag_name],
-               summary='Delete restore operation',
+               summary='Delete a restore',
                description=route_description(tag=tag_name,
                                              route=route,
                                              limiter_calls=limiter_delete.max_request,
@@ -97,15 +98,12 @@ route = '/restore'
                response_model=Union[SuccessfulRequest, FailedRequest],
                status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def restore_delete(info: Request):
-    req_info = await info.json()
-    return await restore.delete(restore_name=req_info['resource_name'])
+async def restore_delete(delete_restore: DeleteRestore):
+    return await restore.delete(delete_restore=delete_restore)
 
 
-limiter_create = endpoint_limiter.get_limiter_cust('restore_create')
-route = '/restore/create'
-
-
+limiter_create = endpoint_limiter.get_limiter_cust('restore')
+route = '/restore'
 @router.post(path=route,
              tags=[tag_name],
              summary='Create a new restore',
@@ -118,6 +116,5 @@ route = '/restore/create'
              response_model=Union[SuccessfulRequest, FailedRequest],
              status_code=status.HTTP_201_CREATED)
 @handle_exceptions_endpoint
-async def restore_create(info: Request):
-    req_info = await info.json()
-    return await restore.create(req_info)
+async def restore_create(create_restore: CreateRestore):
+    return await restore.create(create_restore)
