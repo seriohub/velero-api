@@ -70,7 +70,7 @@ def parse_create_parameters(info):
         cmd.append(','.join(info.includedNamespaces))
 
     if info.excludedNamespaces and len(
-            info.excludeNamespaces) > 0:
+            info.excludedNamespaces) > 0:
         cmd.append('--exclude-namespaces')
         cmd.append(','.join(info.excludedNamespaces))
 

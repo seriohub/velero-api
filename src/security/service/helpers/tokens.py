@@ -2,7 +2,7 @@ import uuid
 
 from jose import jwt, JWTError
 from starlette import status
-from starlette.responses import JSONResponse, Response
+from starlette.responses import Response
 from typing import List, Optional
 from core.config import ConfigHelper
 from helpers.printer import PrintHelper

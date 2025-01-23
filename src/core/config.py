@@ -742,13 +742,13 @@ class ConfigHelper:
             res = '30'
         return int(res)
 
-    @staticmethod
-    def get_aws_key_id():
-        return os.getenv("AWS_ACCESS_KEY_ID", "")
-
-    @staticmethod
-    def get_aws_access_key():
-        return os.getenv("AWS_SECRET_ACCESS_KEY", "")
+    # @staticmethod
+    # def get_aws_key_id():
+    #     return os.getenv("AWS_ACCESS_KEY_ID", "")
+    #
+    # @staticmethod
+    # def get_aws_access_key():
+    #     return os.getenv("AWS_SECRET_ACCESS_KEY", "")
 
     @staticmethod
     def get_aws_secure_connection():

@@ -261,7 +261,7 @@ async def get_current_active_user(request: Request, current_user: User = Depends
     try:
         yield current_user
     finally:
-        if called_endpoint_var.get() != '/api/v1/stats/in-progress':
+        if called_endpoint_var.get().find('/stats/in-progress') == -1:
             print_ls.debug(
                 f"Reset context current user {str(current_user_var.get().username)} endpoint: {called_endpoint_var.get()}")
         current_user_var.reset(cu)

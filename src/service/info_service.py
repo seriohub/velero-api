@@ -1,4 +1,4 @@
-import base64
+# import base64
 import platform
 
 import aiohttp
@@ -8,7 +8,7 @@ import starlette.status
 from core.config import ConfigHelper
 from helpers.printer import PrintHelper
 from utils.handle_exceptions import handle_exceptions_async_method
-from datetime import datetime, timedelta
+from datetime import datetime
 import re
 
 from security.helpers.database import ProjectsVersion
@@ -26,22 +26,16 @@ def extract_version_numbers(tag_name):
 class InfoService:
     def __init__(self):
         self.config_app = ConfigHelper()
-        self.print_ls = PrintHelper(['service.info'],
-                                    level=self.config_app.get_internal_log_level())
+        self.print_ls = PrintHelper(['service.info'], level=self.config_app.get_internal_log_level())
 
         self.last_version_data = {}
         self.last_version_scan_datetime = datetime.utcnow()
 
     def __prepare_json_out(self, api, ui, helm, watchdog, velero, timestamp):
         self.print_ls.info(f"__prepare_json_out")
-        output = {
-            'api': '' if api is None else api,
-            'ui': '' if ui is None else ui,
-            'helm': '' if helm is None else helm,
-            'watchdog': '' if watchdog is None else watchdog,
-            'velero': '' if velero is None else velero,
-            'datetime': timestamp.strftime("%d/%m/%Y %H:%M:%S")
-        }
+        output = {'api': '' if api is None else api, 'ui': '' if ui is None else ui,
+                  'helm': '' if helm is None else helm, 'watchdog': '' if watchdog is None else watchdog,
+                  'velero': '' if velero is None else velero, 'datetime': timestamp.strftime("%d/%m/%Y %H:%M:%S")}
         return output
 
     def __get_compatibility(self, data, ui_version, api_version):
@@ -124,9 +118,7 @@ class InfoService:
 
         if response.status_code == 200:
             content = response.text
-            versions_ui, versions_api, msg_error = self.__version_content(content,
-                                                                          ui_version,
-                                                                          api_version)
+            versions_ui, versions_api, msg_error = self.__version_content(content, ui_version, api_version)
             return versions_ui, versions_api, msg_error
         else:
             message = "no data read from md file"
@@ -146,11 +138,7 @@ class InfoService:
         if old_data:
             db.delete(old_data)
         # LS 2024.12.12 add velero version
-        new_data = ProjectsVersion(time_created=datetime.utcnow(),
-                                   pv_1=api,
-                                   pv_2=ui,
-                                   pv_3=helm,
-                                   pv_4=watchdog,
+        new_data = ProjectsVersion(time_created=datetime.utcnow(), pv_1=api, pv_2=ui, pv_3=helm, pv_4=watchdog,
                                    pv_5=velero)
 
         db.add(new_data)
@@ -174,11 +162,11 @@ class InfoService:
 
         except aiohttp.ClientError as e:
             self.print_ls.error(f"[{url}] Error during async request: {e}")
-            return {'status': starlette.status.HTTP_404_NOT_FOUND  , 'data': None}
+            return {'status': starlette.status.HTTP_404_NOT_FOUND, 'data': None}
 
     async def __get_last_version(self, repo, owner="seriohub", check_last_release=False) -> str:
         # LS 2024.12.12 moved to parameter
-        #owner = "seriohub"
+        # owner = "seriohub"
         # GitHub API URL for fetching all tags
         path = "tags"
         if check_last_release:
@@ -225,9 +213,7 @@ class InfoService:
         else:
             arch = 'Error: Unsupported architecture'
 
-        output = {
-            'arch': arch,
-        }
+        output = {'arch': arch, }
         if not identify:
             output['platform'] = platform.machine()
 
@@ -249,12 +235,8 @@ class InfoService:
                 data = self.__get_last_version_from_db(db)
                 if data is not None:
                     data_is_empty = False
-                    self.last_version_data = self.__prepare_json_out(data.pv_1,
-                                                                     data.pv_2,
-                                                                     data.pv_3,
-                                                                     data.pv_4,
-                                                                     data.pv_5,
-                                                                     data.time_created)
+                    self.last_version_data = self.__prepare_json_out(data.pv_1, data.pv_2, data.pv_3, data.pv_4,
+                                                                     data.pv_5, data.time_created)
                     self.last_version_scan_datetime = data.time_created
             # Verify the data
             if not in_memory:
@@ -279,30 +261,18 @@ class InfoService:
             ui = await self.__get_last_version(repo="velero-ui")
 
             # LS 2024.12.12 add last version of velero
-            velero = await self.__get_last_version(repo="velero",
-                                                   owner="vmware-tanzu",
+            velero = await self.__get_last_version(repo="velero", owner="vmware-tanzu",
                                                    check_last_release=check_version)
 
-            output = self.__prepare_json_out(api,
-                                             ui,
-                                             helm,
-                                             watchdog,
-                                             velero,
-                                             datetime.utcnow())
+            output = self.__prepare_json_out(api, ui, helm, watchdog, velero, datetime.utcnow())
 
             self.last_version_data = output
             self.last_version_scan_datetime = datetime.utcnow()
-            self.__save_last_version_from_db(api,
-                                             ui,
-                                             helm,
-                                             watchdog,
-                                             velero,
-                                             db)
+            self.__save_last_version_from_db(api, ui, helm, watchdog, velero, db)
 
         # LS 2024.12.12 filter the velero tag if required
         if only_velero:
-            output_data = {'velero': output["velero"],
-                           "datetime": output["datetime"]}
+            output_data = {'velero': output["velero"], "datetime": output["datetime"]}
         else:
             output_data = output.copy()
             del output_data["velero"]
@@ -329,24 +299,17 @@ class InfoService:
                 data_ui, data_api, error = self.__retrieve_data_from_md_file(ui_version=version,
                                                                              api_version=api_version)
                 if data_ui is None:
-                    return {'success': False, 'error': {'title': 'Error get data from GitHub repository',
-                                                        'description': error
-                                                        }
-                            }
-                is_comp = self.__get_compatibility(data=data_ui,
-                                                   ui_version=version,
-                                                   api_version=api_version)
+                    return {'success': False,
+                            'error': {'title': 'Error get data from GitHub repository', 'description': error}}
+                is_comp = self.__get_compatibility(data=data_ui, ui_version=version, api_version=api_version)
 
                 output['compatibility'] = is_comp
                 output['versions_ui'] = data_ui
                 output['versions_api'] = data_api
                 return {'success': True, 'data': output}
             else:
-                return {'success': False, 'error': {'title': 'Parameters missed',
-                                                    'description': f'The ui version provided {version} '
-                                                                   f'is not a valid version'
-                                                    }}
+                return {'success': False,
+                        'error': {'title': 'Parameters missed', 'description': f'The ui version provided {version} '
+                                                                               f'is not a valid version'}}
         else:
-            return {'success': False, 'error': {'title': 'Parameters missed',
-                                                'description': 'No version provided'
-                                                }}
+            return {'success': False, 'error': {'title': 'Parameters missed', 'description': 'No version provided'}}

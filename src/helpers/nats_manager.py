@@ -3,7 +3,7 @@ from datetime import datetime
 from fastapi import FastAPI, Request
 from fastapi.routing import APIRoute, Mount
 from fastapi.responses import JSONResponse
-from nats.js.api import StreamConfig, KeyValueConfig
+from nats.js.api import KeyValueConfig
 from pydantic import BaseModel
 from inspect import signature
 

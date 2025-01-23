@@ -7,13 +7,13 @@ from api.common.response_model.failed_request import FailedRequest
 from service.k8s_service import K8sService
 
 
-k8sHelper = K8sService()
+k8s = K8sService()
 
 class Health:
 
     @handle_exceptions_controller
     async def get_k8s_online(self):
-        payload = (await k8sHelper.get_k8s_online())
+        payload = (await k8s.get_k8s_online())
 
         if not payload['success']:
             response = FailedRequest(**payload['error'])

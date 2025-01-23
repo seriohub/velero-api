@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, status
 from typing import Union
-from pydantic import BaseModel
 
 from core.config import ConfigHelper
 from security.service.helpers.rate_limiter import RateLimiter, LimiterRequests
@@ -11,6 +10,8 @@ from helpers.printer import PrintHelper
 
 from api.common.response_model.failed_request import FailedRequest
 from api.common.response_model.successful_request import SuccessfulRequest
+
+from api.v1.schemas.storage_class_map import StorageClassMap
 
 from api.v1.controllers.sc_mapping import SCMapping
 
@@ -26,15 +27,8 @@ endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')
 
-
-class StorageClassMap(BaseModel):
-    storageClassMapping: dict
-
-
-limiter_sc_mapping = endpoint_limiter.get_limiter_cust('sc_change_storage_classes_config_map_get')
-route = '/sc/change-storage-classes-config-map/get'
-
-
+limiter_sc_mapping = endpoint_limiter.get_limiter_cust('sc_mapping')
+route = '/sc-mapping'
 @router.get(path=route,
             tags=[tag_name],
             summary='Get change storage classes config map',
@@ -51,10 +45,8 @@ async def get_storages_classes_map():
     return await scMapping.get_storages_classes_map()
 
 
-limiter_sc_create = endpoint_limiter.get_limiter_cust('sc_change_storage_classes_config_map_create')
-route = '/sc/change-storage-classes-config-map/create'
-
-
+limiter_sc_create = endpoint_limiter.get_limiter_cust('sc_mapping')
+route = '/sc-mapping'
 @router.post(path=route,
              tags=[tag_name],
              summary='Create storage classes config map',
@@ -67,14 +59,12 @@ route = '/sc/change-storage-classes-config-map/create'
              response_model=Union[SuccessfulRequest, FailedRequest],
              status_code=status.HTTP_201_CREATED)
 @handle_exceptions_endpoint
-async def create_storages_classes_map(items: StorageClassMap):
-    return await scMapping.update_storages_classes_mapping(data_list=items.storageClassMapping)
+async def create_storages_classes_map(maps: StorageClassMap):
+    return await scMapping.update_storages_classes_mapping(maps=maps)
 
 
-limiter_sc_update = endpoint_limiter.get_limiter_cust('sc_change_storage_classes_config_map_update')
-route = '/sc/change-storage-classes-config-map/update'
-
-
+limiter_sc_update = endpoint_limiter.get_limiter_cust('sc_mapping')
+route = '/sc-mapping'
 @router.patch(path=route,
               tags=[tag_name],
               summary='Update storage classes config map',
@@ -87,14 +77,12 @@ route = '/sc/change-storage-classes-config-map/update'
               response_model=Union[SuccessfulRequest, FailedRequest],
               status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def update_storages_classes_map(items: StorageClassMap):
-    return await scMapping.update_storages_classes_mapping(data_list=items.storageClassMapping)
+async def update_storages_classes_map(maps: StorageClassMap):
+    return await scMapping.update_storages_classes_mapping(maps=maps)
 
 
-limiter_sc_delete = endpoint_limiter.get_limiter_cust('sc_change_storage_classes_config_map_delete')
-route = '/sc/change-storage-classes-config-map'
-
-
+limiter_sc_delete = endpoint_limiter.get_limiter_cust('sc_mapping')
+route = '/sc-mapping'
 @router.delete(path=route,
                tags=[tag_name],
                summary='Delete storage classes mapping in config map',

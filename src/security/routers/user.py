@@ -27,8 +27,6 @@ endpoint_limiter = LimiterRequests(printer=print_ls,
 
 limiter_me_info = endpoint_limiter.get_limiter_cust('users_me_info')
 route = '/users/me/info'
-
-
 @router.get(path=route,
             tags=[tag_name],
             summary='Get information about the user authenticated',
@@ -45,8 +43,6 @@ async def read_current_user(current_user: User = Depends(get_current_active_user
 
 limiter_me_pwd = endpoint_limiter.get_limiter_cust('users_me_pwd')
 route = '/users/me/update/pwd'
-
-
 @router.put(path=route,
             tags=[tag_name],
             summary='Update user password',
@@ -71,8 +67,6 @@ if enable_users:
 
     limiter_add = endpoint_limiter.get_limiter_cust('users_create')
     route = '/users/create'
-
-
     @router.post(path=route,
                  tags=[tag_name],
                  summary='Create new user',
@@ -96,8 +90,6 @@ if enable_users:
 
     limiter_us = endpoint_limiter.get_limiter_cust('users')
     route = '/users/'
-
-
     @router.get(path=route,
                 tags=[tag_name],
                 summary='Get all user registered',
@@ -114,8 +106,6 @@ if enable_users:
 
     limiter_uid = endpoint_limiter.get_limiter_cust('users_user_id')
     route = '/users/{user_id}'
-
-
     @router.get(path=route,
                 tags=[tag_name],
                 summary='Get user data',
@@ -136,8 +126,6 @@ if enable_users:
 
     limiter_del_id = endpoint_limiter.get_limiter_cust('users_user_id_delete')
     route = '/users/{user_id}/delete'
-
-
     @router.delete(path=route,
                    tags=[tag_name],
                    summary='Delete user',
@@ -160,8 +148,6 @@ if enable_users:
 
     limiter_udis = endpoint_limiter.get_limiter_cust('users_user_id_disable')
     route = '/users/{user_id}/disable'
-
-
     @router.put(path=route,
                 tags=[tag_name],
                 summary='Disable user',

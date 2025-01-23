@@ -24,10 +24,10 @@ tag_name = 'Statistics'
 endpoint_limiter = LimiterRequests(printer=print_ls,
                                    tags=tag_name,
                                    default_key='L1')
+
+
 limiter = endpoint_limiter.get_limiter_cust('utilis_stats')
-route = '/stats/get'
-
-
+route = '/stats'
 @router.get(path=route,
             tags=[tag_name],
             summary='Get backups repository',
@@ -46,8 +46,6 @@ async def stats():
 
 limiter_inprog = endpoint_limiter.get_limiter_cust('utilis_in_progress')
 route = '/stats/in-progress'
-
-
 @router.get(path=route,
             tags=[tag_name],
             summary='Get operations in progress',
@@ -64,10 +62,8 @@ async def in_progress():
     return await utils_controller.in_progress()
 
 
-limiter_schedules = endpoint_limiter.get_limiter_cust('schedules')
+limiter_schedules = endpoint_limiter.get_limiter_cust('stats_schedules')
 route = '/stats/schedules'
-
-
 @router.get(path=route,
             tags=[tag_name],
             summary='Get schedules stats',
