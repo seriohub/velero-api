@@ -589,7 +589,7 @@ class ConfigHelper:
         return limit
 
     def get_default_admin_username(self):
-        return self.load_key("DEFAULT_ADMIN_USERNAME", "admin")
+        return self.load_key("DEFAULT_ADMIN_USERNAME", "admin@")
 
     def get_default_admin_password(self):
         return self.load_key("DEFAULT_ADMIN_PASSWORD", "admin")
@@ -779,14 +779,14 @@ class ConfigHelper:
             # namespace = self.get_k8s_velero_ui_namespace()
             # internal_endpoint = 'seriohub-velero-watchdog-clusterip'
             # url = internal_endpoint + '.' + namespace + ':8001'
-            url = os.getenv('VELERO_WATCHDOG_URL') + ':' + os.getenv('VELERO_WATCHDOG_PORT')
+            url = os.getenv('WATCHDOG_URL') + ':' + os.getenv('WATCHDOG_PORT')
             return url
         else:
-            return os.getenv('VELERO_WATCHDOG_URL', '127.0.0.1:8002')
+            return os.getenv('WATCHDOG_URL', '127.0.0.1:8002')
 
     @staticmethod
     def get_cronjob_name():
-        return os.getenv('REPORT_CRONJOB_NAME', 'vui-report')
+        return os.getenv('WATCHDOG_REPORT_CRONJOB_NAME', 'vui-report')
 
     @staticmethod
     def get_helm_version():
