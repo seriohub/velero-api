@@ -1,7 +1,7 @@
 aiohttp==3.11.11
 croniter==6.0.0
 fastapi==0.115.8
-jose==1.0.0
+python-jose==3.3.0
 kubernetes==32.0.0
 minio==7.2.15
 nats-py==2.8.0
