@@ -6,7 +6,6 @@ from security.service.helpers.rate_limiter import RateLimiter, LimiterRequests
 
 from utils.commons import route_description
 from utils.handle_exceptions import handle_exceptions_endpoint
-from helpers.printer import PrintHelper
 
 from api.common.response_model.failed_request import FailedRequest
 from api.common.response_model.successful_request import SuccessfulRequest
@@ -20,18 +19,15 @@ from api.v1.schemas.delete_bsl import DeleteBsl
 router = APIRouter()
 backupLocation = BackupLocation()
 config_app = ConfigHelper()
-print_ls = PrintHelper('[v1.routers.backup_location]',
-                       level=config_app.get_internal_log_level())
-
 
 tag_name = 'Backup Storage Locations'
-endpoint_limiter = LimiterRequests(printer=print_ls,
-                                   tags=tag_name,
+endpoint_limiter = LimiterRequests(tags=tag_name,
                                    default_key='L1')
-
 
 limiter_bsl = endpoint_limiter.get_limiter_cust('bsl')
 route = '/bsl'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get list of the backups',
@@ -50,6 +46,8 @@ async def get():
 
 limiter_create = endpoint_limiter.get_limiter_cust('bsl')
 route = '/bsl'
+
+
 @router.post(path=route,
              tags=[tag_name],
              summary='Create a backup storage location',
@@ -68,6 +66,8 @@ async def create(create_bsl: CreateBsl):
 
 limiter_default = endpoint_limiter.get_limiter_cust('bsl_default')
 route = '/bsl/default'
+
+
 @router.post(path=route,
              tags=[tag_name],
              summary='Set default backup storage location',
@@ -88,6 +88,8 @@ async def set_default_bsl(default_bsl: DefaultBsl):
 
 limiter_del = endpoint_limiter.get_limiter_cust('bsl')
 route = '/bsl'
+
+
 @router.delete(path=route,
                tags=[tag_name],
                summary='Delete storage classes mapping in config map',

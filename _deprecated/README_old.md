@@ -18,7 +18,7 @@ Thank you for your understanding and cooperation.
 
 This Python project, developed as a backend for [Velero-UI](https://github.com/seriohub/velero-ui), is designed to communicate with Kubernetes and the Velero client within the Kubernetes environment.
 
-See [changelog](CHANGELOG.md) for details.
+See [changelog](../CHANGELOG.md) for details.
 
 ## Configuration
 
@@ -104,7 +104,7 @@ cd velero-api
 - Python 3.x
 - Velero client
 
-1. Navigate to the [src](src) folder
+1. Navigate to the [src](../src) folder
 
 2. Dependencies installation:
 
@@ -114,12 +114,12 @@ cd velero-api
   
 3. Configuration
 
-   Create and edit .env file under [src](src) folder, you can start from [.env.template](src/.env.template) under [src](src) folder.
+   Create and edit .env file under [src](../src) folder, you can start from [.env.template](../src/.env.template) under [src](../src) folder.
    Setup parameters (mandatory: SECURITY_TOKEN_KEY and ORIGINS) in the src/.env file if runs it in the native mode.
 
 4. Usage
 
-   Under [src](src) folder run the main script:
+   Under [src](../src) folder run the main script:
 
    ``` bash
    python3 main.py
@@ -159,12 +159,12 @@ cd velero-api
 
    These files are configured assuming that the namespace where Velero is deployed is named "velero," and the namespace where "velero-api" is deployed is named "velero-ui". 
    Please update the following files according to your environment if necessary:
-   - [*22_cluster_role_binding.yaml*](k8s/22_cluster_role_binding.yaml)
-   - [*23_role.yaml*](k8s/23_role.yaml)
-   - [*24_role_binding.yaml*](k8s/24_role_binding.yaml)
+   - [*22_cluster_role_binding.yaml*](_deprecated/k8s/22_cluster_role_binding.yaml)
+   - [*23_role.yaml*](_deprecated/k8s/23_role.yaml)
+   - [*24_role_binding.yaml*](_deprecated/k8s/24_role_binding.yaml)
    </br>
    </br>
-   1. Navigate to the [k8s](k8s) folder
+   1. Navigate to the [k8s](_deprecated/k8s) folder
 
    2. Create namespace:
 
@@ -217,7 +217,7 @@ cd velero-api
       2. Custom folder for velero binaries: The user can store the binaries of new versions to avoid downloading the file directly from the code. The env parameter is VELERO_CLI_PATH_CUSTOM.  
 
       >   [!WARNING]  
-      Set storage class name in [25_pvc.yaml](k8s/25_pvc.yaml) before applying it.
+      Set storage class name in [25_pvc.yaml](_deprecated/k8s/25_pvc.yaml) before applying it.
 
       ``` bash
       kubectl apply -f 25_pvc.yaml -n velero-ui
@@ -241,7 +241,7 @@ cd velero-api
 
        The exposed port must be type of **LoadBalancer** or **Nodeport**
       >   [!WARNING]  
-      Customizes the [40_service_lb.yaml](k8s/40_service_lb.yaml) or [40_service_nodeport.yaml](k8s/40_service_nodeport.yaml) file before applying it according to your environment.
+      Customizes the [40_service_lb.yaml](_deprecated/k8s/40_service_lb.yaml) or [40_service_nodeport.yaml](_deprecated/k8s/40_service_nodeport.yaml) file before applying it according to your environment.
 
       ``` bash
       kubectl apply -f 40_service_lb.yaml -n velero-ui

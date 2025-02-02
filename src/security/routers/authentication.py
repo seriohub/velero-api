@@ -12,9 +12,9 @@ from security.service.helpers.rate_limiter import LimiterRequests, RateLimiter
 from security.service.helpers.users import *
 
 from utils.commons import route_description
-from helpers.printer import PrintHelper
 
 from core.config import ConfigHelper
+
 # from utils.handle_exceptions import handle_exceptions_async_method
 
 config = ConfigHelper()
@@ -22,16 +22,14 @@ router = APIRouter()
 
 auth = Authentication()
 
-print_ls = PrintHelper('[authentication.routers]',
-                       level=config_app.get_internal_log_level())
-
 tag_name = 'Security'
-endpoint_limiter = LimiterRequests(printer=print_ls,
-                                   tags=tag_name,
+endpoint_limiter = LimiterRequests(tags=tag_name,
                                    default_key='L1')
 
 limiter = endpoint_limiter.get_limiter_cust('token')
 route = '/token'
+
+
 @router.post(path=route,
              tags=[tag_name],
              summary='Release a new token',
@@ -50,7 +48,6 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordAndRefreshRe
         return await auth.refresh_login(form_data.refresh_token, db)
     else:
         return await auth.login(form_data.username, form_data.password, db)
-
 
 # limiter_tr = endpoint_limiter.get_limiter_cust('token_refresh')
 # route = '/token-refresh'

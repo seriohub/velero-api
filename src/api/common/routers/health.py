@@ -6,7 +6,6 @@ from typing import Union
 from core.config import ConfigHelper
 from utils.commons import route_description
 from utils.handle_exceptions import handle_exceptions_endpoint
-from helpers.printer import PrintHelper
 
 from security.service.helpers.rate_limiter import LimiterRequests
 from security.service.helpers.rate_limiter import RateLimiter
@@ -21,17 +20,15 @@ router = APIRouter()
 health = Health()
 config_app = ConfigHelper()
 
-print_ls = PrintHelper('[common.routers.health]',
-                       level=config_app.get_internal_log_level())
-
 tag_name = 'Health'
 
-endpoint_limiter = LimiterRequests(printer=print_ls,
-                                   tags=tag_name,
+endpoint_limiter = LimiterRequests(tags=tag_name,
                                    default_key='L1')
 
 limiter_utc = endpoint_limiter.get_limiter_cust('health_utc')
 route = '/utc'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='UTC time',
@@ -51,6 +48,8 @@ async def get_health() -> dict:
 
 limiter_k8s = endpoint_limiter.get_limiter_cust('health_k8s')
 route = '/k8s'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get K8s connection an api status',

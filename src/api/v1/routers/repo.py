@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends, status
+from fastapi import APIRouter, Depends, status
 from typing import Union
 
 from core.config import ConfigHelper
@@ -6,7 +6,6 @@ from security.service.helpers.rate_limiter import RateLimiter, LimiterRequests
 
 from utils.commons import route_description
 from utils.handle_exceptions import handle_exceptions_endpoint
-from helpers.printer import PrintHelper
 
 from api.common.response_model.failed_request import FailedRequest
 from api.common.response_model.successful_request import SuccessfulRequest
@@ -19,17 +18,15 @@ router = APIRouter()
 repo = Repo()
 config_app = ConfigHelper()
 
-print_ls = PrintHelper('[v1.routers.repo]',
-                       level=config_app.get_internal_log_level())
-
 tag_name = 'Repository'
 
-endpoint_limiter = LimiterRequests(printer=print_ls,
-                                   tags=tag_name,
+endpoint_limiter = LimiterRequests(tags=tag_name,
                                    default_key='L1')
 
 limiter_repos = endpoint_limiter.get_limiter_cust("repos")
 route = '/repos'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get backups repository',
@@ -48,6 +45,8 @@ async def get():
 
 limiter_size = endpoint_limiter.get_limiter_cust("repo_size")
 route = '/repo/size'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get size (Mb) of a repository',
@@ -76,6 +75,8 @@ async def get(repository_url: str = None,
 
 limiter_locks = endpoint_limiter.get_limiter_cust("repo_lock_check")
 route = '/repo/locks'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get repository locks',
@@ -94,6 +95,8 @@ async def get_locks(bsl: str, repository_url: str = None):
 
 limiter_unlock = endpoint_limiter.get_limiter_cust("repo_unlock")
 route = '/repo/unlock'
+
+
 @router.post(path=route,
              tags=[tag_name],
              summary='Unlock restic repository',
@@ -112,6 +115,8 @@ async def unlock(unlock_repo: UnlockResticRepo):
 
 limiter_check = endpoint_limiter.get_limiter_cust("repo_check")
 route = '/repo/check'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Check restic repository',

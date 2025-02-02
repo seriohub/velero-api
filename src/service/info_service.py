@@ -6,7 +6,7 @@ import requests
 import starlette.status
 
 from core.config import ConfigHelper
-from helpers.printer import PrintHelper
+
 from utils.handle_exceptions import handle_exceptions_async_method
 from datetime import datetime
 import re
@@ -14,6 +14,12 @@ import re
 from security.helpers.database import ProjectsVersion
 from security.helpers.database import SessionLocal
 from typing import Optional
+
+from helpers.logger import ColoredLogger, LEVEL_MAPPING
+import logging
+
+config_app = ConfigHelper()
+logger = ColoredLogger.get_logger(__name__, level=LEVEL_MAPPING.get(config_app.get_internal_log_level(), logging.INFO))
 
 
 def extract_version_numbers(tag_name):
@@ -25,34 +31,31 @@ def extract_version_numbers(tag_name):
 
 class InfoService:
     def __init__(self):
-        self.config_app = ConfigHelper()
-        self.print_ls = PrintHelper(['service.info'], level=self.config_app.get_internal_log_level())
-
         self.last_version_data = {}
         self.last_version_scan_datetime = datetime.utcnow()
 
     def __prepare_json_out(self, api, ui, helm, watchdog, velero, timestamp):
-        self.print_ls.info(f"__prepare_json_out")
+        logger.info(f"__prepare_json_out")
         output = {'api': '' if api is None else api, 'ui': '' if ui is None else ui,
                   'helm': '' if helm is None else helm, 'watchdog': '' if watchdog is None else watchdog,
                   'velero': '' if velero is None else velero, 'datetime': timestamp.strftime("%d/%m/%Y %H:%M:%S")}
         return output
 
     def __get_compatibility(self, data, ui_version, api_version):
-        self.print_ls.info(f"__get_compatibility")
+        logger.info(f"__get_compatibility")
         is_ok = False
 
-        self.print_ls.info(f"__get_compatibility.ui={ui_version}-api={api_version}")
+        logger.info(f"__get_compatibility.ui={ui_version}-api={api_version}")
         if len(api_version) > 0 and data:
             for revision in data:
-                self.print_ls.info(f"__get_compatibility.json={revision}")
+                logger.info(f"__get_compatibility.json={revision}")
                 is_ok = revision['api'] == api_version and revision['ui'] == ui_version
                 if is_ok:
                     break
         return is_ok
 
     def __version_content(self, content, ui_version, api_version):
-        self.print_ls.info(f"__version_content")
+        logger.info(f"__version_content")
         lines = content.split('\n')
         header_index = None
         headers = []
@@ -61,10 +64,10 @@ class InfoService:
         i = 0
         for row, line in enumerate(lines):
             i += 1
-            self.print_ls.debug(f'__version_content.line: {line}')
+            logger.debug(f'__version_content.line: {line}')
             idx_start = line.find('| version')
             if '| version' in line:
-                self.print_ls.debug(f"__version_content.header found:{idx_start}")
+                logger.debug(f"__version_content.header found:{idx_start}")
                 header_index = i
                 header_line = line.strip()
                 headers = header_line.split('|')[1:-1]
@@ -77,7 +80,7 @@ class InfoService:
 
         if header_index is None:
             message = "Header (| version ) row not found."
-            self.print_ls.debug(message)
+            logger.debug(message)
             return None, None, message
         # Process the data lines
         data_lines = lines[header_index + 1:]  # Skip the separator line
@@ -85,13 +88,13 @@ class InfoService:
         versions_api = []
 
         for line in data_lines:
-            # self.print_ls.debug(f"stripped:{line}")
+            # logger.debug(f"stripped:{line}")
             if line and line.strip():
                 data = line.strip().split('|')[1:-1]
                 data = [d.strip() for d in data]
                 add_row = True
                 if ui_version:
-                    # self.print_ls.debug(f"header:{data[header_ui] }- required:{ui_version}")
+                    # logger.debug(f"header:{data[header_ui] }- required:{ui_version}")
                     add_row = data[header_ui] == ui_version
 
                 if add_row:
@@ -107,12 +110,12 @@ class InfoService:
             else:
                 break
 
-        self.print_ls.trace(f"__retrieve_data_from_md_file output data: {versions_ui}")
+        logger.debug(f"__retrieve_data_from_md_file output data: {versions_ui}")
 
         return versions_ui, versions_api, None
 
     def __retrieve_data_from_md_file(self, ui_version: str = None, api_version: str = None):
-        self.print_ls.info(f"__retrieve_data_from_md_file")
+        logger.info(f"__retrieve_data_from_md_file")
         url = 'https://raw.githubusercontent.com/seriohub/velero-helm/main/components.txt'
         response = requests.get(url)
 
@@ -122,18 +125,18 @@ class InfoService:
             return versions_ui, versions_api, msg_error
         else:
             message = "no data read from md file"
-            self.print_ls.info(f"__retrieve_data_from_md_file: {message}")
+            logger.info(f"__retrieve_data_from_md_file: {message}")
             return None, None, message
 
     def __get_last_version_from_db(self, db: SessionLocal) -> Optional[ProjectsVersion]:
-        self.print_ls.info(f"__get_last_data_from_db")
+        logger.info(f"__get_last_data_from_db")
         data = db.query(ProjectsVersion).first()
         if data:
             return data
         return None
 
     def __save_last_version_from_db(self, api, ui, helm, watchdog, velero, db: SessionLocal):
-        self.print_ls.info(f"__save_last_version_from_db")
+        logger.info(f"__save_last_version_from_db")
         old_data = db.query(ProjectsVersion).first()
         if old_data:
             db.delete(old_data)
@@ -147,12 +150,12 @@ class InfoService:
 
     async def __is_elapsed_time_to_scrapy(self):
         diff = datetime.utcnow() - self.last_version_scan_datetime
-        self.print_ls.info(f"minutes elapsed {round(diff.total_seconds() / 60, 2)} - "
-                           f"threshold {self.config_app.get_github_scrapy_versions_minutes()}")
-        return (diff.total_seconds() / 60) > self.config_app.get_github_scrapy_versions_minutes()
+        logger.info(f"minutes elapsed {round(diff.total_seconds() / 60, 2)} - "
+                    f"threshold {config_app.get_github_scrapy_versions_minutes()}")
+        return (diff.total_seconds() / 60) > config_app.get_github_scrapy_versions_minutes()
 
     async def __do_api_call(self, url):
-        self.print_ls.debug(f'__do_api_call URL {url}')
+        logger.debug(f'__do_api_call URL {url}')
         timeout = aiohttp.ClientTimeout(total=10)  # Increase total timeout to 10 seconds
         try:
             async with aiohttp.ClientSession(timeout=timeout) as session:
@@ -161,7 +164,7 @@ class InfoService:
                     return {'status': response.status, 'data': output}
 
         except aiohttp.ClientError as e:
-            self.print_ls.error(f"[{url}] Error during async request: {e}")
+            logger.error(f"[{url}] Error during async request: {e}")
             return {'status': starlette.status.HTTP_404_NOT_FOUND, 'data': None}
 
     async def __get_last_version(self, repo, owner="seriohub", check_last_release=False) -> str:
@@ -187,13 +190,13 @@ class InfoService:
                     tags.sort(key=lambda tag: extract_version_numbers(tag["name"]), reverse=True)
                     latest_tag = tags[0]["name"]
 
-                self.print_ls.info(f"The latest tag for the repo {repo} is: {latest_tag}")
+                logger.info(f"The latest tag for the repo {repo} is: {latest_tag}")
                 return latest_tag
             except Exception as e:
-                self.print_ls.error(f"Error processing response for {repo}: {e}")
+                logger.error(f"Error processing response for {repo}: {e}")
                 return "-"
         else:
-            self.print_ls.wrn(f"Failed to fetch tags for repo {repo}. Status code: {response.status}")
+            logger.warning(f"Failed to fetch tags for repo {repo}. Status code: {response.status}")
             return "-"
 
     @handle_exceptions_async_method
@@ -230,7 +233,7 @@ class InfoService:
                 in_memory = not (await self.__is_elapsed_time_to_scrapy())
             # Check in db
             if not in_memory:
-                self.print_ls.info(f"Find in db")
+                logger.info(f"Find in db")
                 # get data from db
                 data = self.__get_last_version_from_db(db)
                 if data is not None:
@@ -244,17 +247,17 @@ class InfoService:
                     data_is_empty = False
                     in_memory = not (await self.__is_elapsed_time_to_scrapy())
 
-            self.print_ls.info(f"Dict {'is empty' if data_is_empty else 'is not empty'} and use memory {in_memory}")
+            logger.info(f"Dict {'is empty' if data_is_empty else 'is not empty'} and use memory {in_memory}")
         else:
-            self.print_ls.info(f"Force scrapy data")
+            logger.info(f"Force scrapy data")
 
         if in_memory:
-            self.print_ls.info(f"get in-memory data (no scrapy is done). "
-                               f"last scan: {self.last_version_scan_datetime.strftime('%d/%m/%Y %H:%M:%S')}"
-                               f"- cycle time min {self.config_app.get_github_scrapy_versions_minutes()}")
+            logger.info(f"get in-memory data (no scrapy is done). "
+                        f"last scan: {self.last_version_scan_datetime.strftime('%d/%m/%Y %H:%M:%S')}"
+                        f"- cycle time min {config_app.get_github_scrapy_versions_minutes()}")
             output = self.last_version_data
         else:
-            self.print_ls.info(f"scrapy the last version from github")
+            logger.info(f"scrapy the last version from github")
             api = await self.__get_last_version(repo="velero-api")
             helm = await self.__get_last_version(repo="velero-helm")
             watchdog = await self.__get_last_version(repo="velero-watchdog")
@@ -281,7 +284,7 @@ class InfoService:
 
     @handle_exceptions_async_method
     async def ui_compatibility(self, version: str):
-        self.print_ls.info(f"ui_compatibility version :{version}")
+        logger.info(f"ui_compatibility version :{version}")
 
         # avoid error in developer mode
         if version == "dev" or version == "local dev":
@@ -293,8 +296,8 @@ class InfoService:
             version_regex = re.compile(r'^(dev|\d+\.\d+\.\d+)$')
             if version_regex.match(version):
                 output = {}
-                is_comp = False
-                api_version = self.config_app.get_build_version()
+                # is_comp = False
+                api_version = config_app.get_build_version()
                 # retrieve data from github
                 data_ui, data_api, error = self.__retrieve_data_from_md_file(ui_version=version,
                                                                              api_version=api_version)

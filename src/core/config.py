@@ -1,3 +1,4 @@
+import base64
 import json
 import re
 import os
@@ -5,6 +6,77 @@ import secrets
 
 from dotenv.main import dotenv_values
 from dotenv import load_dotenv, find_dotenv
+from kubernetes import client, config
+
+
+def get_configmap_parameter(namespace: str, configmap_name: str, parameter: str) -> str:
+    """
+    Reads a specific parameter from a ConfigMap in Kubernetes.
+
+    :param namespace: Namespace of the ConfigMap.
+    :param configmap_name: Name of the ConfigMap.
+    :param parameter: Key of the parameter to be read.
+    :return: Value of the parameter or None if the key does not exist.
+    """
+    # Load Kubernetes configuration
+    try:
+        config.load_incluster_config()  # Use cluster context if the app is running in the cluster.
+    except config.ConfigException:
+        config.load_kube_config()  # Use local kubeconfig file if running locally.
+
+    # Initialize the API client
+    v1 = client.CoreV1Api()
+
+    try:
+        # Read the specified ConfigMap.
+        configmap = v1.read_namespaced_config_map(name=configmap_name, namespace=namespace)
+
+        # Returns the value of the parameter if it exists
+        return configmap.data.get(parameter, None)
+    except client.exceptions.ApiException as e:
+        # Handle errors, e.g. ConfigMap not found.
+        if e.status == 404:
+            print(f"ConfigMap '{configmap_name}' not found in '{namespace}'.")
+        else:
+            print(f"Error while reading the ConfigMap: {e}")
+        return None
+
+
+def get_secret_parameter(namespace: str, secret_name: str, parameter: str) -> str:
+    """
+    Reads a specific parameter from a Kubernetes Secret.
+
+    :param namespace: The namespace where the Secret is located.
+    :param secret_name: The name of the Secret.
+    :param parameter: The key of the parameter to read.
+    :return: The decoded value of the parameter, or None if the key does not exist.
+    """
+    # Load the Kubernetes configuration
+    try:
+        config.load_incluster_config()  # Use in-cluster config when running inside a Kubernetes cluster
+    except config.ConfigException:
+        config.load_kube_config()  # Use local kubeconfig when running outside the cluster
+
+    # Initialize the CoreV1Api client
+    v1 = client.CoreV1Api()
+
+    try:
+        # Retrieve the specified Secret
+        secret = v1.read_namespaced_secret(name=secret_name, namespace=namespace)
+
+        # Get the encoded value of the parameter if it exists
+        encoded_value = secret.data.get(parameter, None)
+        if encoded_value is not None:
+            # Decode the base64-encoded value and return it as a string
+            return base64.b64decode(encoded_value).decode("utf-8")
+        return None
+    except client.exceptions.ApiException as e:
+        # Handle API exceptions (e.g., Secret not found)
+        if e.status == 404:
+            print(f"Secret '{secret_name}' not found in namespace '{namespace}'.")
+        else:
+            print(f"Error reading the Secret: {e}")
+        return None
 
 
 class LimiterRequestConfig:
@@ -33,8 +105,7 @@ class LimiterRequestConfig:
 class ConfigHelper:
     def __init__(self, debug=False):
         self.debug_on = debug
-        res = load_dotenv()
-        # print(f"INFO      [ConfigHelper] initialization:{res} ")
+        load_dotenv()
 
     @staticmethod
     def __print_validation_key__(group='Env validation',
@@ -52,7 +123,7 @@ class ConfigHelper:
             # Print in red
             print(f"\033[91m{header}{row}\033[0m")
         else:
-            header = 'INFO'.ljust(10, ' ')
+            header = 'ConfigHelper '.ljust(10, ' ')
             # print(f"\033[92m{header}{row}\033[0m")
             print(f"{header}{row}")
 
@@ -119,21 +190,21 @@ class ConfigHelper:
         return bool(re.search(pattern, text))
 
     def __create_env_if_no_exits__(self, key):
-        print(f"INFO      [Env validation] create_env_variables {key}")
+        print(f"ConfigHelper create_env_variables {key}")
         value = os.getenv(key, '')
         message = "OK" if self.__is_valid_secret_key__(value) else "error not a valid secret key"
-        print(f"INFO      [Env creation] key: {key} "
+        print(f"ConfigHelper key: {key} "
               f"value:{value[:25].ljust(25, ' ')} "
               f"validation:{message.upper()}")
 
         if message != "OK":
-            print(f"INFO      [Env creation] create {key}")
+            print(f"ConfigHelper create {key}")
             # qos.environ[key] = secrets.token_hex(32)  # 32 hex characters
             token = secrets.token_hex(32)
             # os.environ.setdefault(key, token)
             os.environ[key] = token
             value = os.getenv(key, '')
-            print(f"INFO      [Env creation] reload {key}: {value} -({token})")
+            print(f"ConfigHelper reload {key}: {value} -({token})")
 
     def __validate_env_variable__(self, env_var_name, var_type):
         res = True
@@ -173,7 +244,7 @@ class ConfigHelper:
             res = False
             message = f"****error cast value"
         finally:
-            # print(f"INFO      [Env validation] key: {env_var_name.ljust(35, ' ')} "
+            # print(f"ConfigHelper key: {env_var_name.ljust(35, ' ')} "
             #       f"type:{var_type.__name__.ljust(10, ' ')} "
             #       f"value:{env_var_value.ljust(25, ' ')} "
             #       f"validation:{message.upper()}")
@@ -186,12 +257,12 @@ class ConfigHelper:
             return res
 
     def create_env_variables(self):
-        print(f"INFO      [Env validation] create_env_variables")
+        print(f"ConfigHelper create_env_variables")
         self.__create_env_if_no_exits__("SECURITY_TOKEN_KEY")
         self.__create_env_if_no_exits__("SECURITY_REFRESH_TOKEN_KEY")
 
     def validate_env_variables(self):
-        print(f"INFO      [Env validation] Check the validity all env variables")
+        print(f"ConfigHelper Check the validity all env variables")
         block_exec = False
 
         # LS 2024.07.04 add nats checker
@@ -236,7 +307,7 @@ class ConfigHelper:
             else:
                 message = "OK" if res == '*' or self.__validate_url__(res, value['protocol']) else "error not a url"
                 # LS 2024.12.09 call a sub
-                # print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+                # print(f"ConfigHelper key: {key.ljust(35, ' ')} "
                 #       f"type:{'url'.ljust(10, ' ')} "
                 #       f"value:{res.ljust(25, ' ')} "
                 #       f"validation:{message.upper()}")
@@ -252,7 +323,7 @@ class ConfigHelper:
         value = os.getenv(key, '')
         message = "OK" if self.__is_valid_secret_key__(value) else "error not a valid secret key"
         # LS 2024.12.09 call a sub
-        # print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+        # print(f"ConfigHelper key: {key.ljust(35, ' ')} "
         #       f"type:{'url'.ljust(10, ' ')} "
         #       f"value:{value[:25].ljust(25, ' ')} "
         #       f"validation:{message.upper()}")
@@ -270,7 +341,7 @@ class ConfigHelper:
         value = os.getenv(key, '')
         message = "OK" if self.__is_valid_secret_key__(value) else "error not a valid secret key"
         # LS 2024.12.09 call a sub
-        # print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+        # print(f"ConfigHelper key: {key.ljust(35, ' ')} "
         #       f"type:{'url'.ljust(10, ' ')} "
         #       f"value:{value[:25].ljust(25, ' ')} "
         #       f"validation:{message.upper()}")
@@ -290,7 +361,7 @@ class ConfigHelper:
             key_is_ok = True if value in ['critical', 'error', 'warning', 'info', 'debug', 'trace', 'notset'] else False
         message = "OK" if key_is_ok else "error not a valid debug level"
         # LS 2024.12.09 call a sub
-        # print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+        # print(f"ConfigHelper key: {key.ljust(35, ' ')} "
         #       f"type:{'string'.ljust(10, ' ')} "
         #       f"value:{value[:25].ljust(25, ' ')} "
         #       f"validation:{message.upper()}")
@@ -319,7 +390,7 @@ class ConfigHelper:
             # LS 2024.12.09 control changed
             # message = "OK" if res is not None else "not valid path"
             message = "OK" if res else "not valid path"
-            # print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+            # print(f"ConfigHelper key: {key.ljust(35, ' ')} "
             #       f"type:{'path'.ljust(10, ' ')} "
             #       f"value:{value[:25].ljust(25, ' ')} "
             #       f"validation:{message.upper()}")
@@ -348,7 +419,7 @@ class ConfigHelper:
         # message = "OK" if res is not None else "not valid path"
         message = "OK" if res else "not valid path"
 
-        # print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+        # print(f"ConfigHelper key: {key.ljust(35, ' ')} "
         #       f"type:{'path'.ljust(10, ' ')} "
         #       f"value:{value[:25].ljust(25, ' ')} "
         #       f"validation:{message.upper()}")
@@ -362,7 +433,7 @@ class ConfigHelper:
         value = os.getenv(key, None)
         message = "OK" if self.__check_integer_sequence__(value) else "error not a valid rate limiter sequence"
         # LS 2024.12.09 control changed
-        # print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+        # print(f"ConfigHelper key: {key.ljust(35, ' ')} "
         #       f"type:{'complex'.ljust(10, ' ')} "
         #       f"value:{value[:25].ljust(25, ' ')} "
         #       f"validation:{message.upper()}")
@@ -388,7 +459,7 @@ class ConfigHelper:
             else:
                 message = "OK" if self.__validate_rate_limiter__(res) else "error not a valid rate limiter "
                 # LS 2024.12.09 control changed
-                # print(f"INFO      [Env validation] key: {key.ljust(35, ' ')} "
+                # print(f"ConfigHelper key: {key.ljust(35, ' ')} "
                 #       f"type:{'complex'.ljust(10, ' ')} "
                 #       f"value:{res[:25].ljust(25, ' ')} "
                 #       f"validation:{message.upper()}")
@@ -401,15 +472,17 @@ class ConfigHelper:
                 if message != "OK":
                     block_exec = True
         # LS 2024.12.09 update
-        # print(f"INFO      [Env validation] Mandatory env variables set: {not block_exec}")
+        # print(f"ConfigHelper Mandatory env variables set: {not block_exec}")
         if block_exec:
-            message = f"ERROR     [Gen validation ] Mandatory env variables set: {not block_exec}"
+            message = f"ConfigHelper ERROR [Gen validation ] Mandatory env variables set: {not block_exec}"
             print(f"\033[91m{message}\033[0m")
-            message = (f"ERROR     [Gen Validation ] !!!Warning:The application can not start. Try to update the keys "
-                       f"in errors and restart the program.")
+            message = (
+                f"ConfigHelper ERROR [Gen Validation ] !!!Warning:The application can not start. Try to update the "
+                f"keys "
+                f"in errors and restart the program.")
             print(f"\033[91m{message}\033[0m")
         else:
-            print(f"INFO      [Gen validation ] Mandatory env variables set: {not block_exec}")
+            print(f"ConfigHelper [Gen validation ] Mandatory env variables set: {not block_exec}")
         return block_exec
 
     def load_key(self, key, default, print_out: bool = True, mask_value: bool = False):
@@ -423,10 +496,10 @@ class ConfigHelper:
                 index = int(len(value) / 2)
                 partial = '*' * index
                 if self.debug_on:
-                    print(f"INFO      [Env] load_key.key={key} value={value[:index]}{partial}")
+                    print(f"ConfigHelper [Env] load_key.key={key} value={value[:index]}{partial}")
             else:
                 if self.debug_on:
-                    print(f"INFO      [Env] load_key.key={key} value={value}")
+                    print(f"ConfigHelper [Env] load_key.key={key} value={value}")
         return value
 
     def logger_key(self):
@@ -456,8 +529,8 @@ class ConfigHelper:
         return int(self.load_key('LOG_FILES_BACKUP',
                                  '5'))
 
-    def logger_level(self):
-        return self.load_key('LOG_LEVEL', 10)
+    # def logger_level(self):
+    #     return self.load_key('DEBUG_LEVEL', 10)
 
     def uvicorn_reload_update(self):
         return bool(self.load_key('UVICORN_RELOAD', 'False').lower() == 'true')

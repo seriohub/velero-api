@@ -3,13 +3,13 @@ import os
 
 from api.v1.schemas.create_vsl import CreateVsl
 from utils.handle_exceptions import handle_exceptions_async_method
-# from utils.commons import add_id_to_list
-from utils.process import run_process_check_output, run_process_check_call
 
+from utils.process import run_process_check_output
 
 from service.k8s_service import K8sService
 
 k8sService = K8sService()
+
 
 class SnapshotLocationService:
 

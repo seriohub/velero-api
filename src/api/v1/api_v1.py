@@ -1,8 +1,4 @@
-# from dotenv import load_dotenv
-from fastapi import FastAPI, Depends, APIRouter
-# from helpers.printer import PrintHelper
-# from core.config import ConfigHelper
-# from fastapi.responses import JSONResponse
+from fastapi import Depends, APIRouter
 
 from api.v1.routers import (sc_mapping,
                             repo,
@@ -18,45 +14,9 @@ from api.v1.routers import (sc_mapping,
                             pod_volume_backup)
 from security.routers import authentication, user
 
-# from app_data import __version__, __app_name__, __app_description__, __app_summary__
 from security.service.helpers.users import get_current_active_user
 
-
-# load_dotenv()
-# config = ConfigHelper()
-#
-# # init logger engine
-# # print_helper = PrintHelper('[app]')
-#
-#
-# # docs redoc
-# docs_url = '/docs'
-# re_docs_url = '/redoc'
-# enabled_docs = config.get_api_disable_documentation()
-# if not enabled_docs:
-#     docs_url = None
-#     re_docs_url = None
-#
-#
-# v1 = FastAPI(
-#     title=__app_name__,
-#     description=__app_description__,
-#     summary=__app_summary__,
-#     version=__version__,
-#     license_info={
-#         'name': 'Apache 2.0',
-#         'identifier': 'Apache-2.0',
-#     },
-#     docs_url=docs_url,
-#     redoc_url=re_docs_url
-# )
-
 v1 = APIRouter()
-
-# @v1.get('/')
-# # @app.docsOnlyLoggedIn
-# async def online():
-#     return JSONResponse(content={'v1': 'alive'}, status_code=200)
 
 v1.include_router(authentication.router)
 

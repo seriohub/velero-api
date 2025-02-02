@@ -12,7 +12,6 @@ from utils.commons import filter_in_progress, logs_string_to_list, parse_create_
 from utils.process import run_process_check_output, run_process_check_call
 from utils.handle_exceptions import handle_exceptions_async_method
 
-from helpers.printer import PrintHelper
 from utils.commons import convert_to_list
 
 from service.k8s_service import K8sService
@@ -20,10 +19,15 @@ from service.backup_location_service import BackupLocationService
 from service.snapshot_location_service import SnapshotLocationService
 from api.v1.schemas.create_backup import CreateBackup
 
+from helpers.logger import ColoredLogger, LEVEL_MAPPING
+import logging
+
+config_app = ConfigHelper()
+logger = ColoredLogger.get_logger(__name__, level=LEVEL_MAPPING.get(config_app.get_internal_log_level(), logging.INFO))
+
 k8sService = K8sService()
 backupLocation = BackupLocationService()
 snapshotLocation = SnapshotLocationService()
-config_app = ConfigHelper()
 
 
 class BackupService:
@@ -38,7 +42,6 @@ class BackupService:
 
         self.client_core_v1_api = client.CoreV1Api()
         self.client_custom_objects_api = client.CustomObjectsApi()
-        self.print_ls = PrintHelper('[service.backup]', level=config_app.get_internal_log_level())
 
     def filter_last_backup_for_every_schedule(self, data):
         result = {}
@@ -63,7 +66,7 @@ class BackupService:
 
     @handle_exceptions_async_method
     async def get_settings_create(self):
-        namespaces = (await k8sService.get_ns())['data']
+        namespaces = (await k8sService.get_namespaces())['data']
         backup_location = (await backupLocation.get())['data']
         snapshot_location = (await snapshotLocation.get())['data']
         backup_location_list = [item['metadata']['name'] for item in backup_location if
@@ -222,7 +225,7 @@ class BackupService:
 
         # extract manifests from tar.gz
         path = extract_path(output['data'])
-        self.print_ls.debug("path to extract: " + path)
+        logger.debug("path to extract: " + path)
         filename = os.path.basename(path)
 
         os.mkdir(os.path.join(tmp_folder, backup_name))

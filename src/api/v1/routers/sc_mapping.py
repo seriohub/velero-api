@@ -6,7 +6,6 @@ from security.service.helpers.rate_limiter import RateLimiter, LimiterRequests
 
 from utils.commons import route_description
 from utils.handle_exceptions import handle_exceptions_endpoint
-from helpers.printer import PrintHelper
 
 from api.common.response_model.failed_request import FailedRequest
 from api.common.response_model.successful_request import SuccessfulRequest
@@ -18,17 +17,16 @@ from api.v1.controllers.sc_mapping import SCMapping
 router = APIRouter()
 scMapping = SCMapping()
 config_app = ConfigHelper()
-print_ls = PrintHelper('[v1.routers.sc_mapping]',
-                       level=config_app.get_internal_log_level())
 
 tag_name = 'Storage Class Mapping'
 
-endpoint_limiter = LimiterRequests(printer=print_ls,
-                                   tags=tag_name,
+endpoint_limiter = LimiterRequests(tags=tag_name,
                                    default_key='L1')
 
 limiter_sc_mapping = endpoint_limiter.get_limiter_cust('sc_mapping')
 route = '/sc-mapping'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get change storage classes config map',
@@ -47,6 +45,8 @@ async def get_storages_classes_map():
 
 limiter_sc_create = endpoint_limiter.get_limiter_cust('sc_mapping')
 route = '/sc-mapping'
+
+
 @router.post(path=route,
              tags=[tag_name],
              summary='Create storage classes config map',
@@ -65,6 +65,8 @@ async def create_storages_classes_map(maps: StorageClassMap):
 
 limiter_sc_update = endpoint_limiter.get_limiter_cust('sc_mapping')
 route = '/sc-mapping'
+
+
 @router.patch(path=route,
               tags=[tag_name],
               summary='Update storage classes config map',
@@ -83,6 +85,8 @@ async def update_storages_classes_map(maps: StorageClassMap):
 
 limiter_sc_delete = endpoint_limiter.get_limiter_cust('sc_mapping')
 route = '/sc-mapping'
+
+
 @router.delete(path=route,
                tags=[tag_name],
                summary='Delete storage classes mapping in config map',

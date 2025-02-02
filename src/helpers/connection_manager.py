@@ -4,6 +4,7 @@ import json
 
 from security.service.helpers.users import get_current_user_token
 
+
 # socket manager
 class ConnectionManager:
     def __init__(self):

@@ -6,7 +6,6 @@ from security.service.helpers.rate_limiter import RateLimiter, LimiterRequests
 
 from utils.commons import route_description
 from utils.handle_exceptions import handle_exceptions_endpoint
-from helpers.printer import PrintHelper
 
 from api.common.response_model.failed_request import FailedRequest
 from api.common.response_model.successful_request import SuccessfulRequest
@@ -17,17 +16,15 @@ router = APIRouter()
 rate_limiter = RateLimiter()
 utils_controller = Stats()
 config_app = ConfigHelper()
-print_ls = PrintHelper('[v1.routers.stats]',
-                       level=config_app.get_internal_log_level())
 
 tag_name = 'Statistics'
-endpoint_limiter = LimiterRequests(printer=print_ls,
-                                   tags=tag_name,
+endpoint_limiter = LimiterRequests(tags=tag_name,
                                    default_key='L1')
-
 
 limiter = endpoint_limiter.get_limiter_cust('utilis_stats')
 route = '/stats'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get backups repository',
@@ -46,6 +43,8 @@ async def stats():
 
 limiter_inprog = endpoint_limiter.get_limiter_cust('utilis_in_progress')
 route = '/stats/in-progress'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get operations in progress',
@@ -64,6 +63,8 @@ async def in_progress():
 
 limiter_schedules = endpoint_limiter.get_limiter_cust('stats_schedules')
 route = '/stats/schedules'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get schedules stats',

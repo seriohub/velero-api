@@ -8,7 +8,11 @@ from utils.commons import add_id_to_list
 from utils.handle_exceptions import handle_exceptions_async_method
 from utils.k8s_tracer import trace_k8s_async_method
 
-from helpers.printer import PrintHelper
+from helpers.logger import ColoredLogger, LEVEL_MAPPING
+import logging
+
+config_app = ConfigHelper()
+logger = ColoredLogger.get_logger(__name__, level=LEVEL_MAPPING.get(config_app.get_internal_log_level(), logging.INFO))
 
 
 class ScMappingService:
@@ -24,9 +28,6 @@ class ScMappingService:
         self.v1 = client.CoreV1Api()
         self.client = client.CustomObjectsApi()
         self.client_cs = client.StorageV1Api()
-        config_app = ConfigHelper()
-        self.print_ls = PrintHelper('[service.sc_mapping_service]',
-                                    level=config_app.get_internal_log_level())
 
     @trace_k8s_async_method(description="Set storage class map")
     async def __set_storages_classes_map(self,
@@ -63,7 +64,7 @@ class ScMappingService:
                 existing_config_map.data = data_list
                 core_v1.replace_namespaced_config_map(name=config_map_name, namespace=namespace,
                                                       body=existing_config_map)
-                self.print_ls.info(
+                logger.info(
                     "ConfigMap 'change-storage-class-config' in namespace 'velero' updated successfully.")
             except client.rest.ApiException as e:
                 # If it doesn't exist, create the ConfigMap
@@ -73,12 +74,12 @@ class ScMappingService:
                         data=data_list
                     )
                     core_v1.create_namespaced_config_map(namespace=namespace, body=config_map_body)
-                    self.print_ls.info(
+                    logger.info(
                         "ConfigMap 'change-storage-class-config' in namespace 'velero' created successfully.")
                 else:
                     raise e
         except Exception as e:
-            self.print_ls.error(f"Error writing ConfigMap 'change-storage-class-config' in namespace 'velero': {e}")
+            logger.error(f"Error writing ConfigMap 'change-storage-class-config' in namespace 'velero': {e}")
 
     @handle_exceptions_async_method
     @trace_k8s_async_method(description="get storage class config map")
@@ -97,11 +98,11 @@ class ScMappingService:
         except ApiException as e:
             if e.status == 404:
                 # err_msg = f"ConfigMap '{config_map_name}' not found in namespace '{namespace}'"
-                self.print_ls.wrn(f"{e.status} Error reading ConfigMap '{config_map_name}' in namespace '{namespace}'")
+                logger.warning(f"{e.status} Error reading ConfigMap '{config_map_name}' in namespace '{namespace}'")
                 return {'success': True, 'data': []}
             else:
                 # err_msg = f"Error reading ConfigMap '{config_map_name}' in namespace '{namespace}': {e}"
-                self.print_ls.wrn(f"{e.status} Error reading ConfigMap '{config_map_name}' in namespace '{namespace}'")
+                logger.warning(f"{e.status} Error reading ConfigMap '{config_map_name}' in namespace '{namespace}'")
                 return {'success': True, 'data': []}
 
         if len(data.items()) > 0:

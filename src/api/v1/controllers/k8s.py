@@ -8,15 +8,16 @@ from api.common.response_model.successful_request import SuccessfulRequest
 from api.v1.schemas.create_cloud_credentials import CreateCloudCredentials
 
 from service.k8s_service import K8sService
+from core.config import ConfigHelper
 
 k8s = K8sService()
-
+configApp = ConfigHelper()
 
 class K8s:
 
     @handle_exceptions_controller
     async def get_ns(self):
-        payload = await k8s.get_ns()
+        payload = await k8s.get_namespaces()
 
         if not payload['success']:
             response = FailedRequest(**payload['error'])
@@ -27,7 +28,7 @@ class K8s:
 
     @handle_exceptions_controller
     async def get_resources(self):
-        payload = await k8s.get_ns()
+        payload = await k8s.get_namespaces()
 
         if not payload['success']:
             response = FailedRequest(**payload['error'])
@@ -124,7 +125,7 @@ class K8s:
     @handle_exceptions_controller
     async def get_velero_secret_key(self, secret_name):
 
-        payload = await k8s.get_secret_keys(secret_name)
+        payload = await k8s.get_secret_keys(configApp.get_k8s_velero_namespace(), secret_name)
 
         if not payload['success']:
             response = FailedRequest(**payload['error'])

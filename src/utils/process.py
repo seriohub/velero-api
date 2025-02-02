@@ -7,45 +7,46 @@ import os
 from core.config import ConfigHelper
 from core.context import current_user_var, cp_user
 from helpers.connection_manager import manager
-from helpers.printer import PrintHelper
 
-config = ConfigHelper()
+from helpers.logger import ColoredLogger, LEVEL_MAPPING
+import logging
 
-if config.get_enable_nats():
+config_app = ConfigHelper()
+
+if config_app.get_enable_nats():
     from helpers.nats_manager import get_nats_manager_instance
 
-print_ls = PrintHelper('[bash tracer]',
-                       level=config.get_internal_log_level())
+logger = ColoredLogger.get_logger(__name__, level=LEVEL_MAPPING.get(config_app.get_internal_log_level(), logging.INFO))
 
 
 async def send_message(message):
     try:
-        print_ls.debug(message)
+        logger.debug(message)
         # await manager.broadcast(message)
         user = None
         try:
             user = current_user_var.get()
-        except:
-            print("get failed")
+        except Exception as Ex:
+            logger.error(f"send message failed {str(Ex)}")
         finally:
-            if config.get_enable_nats() and user.is_nats:
+            if config_app.get_enable_nats() and user.is_nats:
                 nats_manager = get_nats_manager_instance()
                 nc = await nats_manager.get_nats_connection()
                 control_plane_user = cp_user.get()
                 data = {"user": control_plane_user, "msg": message}
-                await nc.publish("socket." + config.cluster_id(), json.dumps(data).encode())
+                await nc.publish("socket." + config_app.cluster_id(), json.dumps(data).encode())
                 pass
             elif user is not None:
                 response = {'response_type': 'process', 'message': message}
                 await manager.send_personal_message(str(user.id), json.dumps(response))
 
     except WebSocketDisconnect:
-        print_ls.error('send message error')
+        logger.error('send message error')
 
 
 async def run_process_check_output(cmd, publish_message=True, cwd='./', env=None):
+    output = ''
     try:
-        output = ''
         if publish_message:
             await send_message('check output: ' + ' '.join(cmd))
         # sync
@@ -76,7 +77,7 @@ async def run_process_check_output(cmd, publish_message=True, cwd='./', env=None
         return {'success': True, 'data': output}
     except subprocess.CalledProcessError as e:
         # print("Error", e)
-        print_ls.error("Error" + str(e))
+        logger.error("Error" + str(e))
         error = {'success': False, 'error': {'title': 'Run Process Check Output Error',
                                              'description': str(' '.join(cmd)) + '\n' + str(
                                                  e.stderr.decode('utf-8').strip())
@@ -85,7 +86,7 @@ async def run_process_check_output(cmd, publish_message=True, cwd='./', env=None
         return error
     except Exception as e:
         # print("Error", e)
-        print_ls.error("Error" + str(e))
+        logger.error("Error" + str(e))
         error = {'success': False, 'error': {'title': 'Run Process Check Output Error',
                                              'description': str(e) + ' \n' + str(output)
                                              }

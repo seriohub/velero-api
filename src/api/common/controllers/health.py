@@ -6,8 +6,8 @@ from api.common.response_model.failed_request import FailedRequest
 
 from service.k8s_service import K8sService
 
-
 k8s = K8sService()
+
 
 class Health:
 

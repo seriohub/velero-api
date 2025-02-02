@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Request, status, Depends
+from fastapi import APIRouter, status, Depends
 from typing import Union
 
 from core.config import ConfigHelper
 from security.service.helpers.rate_limiter import RateLimiter, LimiterRequests
 
-from helpers.printer import PrintHelper
 from utils.commons import route_description
 from utils.handle_exceptions import handle_exceptions_endpoint
 
@@ -24,16 +23,15 @@ rate_limiter = RateLimiter()
 schedule = Schedule()
 backup = Backup()
 config_app = ConfigHelper()
-print_ls = PrintHelper('[v1.routers.schedule]',
-                       level=config_app.get_internal_log_level())
 
 tag_name = 'Schedules'
-endpoint_limiter = LimiterRequests(printer=print_ls,
-                                   tags=tag_name,
+endpoint_limiter = LimiterRequests(tags=tag_name,
                                    default_key='L1')
 
 limiter_schedules = endpoint_limiter.get_limiter_cust('schedules')
 route = '/schedules'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get schedules',
@@ -52,6 +50,8 @@ async def schedule_get():
 
 limiter_env = endpoint_limiter.get_limiter_cust('schedule_environment')
 route = '/schedule/environment'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Create environment for schedule',
@@ -70,6 +70,8 @@ async def get_settings_create():
 
 limiter_create = endpoint_limiter.get_limiter_cust('schedule')
 route = '/schedule'
+
+
 @router.post(path=route,
              tags=[tag_name],
              summary='Create a new schedule',
@@ -89,6 +91,8 @@ async def create(create_schedule: CreateSchedule):
 
 limiter_des = endpoint_limiter.get_limiter_cust('schedule_describe')
 route = '/schedule/describe'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get details for a schedule',
@@ -107,6 +111,8 @@ async def schedule_describe(resource_name=None):
 
 limiter_up = endpoint_limiter.get_limiter_cust('schedule_unpause')
 route = '/schedule/unpause'
+
+
 @router.patch(path=route,
               tags=[tag_name],
               summary='Set unpause a schedule',
@@ -125,6 +131,8 @@ async def schedule_unpause(schedule_status: PauseUnpauseSchedule):
 
 limiter_p = endpoint_limiter.get_limiter_cust('schedule_pause')
 route = '/schedule/pause'
+
+
 @router.patch(path=route,
               tags=[tag_name],
               summary='Set in pause aschedule',
@@ -143,6 +151,8 @@ async def schedule_pause(schedule_status: PauseUnpauseSchedule):
 
 limiter_delete = endpoint_limiter.get_limiter_cust('schedule')
 route = '/schedule'
+
+
 @router.delete(path=route,
                tags=[tag_name],
                summary='Delete a schedule',
@@ -161,6 +171,8 @@ async def schedule_delete(delete_schedule: DeleteSchedule):
 
 limiter_update = endpoint_limiter.get_limiter_cust('schedule')
 route = '/schedule'
+
+
 @router.put(path=route,
             tags=[tag_name],
             summary='Update a schedule',

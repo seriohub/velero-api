@@ -25,9 +25,6 @@ from app_data import __version__, __app_name__, __app_description__, __app_summa
 load_dotenv()
 config = ConfigHelper()
 
-# init logger engine
-# print_helper = PrintHelper('[app]')
-
 # docs redocs
 docs_url = '/docs'
 re_docs_url = '/redoc'
@@ -52,7 +49,7 @@ if not enabled_docs:
 #     yield
 
 
-app = FastAPI(root_path="/api", # if not config.get_developer_mode() else '/',
+app = FastAPI(root_path="/api",  # if not config.get_developer_mode() else '/',
               title=__app_name__,
               description=__app_description__,
               summary=__app_summary__,

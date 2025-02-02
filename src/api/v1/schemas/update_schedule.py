@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class UpdateSchedule(BaseModel):
     name: str
     oldName: str
