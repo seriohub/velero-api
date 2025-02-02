@@ -4,7 +4,7 @@ fastapi==0.115.8
 jose==1.0.0
 kubernetes==32.0.0
 minio==7.2.15
-nats==0.1
+nats-py==2.8.0
 passlib==1.7.4
 pydantic==2.10.6
 python-dotenv==1.0.1
