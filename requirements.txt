@@ -12,3 +12,4 @@ Requests==2.32.3
 SQLAlchemy==2.0.37
 starlette==0.45.3
 uvicorn==0.34.0
+python-multipart==0.0.19
