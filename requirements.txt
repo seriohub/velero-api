@@ -10,3 +10,4 @@ aiohttp~=3.11.11
 starlette~=0.40.0
 croniter~=6.0.0
 passlib~=1.7.4
+python-jose==3.3.0
