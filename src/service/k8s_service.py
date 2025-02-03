@@ -408,7 +408,7 @@ class K8sService:
             dict | None: The updated ConfigMap or None if the ConfigMap has been deleted or does not exist.
         """
         # Upload Kubernetes configuration
-        config.load_kube_config()  # Use for local execution with kubectl configured
+        # config.load_kube_config()  # Use for local execution with kubectl configured
         # config.load_incluster_config()  # Use if execution occurs inside a Pod
 
         v1 = client.CoreV1Api()
@@ -459,7 +459,7 @@ class K8sService:
             dict: The ConfigMap created, or None if it already exists.
         """
         # Upload Kubernetes configuration
-        config.load_kube_config()  # Use this for local execution
+        # config.load_kube_config()  # Use this for local execution
         # config.load_incluster_config()  # Use this if the code is executed inside a pod
 
         v1 = client.CoreV1Api()
@@ -550,7 +550,7 @@ class K8sService:
             dict | None: The updated Secret, or None in case of an error
         """
         # Upload Kubernetes configuration
-        config.load_kube_config()
+        # config.load_kube_config()
 
         v1 = client.CoreV1Api()
 
@@ -600,7 +600,7 @@ class K8sService:
             dict | None: The updated Secret or None if the Secret has been deleted or does not exist.
         """
         # Upload Kubernetes configuration
-        config.load_kube_config()
+        # config.load_kube_config()
 
         v1 = client.CoreV1Api()
 
