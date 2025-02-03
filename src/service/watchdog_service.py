@@ -165,28 +165,28 @@ class WatchdogService:
 
     @handle_exceptions_async_method
     async def get_env_variables(self):
-        if os.getenv('K8S_IN_CLUSTER_MODE').lower() == 'true':
-            output = await k8sService.get_config_map(namespace=config_app.get_k8s_velero_ui_namespace(),
-                                                     configmap_name='velero-watchdog-config')
-            env_data = output['data']
-            return {'success': True, 'data': env_data}
-        else:
-            protocol = 'http://'
-            url = protocol + config_app.get_watchdog_url() + '/environment'
-            # logger.debug(f'Watchdog URL {url}')
-            # try:
-            #     response = requests.get(url)
-            # except:
-            #     return {'success': False, 'error': {
-            #         'title': 'Error',
-            #         'description': 'Check url and watchdog running'
-            #     }}
-            #
-            # if response.status_code == 200:
-            #     output = response.json()
-            #     print(output)
-            #     return {'success': True, 'data': output['data']['payload']}
-            return await self.__do_api_call(url)
+        # if os.getenv('K8S_IN_CLUSTER_MODE').lower() == 'true':
+        #     output = await k8sService.get_config_map(namespace=config_app.get_k8s_velero_ui_namespace(),
+        #                                              configmap_name='velero-watchdog-config')
+        #     env_data = output['data']
+        #     return {'success': True, 'data': env_data}
+        # else:
+        protocol = 'http://'
+        url = protocol + config_app.get_watchdog_url() + '/environment'
+        # logger.debug(f'Watchdog URL {url}')
+        # try:
+        #     response = requests.get(url)
+        # except:
+        #     return {'success': False, 'error': {
+        #         'title': 'Error',
+        #         'description': 'Check url and watchdog running'
+        #     }}
+        #
+        # if response.status_code == 200:
+        #     output = response.json()
+        #     print(output)
+        #     return {'success': True, 'data': output['data']['payload']}
+        return await self.__do_api_call(url)
 
     @handle_exceptions_async_method
     async def get_cron(self, job_name='vui-report'):
