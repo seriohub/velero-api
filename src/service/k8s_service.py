@@ -912,3 +912,31 @@ aws_secret_access_key={aws_secret_access_key}
         except client.exceptions.ApiException as e:
             print("Exception when calling CustomObjectsApi->list_namespaced_custom_object: %s\n" % e)
             return None
+
+    async def restart_watchdog(self):
+        try:
+            namespace = config_app.get_k8s_velero_ui_namespace()
+            deployment_name = "vui-watchdog"
+
+            api_instance = client.AppsV1Api()
+
+            deployment = api_instance.read_namespaced_deployment(name=deployment_name, namespace=namespace)
+
+            # Update annotation in pod template (NOT just in metadata)
+            restart_time = datetime.utcnow().isoformat()
+            if deployment.spec.template.metadata.annotations is None:
+                deployment.spec.template.metadata.annotations = {}
+            deployment.spec.template.metadata.annotations["kubectl.kubernetes.io/restartedAt"] = restart_time
+
+            # Apply the patch to update the deployment and force a restart
+            api_instance.patch_namespaced_deployment(
+                name=deployment_name,
+                namespace=namespace,
+                body={
+                    "spec": {"template": {"metadata": {"annotations": deployment.spec.template.metadata.annotations}}}}
+            )
+
+            return {'success': True}
+        except client.exceptions.ApiException as e:
+            return {'success': False, 'error': {'Title': 'create cloud credentials',
+                                                'description': f"Exception when create cloud credentials: {e}"}}

@@ -81,17 +81,18 @@ class Watchdog:
             response = FailedRequest(**payload['error'])
             return JSONResponse(content=response.toJSON(), status_code=400)
 
-        response = SuccessfulRequest(payload=payload['data'])
+        response = SuccessfulRequest()
         return JSONResponse(content=response.toJSON(), status_code=200)
 
     @handle_exceptions_controller
     async def user_configs(self):
         payload = await watchdog.get_user_configs()
+        secrets = await watchdog.get_user_services()
 
         if not payload['success']:
             response = FailedRequest(**payload['error'])
             return JSONResponse(content=response.toJSON(), status_code=400)
-
+        payload['data']['APPRISE'] = ';'.join(secrets['data'])
         response = SuccessfulRequest(payload=payload['data'])
         return JSONResponse(content=response.toJSON(), status_code=200)
 

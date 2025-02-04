@@ -237,9 +237,10 @@ class WatchdogService:
 
     @handle_exceptions_async_method
     async def restart(self):
-        protocol = 'http://'
-        url = protocol + config_app.get_watchdog_url() + '/restart'
-        return await self.__do_api_call_post(url, payload={})
+        # protocol = 'http://'
+        # url = protocol + config_app.get_watchdog_url() + '/restart'
+        # return await self.__do_api_call_post(url, payload={})
+        return await k8sService.restart_watchdog()
 
     @handle_exceptions_async_method
     async def get_user_configs(self):
