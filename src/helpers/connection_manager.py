@@ -19,9 +19,9 @@ class ConnectionManager:
                 try:
                     token = await websocket.receive_text()
                 except:
+                    await self.disconnect_websocket(websocket)
                     break
                 user = await get_current_user_token(token)
-                print(f"Connected user via socket: {user.username}")
                 if user is not None and not user.is_disabled:
                     self.active_connections[str(user.id)] = websocket
                     response = {'response_type': 'notification', 'message': 'Connection READY!'}
@@ -46,6 +46,21 @@ class ConnectionManager:
     #             await websocket.send_text(json.dumps({"type": "ping"}))
     #     except Exception as e:
     #         print(f"Error sending keep-alive ping: {e}")
+
+    async def disconnect_websocket(self, websocket: WebSocket):
+        user_id = None
+        for uid, conn in self.active_connections.items():
+            if conn == websocket:
+                user_id = uid
+                break
+        if user_id:
+            try:
+                await websocket.close(code=1001)
+            except Exception:
+                print(f"WebSocket for user {user_id} was already closed.")
+            finally:
+                self.active_connections.pop(user_id, None)
+                print(f"Disconnected user {user_id} and removed from active connections.")
 
     def disconnect(self, user_id):
         self.active_connections[user_id].close(1001)
