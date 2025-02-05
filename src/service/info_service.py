@@ -194,10 +194,10 @@ class InfoService:
                 return latest_tag
             except Exception as e:
                 logger.error(f"Error processing response for {repo}: {e}")
-                return "-"
+                return "n.y.a."
         else:
-            logger.warning(f"Failed to fetch tags for repo {repo}. Status code: {response.status}")
-            return "-"
+            logger.warning(f"Failed to fetch tags for repo {repo}. Status code: {str(response)}")
+            return "n.y.a."
 
     @handle_exceptions_async_method
     async def identify_architecture(self):
