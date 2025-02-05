@@ -1,6 +1,7 @@
 from fastapi import WebSocket, WebSocketDisconnect
 from typing import Dict
 import json
+# import asyncio
 
 from security.service.helpers.users import get_current_user_token
 
@@ -25,6 +26,9 @@ class ConnectionManager:
                     self.active_connections[str(user.id)] = websocket
                     response = {'response_type': 'notification', 'message': 'Connection READY!'}
                     await self.send_personal_message(str(user.id), json.dumps(response))
+
+                    # Start keep-alive pings
+                    # asyncio.create_task(self.keep_alive(websocket))
                 else:
                     await websocket.close(1001)
                     break
@@ -33,6 +37,15 @@ class ConnectionManager:
         except Exception as e:
             await websocket.close(1001)
             print(f"WebSocket connection error: {e}")
+
+    # async def keep_alive(self, websocket: WebSocket):
+    #     """ Periodically sends ping messages to prevent timeouts """
+    #     try:
+    #         while True:
+    #             await asyncio.sleep(30)  # Adjust time as needed
+    #             await websocket.send_text(json.dumps({"type": "ping"}))
+    #     except Exception as e:
+    #         print(f"Error sending keep-alive ping: {e}")
 
     def disconnect(self, user_id):
         self.active_connections[user_id].close(1001)
