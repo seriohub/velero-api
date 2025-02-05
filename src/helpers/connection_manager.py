@@ -1,6 +1,7 @@
 from fastapi import WebSocket, WebSocketDisconnect
 from typing import Dict
 import json
+import traceback
 # import asyncio
 
 from security.service.helpers.users import get_current_user_token
@@ -18,7 +19,9 @@ class ConnectionManager:
             while True:
                 try:
                     token = await websocket.receive_text()
-                except:
+                except Exception as e:
+                    print(f"WebSocket Receive Error: {e}")
+                    traceback.print_exc()
                     await self.disconnect_websocket(websocket)
                     break
                 user = await get_current_user_token(token)

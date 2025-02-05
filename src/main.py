@@ -109,7 +109,7 @@ if __name__ == '__main__':
                     port=int(endpoint_port),
                     reload=app_reload,
                     log_level=log_level,
-                    workers=2,
+                    workers=1,
                     limit_concurrency=int(limit_concurrency),
                     )
 
