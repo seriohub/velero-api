@@ -98,7 +98,7 @@ async def online():
 # Can't use jwt in socket header request
 @app.websocket('/ws/auth')
 async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)  # await manager.send_personal_message('Connection READY!', websocket=websocket)
+    await manager.connect(websocket)
 
 
 @app.websocket('/ws/online')
