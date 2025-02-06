@@ -14,36 +14,47 @@ class ConnectionManager:
         self.active_connections: Dict[str, WebSocket] = {}
 
     async def connect(self, websocket: WebSocket):
+        """Gestisce la connessione WebSocket e autentica l'utente solo dopo aver ricevuto un token valido."""
         try:
             await websocket.accept()
-            # while True:
-            try:
-                token = await websocket.receive_text()
-            except Exception as e:
-                print(f"WebSocket Receive Error: {e}")
-                traceback.print_exc()
-                # await self.disconnect_websocket(websocket)
-                # break
-                return
+            user = None  # Inizializza l'utente come None
 
-            user = await get_current_user_token(token)
-            if user is not None and not user.is_disabled:
-                self.active_connections[str(user.id)] = websocket
-                response = {'response_type': 'notification', 'message': 'Connection READY!'}
-                await self.send_personal_message(str(user.id), json.dumps(response))
+            while user is None:  # Continua finché non riceve un token valido
+                try:
+                    message = await websocket.receive_text()
+                    data = json.loads(message) if message.startswith('{') else message  # Prova a decodificare JSON
+                except Exception as e:
+                    print(f"WebSocket Receive Error: {e}")
+                    traceback.print_exc()
+                    return  # Termina la connessione se c'è un errore nella ricezione del messaggio
 
-                await self.listen_for_messages(websocket, str(user.id))
+                if isinstance(data, dict) and "action" in data and data["action"] == "ping":
+                    # Risponde al ping per mantenere la connessione aperta
+                    await websocket.send_text(json.dumps({"type": "pong"}))
+                    continue  # Continua a ricevere messaggi senza chiudere la connessione
 
-                # Start keep-alive pings
-                # await asyncio.create_task(self.keep_alive(websocket))
-            else:
-                await websocket.close(1001)
-                # break
+                elif isinstance(data, str):
+                    # Tratta il messaggio come un token JWT
+                    user = await get_current_user_token(data)
+
+                if user is not None and not user.is_disabled:
+                    self.active_connections[str(user.id)] = websocket
+                    response = {'response_type': 'notification', 'message': 'Connection READY!'}
+                    await self.send_personal_message(str(user.id), json.dumps(response))
+
+                    # Inizia ad ascoltare i messaggi solo per utenti autenticati
+                    await self.listen_for_messages(websocket, str(user.id))
+                    return  # Termina il ciclo dopo aver autenticato l'utente
+
+            # Se nessun token valido è stato ricevuto, chiudi la connessione
+            await websocket.close(1001)
+
         except WebSocketDisconnect:
+            print("WebSocket disconnected")
             await websocket.close(1001)
         except Exception as e:
-            await websocket.close(1001)
             print(f"WebSocket connection error: {e}")
+            await websocket.close(1001)
 
     # async def keep_alive(self, websocket: WebSocket):
     #     """ Periodically sends ping messages to prevent timeouts """
