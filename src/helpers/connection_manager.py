@@ -35,7 +35,7 @@ class ConnectionManager:
                 await self.listen_for_messages(websocket, str(user.id))
 
                 # Start keep-alive pings
-                await asyncio.create_task(self.keep_alive(websocket))
+                # await asyncio.create_task(self.keep_alive(websocket))
             else:
                 await websocket.close(1001)
                 # break
@@ -45,14 +45,14 @@ class ConnectionManager:
             await websocket.close(1001)
             print(f"WebSocket connection error: {e}")
 
-    async def keep_alive(self, websocket: WebSocket):
-        """ Periodically sends ping messages to prevent timeouts """
-        try:
-            while True:
-                await asyncio.sleep(10)  # Adjust time as needed
-                await websocket.send_text(json.dumps({"type": "ping"}))
-        except Exception as e:
-            print(f"Error sending keep-alive ping: {e}")
+    # async def keep_alive(self, websocket: WebSocket):
+    #     """ Periodically sends ping messages to prevent timeouts """
+    #     try:
+    #         while True:
+    #             await asyncio.sleep(10)  # Adjust time as needed
+    #             await websocket.send_text(json.dumps({"type": "ping"}))
+    #     except Exception as e:
+    #         print(f"Error sending keep-alive ping: {e}")
 
     async def disconnect_websocket(self, websocket: WebSocket):
         user_id = None
