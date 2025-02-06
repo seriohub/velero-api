@@ -111,8 +111,8 @@ if __name__ == '__main__':
                     log_level=log_level,
                     workers=1,
                     limit_concurrency=int(limit_concurrency),
-                    ws_ping_interval=600,
-                    ws_ping_timeout=60
+                    # ws_ping_interval=600,
+                    # ws_ping_timeout=60
                     )
 
 
