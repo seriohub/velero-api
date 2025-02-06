@@ -90,13 +90,14 @@ class ConnectionManager:
                 print("error", Ex)
 
     async def listen_for_messages(self, websocket: WebSocket, user_id: str):
-        """Ascolta i messaggi in arrivo dal client"""
+        """Listen for incoming messages from the client"""
+        print(f"Start listen for incoming messages from the client.....")
         try:
             while True:
                 message = await websocket.receive_text()
                 print(f"Received message from user {user_id}: {message}")
 
-                # Qui puoi gestire diversi tipi di messaggi
+                # Handle different types of messages
                 try:
                     data = json.loads(message)
                     if "action" in data:
