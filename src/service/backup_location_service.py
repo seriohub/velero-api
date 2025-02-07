@@ -109,8 +109,6 @@ class BackupLocationService:
         bsls = await self.get()
         print(bsls)
         for bsl in bsls['data']:
-            print("------")
-            print(bsl)
             if 'default' in bsl['spec'] and bsl['spec']['default']:
                 await self.remove_default(bsl['metadata']['name'])
 

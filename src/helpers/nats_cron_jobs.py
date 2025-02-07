@@ -1,58 +1,54 @@
-# from fastapi import WebSocket, WebSocketDisconnect
-# from typing import Dict
-# import json
-
 from core.config import ConfigHelper
 from helpers.nats_cron_job import NatsCronJob
-from helpers.printer import PrintHelper
+from helpers.logger import ColoredLogger, LEVEL_MAPPING
+import logging
 
-config = ConfigHelper()
+config_app = ConfigHelper()
+logger = ColoredLogger.get_logger(__name__, level=LEVEL_MAPPING.get(config_app.get_internal_log_level(), logging.INFO))
 
 
 class NatsCronJobs:
     def __init__(self):
-        self.print_ls = PrintHelper('[helpers.nats.cron.jobs]',
-                                    level=config.get_internal_log_level())
         self.jobs = {}
         self.__init_default_api()
 
     def __init_default_api(self):
-        self.print_ls.debug(f"__init_default_api")
+        # logger.debug(f"__init_default_api")
         self.add_job(endpoint="/v1/stats",
                      credential=True,
-                     interval=config.get_nats_cron_update_sec_statistic())
+                     interval=config_app.get_nats_cron_update_sec_statistic())
 
         self.add_job(endpoint="/health/k8s",
                      credential=False,
-                     interval=config.get_nats_cron_update_sec_statistic())
+                     interval=config_app.get_nats_cron_update_sec_statistic())
 
         self.add_job(endpoint="/v1/backups",
                      credential=True,
-                     interval=config.get_nats_cron_update_sec_backup())
+                     interval=config_app.get_nats_cron_update_sec_backup())
 
         self.add_job(endpoint="/v1/restores",
                      credential=True,
-                     interval=config.get_nats_cron_update_sec_restore())
+                     interval=config_app.get_nats_cron_update_sec_restore())
 
         self.add_job(endpoint="/v1/schedules",
                      credential=True,
-                     interval=config.get_nats_cron_update_sec_schedules())
+                     interval=config_app.get_nats_cron_update_sec_schedules())
 
         self.add_job(endpoint="/v1/bsl",
                      credential=True,
-                     interval=config.get_nats_cron_update_sec_backup_location())
+                     interval=config_app.get_nats_cron_update_sec_backup_location())
 
         self.add_job(endpoint="/v1/vsl",
                      credential=True,
-                     interval=config.get_nats_cron_update_sec_storage_location())
+                     interval=config_app.get_nats_cron_update_sec_storage_location())
 
         self.add_job(endpoint="/v1/repos",
                      credential=True,
-                     interval=config.get_nats_cron_update_sec_repositories())
+                     interval=config_app.get_nats_cron_update_sec_repositories())
 
         self.add_job(endpoint="/v1/sc-mapping",
                      credential=True,
-                     interval=config.get_nats_cron_update_sec_sc_mapping())
+                     interval=config_app.get_nats_cron_update_sec_sc_mapping())
 
     def add_job(self, endpoint: str, credential: bool, interval: int):
         if len(endpoint) and interval > 0:
@@ -60,11 +56,11 @@ class NatsCronJobs:
                                credential_required=credential,
                                interval=interval)
             self.jobs[jobs.endpoint] = jobs
-            self.print_ls.debug(f"add_job. jobs added with success")
+            logger.debug(f"add_job. jobs added with success, endpoint:{endpoint}")
             return True
         else:
-            self.print_ls.wrn(f"add_job. parameters are invalid. "
-                              f"endpoint:{endpoint} interval:{interval}")
+            logger.warning(f"add_job. parameters are invalid. "
+                           f"endpoint:{endpoint} interval:{interval}")
             return False
 
     def get_jobs(self, name: str):
@@ -79,11 +75,11 @@ class NatsCronJobs:
             job.time_elapsed = interval
 
     def print_info(self):
-        self.print_ls.debug(f"add_tick_to_interval")
+        # self.print_ls.debug(f"add_tick_to_interval")
         if not self.jobs:
-            self.print_ls.debug(f"add_tick_to_interval. No cron job to display.")
+            logger.debug(f"add_tick_to_interval. No cron job to display.")
         else:
             for name, job in self.jobs.items():
-                self.print_ls.debug(f"api: {job.endpoint} "
-                                    f"interval sec: {job.interval} "
-                                    f"key: {job.ky_key} ")
+                logger.debug(f"api: {job.endpoint} "
+                             f"interval sec: {job.interval} "
+                             f"key: {job.ky_key} ")

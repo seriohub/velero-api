@@ -1,5 +1,4 @@
 import re
-import time
 import uuid
 from fastapi import Depends, HTTPException, Request
 from jose import jwt, JWTError
@@ -7,8 +6,7 @@ from requests import Session
 from starlette import status
 from security.service.helpers.dependencies import oauth2_scheme
 from security.model.model import TokenData, UserOut, UserCreate
-from core.config import ConfigHelper
-from helpers.printer import PrintHelper
+from core.config import ConfigHelper, get_configmap_parameter, get_secret_parameter
 
 # from sqlalchemy import create_engine, Column, String, Boolean, DateTime as DateTimeA
 # from sqlalchemy.ext.declarative import declarative_base
@@ -19,11 +17,13 @@ from typing import List, Optional
 from security.service.helpers.dependencies import pwd_context
 from core.context import current_user_var, called_endpoint_var, cp_user
 from security.helpers.database import SessionLocal, get_db
-from security.helpers.database import User
+from security.helpers.database import User, Configs
+
+from helpers.logger import ColoredLogger, LEVEL_MAPPING
+import logging
 
 config_app = ConfigHelper()
-print_ls = PrintHelper('[authentication.users]',
-                       level=config_app.get_internal_log_level())
+logger = ColoredLogger.get_logger(__name__, level=LEVEL_MAPPING.get(config_app.get_internal_log_level(), logging.INFO))
 
 disable_password_rate = config_app.get_security_disable_pwd_rate()
 secret_access_key = config_app.get_security_access_token_key()
@@ -85,7 +85,7 @@ def control_data(user_id: uuid.UUID = None,
             raise HTTPException(status_code=403, detail='The username is not unique')
 
     if user_id is not None:
-        hashed_password = hash_password(password)
+        # hashed_password = hash_password(password)
         # print(f"user_id={user_id}-pwd={password}-hash={hashed_password}")
         user = db.query(User).filter(User.id == user_id).first()
         if user:
@@ -144,11 +144,11 @@ def delete_user(user_id: uuid.UUID, db: SessionLocal):
 
 
 def create_default_user(db: SessionLocal):
-    print("INFO:     create_default_user.check")
+    logger.info("create_default_user.check")
     default_username = config_app.get_default_admin_username()
     default_user = db.query(User).filter(User.username == default_username).first()
     if default_user is None:
-        print("INFO:     create_default_user.forced")
+        logger.info("create_default_user.forced")
         default_password = config_app.get_default_admin_password()
         hashed_default_password = hash_password(default_password)
         new_default_user = User(username=default_username,
@@ -193,14 +193,14 @@ def update_user(user_id: uuid.UUID, full_name: str, password: str, db: SessionLo
 def authenticate_user(db, username: str, password: str):
     user = get_user_by_name(username, db)
     if not user:
-        print_ls.info(f"Login denied for :{username}")
+        logger.warning(f"Login denied for :{username}")
         return False
     res = verify_password(plain_password=password,
                           hashed_password=user.password)
     if not res:
-        print_ls.info(f"Access failed for :{username}")
+        logger.warning(f"Access failed for :{username}")
         return False
-    print_ls.info(f"Login in :{username}")
+    logger.info(f"Login in :{username}")
     return user
 
 
@@ -262,8 +262,9 @@ async def get_current_active_user(request: Request, current_user: User = Depends
         yield current_user
     finally:
         if called_endpoint_var.get().find('/stats/in-progress') == -1:
-            print_ls.debug(
-                f"Reset context current user {str(current_user_var.get().username)} endpoint: {called_endpoint_var.get()}")
+            logger.debug(
+                f"Reset context current user {str(current_user_var.get().username)} endpoint: "
+                f"{called_endpoint_var.get()}")
         current_user_var.reset(cu)
 
 
@@ -274,8 +275,8 @@ async def get_current_user_token(token: str = Depends(oauth2_scheme)) -> UserOut
         headers={'WWW-Authenticate': 'Bearer'},
     )
     try:
-        print(f"get_current_user_token.secret key=>{secret_access_key}")
-        #LS 2024.12.12 reload key
+        logger.info(f"get_current_user_token.secret key=>{secret_access_key}")
+        # LS 2024.12.12 reload key
         # payload = jwt.decode(token, secret_access_key, algorithms=[algorithm])
         access_key = config_app.get_security_access_token_key()
 
@@ -292,3 +293,54 @@ async def get_current_user_token(token: str = Depends(oauth2_scheme)) -> UserOut
     if user is None:
         raise credentials_exception
     return user
+
+
+def add_config_prop(db, pro):
+    tmp = db.query(Configs).filter(
+        Configs.module == 'watchdog', Configs.key == pro).first()
+    if tmp is None:
+        tmp = Configs(module='watchdog',
+                      key=pro,
+                      value=get_configmap_parameter(config_app.get_k8s_velero_ui_namespace(),
+                                                    'velero-watchdog-config',
+                                                    pro))
+        db.add(tmp)
+        db.commit()
+
+
+def add_service(db, key, value):
+    tmp = db.query(Configs).filter(
+        Configs.module == 'watchdog', Configs.value.startswith(value.split("/")[0])).first()
+    if tmp is None:
+        tmp = Configs(module='watchdog',
+                      key=key,
+                      value=value)
+        db.add(tmp)
+        db.commit()
+
+
+def create_default_config(db: SessionLocal):
+    logger.info("create_default_config")
+
+    # db
+    add_config_prop(db, 'BACKUP_ENABLED')
+    add_config_prop(db, 'SCHEDULE_ENABLED')
+    add_config_prop(db, 'NOTIFICATION_SKIP_COMPLETED')
+    add_config_prop(db, 'NOTIFICATION_SKIP_DELETING')
+    add_config_prop(db, 'NOTIFICATION_SKIP_INPROGRESS')
+    add_config_prop(db, 'NOTIFICATION_SKIP_REMOVED')
+    add_config_prop(db, 'PROCESS_CYCLE_SEC')
+    add_config_prop(db, 'EXPIRES_DAYS_WARNING')
+    add_config_prop(db, 'REPORT_BACKUP_ITEM_PREFIX')
+    add_config_prop(db, 'REPORT_SCHEDULE_ITEM_PREFIX')
+
+
+def create_default_secret_services(db: SessionLocal):
+    logger.info("create_default_config")
+
+    services = get_secret_parameter(config_app.get_k8s_velero_ui_namespace(),
+                                    'velero-watchdog-config',
+                                    'APPRISE').strip().split(";")
+
+    for service in services:
+        add_service(db, 'services', service.strip())

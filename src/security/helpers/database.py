@@ -1,7 +1,7 @@
 # import re
 import uuid
 
-from sqlalchemy import create_engine, Column, String, Boolean, DateTime as DateTimeA, ForeignKey, orm
+from sqlalchemy import create_engine, Column, String, Boolean, DateTime as DateTimeA, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import func
@@ -10,15 +10,16 @@ from core.config import ConfigHelper
 from helpers.database import GUID
 # from sqlalchemy.dialects.postgresql import UUID
 
-from helpers.printer import PrintHelper
+from helpers.logger import ColoredLogger, LEVEL_MAPPING
+import logging
 
 config_app = ConfigHelper()
-print_ls = PrintHelper('[helpers.database]',
-                       level=config_app.get_internal_log_level())
+logger = ColoredLogger.get_logger(__name__, level=LEVEL_MAPPING.get(config_app.get_internal_log_level(), logging.INFO))
+
 path_db = config_app.get_path_db()
 # SQLite database initialization
 DATABASE_URL = f"sqlite:///./{path_db}/data.db"
-print_ls.info(f"Users database {DATABASE_URL}")
+logger.info(f"Users database {DATABASE_URL}")
 
 Base = declarative_base()
 
@@ -85,6 +86,20 @@ class ProjectsVersion(Base):
                 'pv_5': self.pv_5,
                 'pv_6': self.pv_6,
                 'time_created': self.time_created
+                }
+
+
+class Configs(Base):
+    __tablename__ = 'config'
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4)
+    module = Column(String)
+    key = Column(String)
+    value = Column(String)
+
+    def toJSON(self):
+        return {'module': self.module,
+                'key': self.key,
+                'value': self.value,
                 }
 
 

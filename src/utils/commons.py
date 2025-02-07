@@ -1,6 +1,7 @@
 import re
 from datetime import datetime
 
+
 def is_valid_name(name):
     regex = r"[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
     return re.fullmatch(regex, name) is not None
@@ -62,7 +63,6 @@ def logs_string_to_list(input_string):
 
 
 def parse_create_parameters(info):
-
     cmd = []
 
     if len(info.includedNamespaces) > 0:

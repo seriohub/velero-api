@@ -170,7 +170,7 @@ class StatsService:
         last_backup_sorted = sorted(backups, key=self.__get_completion_timestamp, reverse=True)[:5]
 
         scheduled_namespace = self.__get_all_scheduled_namespace(schedules)
-        all_ns = (await k8sService.get_ns())['data']
+        all_ns = (await k8sService.get_namespaces())['data']
         unscheduled_ns = list(set(all_ns) - set(scheduled_namespace))
 
         output = {

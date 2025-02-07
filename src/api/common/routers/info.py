@@ -9,7 +9,7 @@ from core.config import ConfigHelper
 from security.helpers.database import get_db
 from utils.commons import route_description
 from utils.handle_exceptions import handle_exceptions_endpoint
-from helpers.printer import PrintHelper
+
 from app_data import (__version__,
                       __date__,
                       __app_description__,
@@ -36,18 +36,16 @@ info = Info()
 watchdogService = WatchdogService()
 
 config_app = ConfigHelper()
-print_ls = PrintHelper('[common.routers.info]',
-                       level=config_app.get_internal_log_level())
 
 tag_name = "Info"
 
-endpoint_limiter = LimiterRequests(printer=print_ls,
-                                   tags=tag_name,
+endpoint_limiter = LimiterRequests(tags=tag_name,
                                    default_key='L1')
-
 
 limiter_app = endpoint_limiter.get_limiter_cust('info_app')
 route = '/app'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get app info',
@@ -83,6 +81,8 @@ async def get_app_info():
 
 limiter_arch = endpoint_limiter.get_limiter_cust('info_arch')
 route = '/arch'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get app identify api architecture',
@@ -103,6 +103,8 @@ async def get_architecture():
 
 limiter_origins = endpoint_limiter.get_limiter_cust('info_origins')
 route = '/origins'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get api origins',
@@ -121,6 +123,8 @@ async def k8s_nodes_origins():
 
 limiter_comp = endpoint_limiter.get_limiter_cust('info_compatibility_table')
 route = '/compatibility-table'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Obtain compatibility of the user interface version with the other components of the project.',
@@ -139,9 +143,10 @@ async def ui_compatibility(version: str):
 
 tag_name = "Info software versions"
 
-
 limiter_vui_repo_tags = endpoint_limiter.get_limiter_cust('info_vui_repo_tags')
 route = '/vui-repo-tags'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get the latest tag from GitHub for vui projects',
@@ -161,6 +166,8 @@ async def repository_tags(force_scrapy: bool = False, db: Session = Depends(get_
 
 limiter_velero_repo_tags = endpoint_limiter.get_limiter_cust('info_velero_repo_tag')
 route = '/velero-repo-tag'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get the latest tag from GitHub for Velero project',

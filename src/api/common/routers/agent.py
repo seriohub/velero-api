@@ -6,14 +6,12 @@ from core.config import ConfigHelper
 
 from utils.commons import route_description
 from utils.handle_exceptions import handle_exceptions_endpoint
-from helpers.printer import PrintHelper
 
 from security.service.helpers.rate_limiter import LimiterRequests
 from security.service.helpers.rate_limiter import RateLimiter
 
 from api.common.response_model.failed_request import FailedRequest
 from api.common.response_model.successful_request import SuccessfulRequest
-
 
 from api.common.controllers.agent import Agent
 from service.watchdog_service import WatchdogService
@@ -24,16 +22,15 @@ agent = Agent()
 watchdogService = WatchdogService()
 
 config_app = ConfigHelper()
-print_ls = PrintHelper('[common.routers.agent]',
-                       level=config_app.get_internal_log_level())
 
 tag_name = "Agent"
-endpoint_limiter = LimiterRequests(printer=print_ls,
-                                   tags=tag_name,
+endpoint_limiter = LimiterRequests(tags=tag_name,
                                    default_key='L1')
 
 limiter_watchdog = endpoint_limiter.get_limiter_cust('info_watchdog')
 route = '/watchdog'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get info watchdog',

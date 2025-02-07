@@ -6,7 +6,6 @@ from security.service.helpers.rate_limiter import RateLimiter, LimiterRequests
 
 from utils.commons import route_description
 from utils.handle_exceptions import handle_exceptions_endpoint
-from helpers.printer import PrintHelper
 
 from api.common.response_model.failed_request import FailedRequest
 from api.common.response_model.successful_request import SuccessfulRequest
@@ -22,18 +21,16 @@ router = APIRouter()
 backup = Backup()
 
 config_app = ConfigHelper()
-print_ls = PrintHelper('[v1.routers.backup]',
-                       level=config_app.get_internal_log_level())
 
 tag_name = "Backups"
 
-endpoint_limiter = LimiterRequests(printer=print_ls,
-                                   tags=tag_name,
+endpoint_limiter = LimiterRequests(tags=tag_name,
                                    default_key='L1')
-
 
 limiter_backups = endpoint_limiter.get_limiter_cust('backups')
 route = '/backups'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get backups list',
@@ -54,6 +51,8 @@ async def backup_get(schedule_name=None, only_last_for_schedule='', in_progress=
 
 limiter_logs = endpoint_limiter.get_limiter_cust('backup_logs')
 route = '/backup/logs'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get backup logs',
@@ -72,6 +71,8 @@ async def backup_logs(resource_name=None):
 
 limiter_desc = endpoint_limiter.get_limiter_cust('backup_describe')
 route = '/backup/describe'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get backup detail',
@@ -90,6 +91,8 @@ async def backup_describe(resource_name=None):
 
 limiter_del = endpoint_limiter.get_limiter_cust('backup')
 route = '/backup'
+
+
 @router.delete(path=route,
                tags=[tag_name],
                summary='Delete a backup',
@@ -104,6 +107,8 @@ route = '/backup'
 @handle_exceptions_endpoint
 async def backup_delete(delete_backup: DeleteBackup):
     return await backup.delete(delete_backup=delete_backup)
+
+
 # async def backup_delete(info: Request):
 #     req_info = await info.json()
 #     return await backup.delete(backup_name=req_info['resource_name'])
@@ -111,6 +116,8 @@ async def backup_delete(delete_backup: DeleteBackup):
 
 limiter_env = endpoint_limiter.get_limiter_cust('backup_environment')
 route = '/backup/environment'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get environment for a backup',
@@ -129,6 +136,8 @@ async def get_settings_create():
 
 limiter_create = endpoint_limiter.get_limiter_cust('backup')
 route = '/backup'
+
+
 @router.post(path=route,
              tags=[tag_name],
              summary='Create a backup',
@@ -147,6 +156,8 @@ async def create(create_backup: CreateBackup):
 
 limiter_create_from_schedule = endpoint_limiter.get_limiter_cust('backup_crete_from_schedule')
 route = '/backup/create-from-schedule'
+
+
 @router.post(path=route,
              tags=[tag_name],
              summary='Create a backup from a schedule',
@@ -165,6 +176,8 @@ async def create_from_schedule(create_backup_from_schedule: CreateBackupFromSche
 
 limiter_expiration = endpoint_limiter.get_limiter_cust('backup_expiration')
 route = '/backup/expiration'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get expiration time for a backup',
@@ -182,6 +195,8 @@ async def get_expiration(backup_name=None):
 
 limiter_update_expiration = endpoint_limiter.get_limiter_cust('backup_expiration')
 route = '/backup/expiration'
+
+
 @router.patch(path=route,
               tags=[tag_name],
               summary='Update expiration date for a backup',
@@ -199,6 +214,8 @@ async def update_backup_expiration(update_expiration: UpdateBackupExpiration):
 
 limiter_storage_classes = endpoint_limiter.get_limiter_cust('backup_storage_classes')
 route = '/backup/storage-classes'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get backup storage classes',

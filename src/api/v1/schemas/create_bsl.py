@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
+
 class CreateBsl(BaseModel):
     name: str = Field(..., description="The name of the BSL.")
     provider: str = Field(..., description="The name of the provider.")

@@ -17,15 +17,14 @@ from nats.errors import NoRespondersError
 from helpers.nats_cron_jobs import NatsCronJobs
 from security.helpers.database import User
 
-from helpers.printer import PrintHelper
-
 from core.context import current_user_var, cp_user
 from core.config import ConfigHelper
 
-# from fastapi.testclient import TestClient
+from helpers.logger import ColoredLogger, LEVEL_MAPPING
+import logging
 
-
-config = ConfigHelper()
+config_app = ConfigHelper()
+logger = ColoredLogger.get_logger(__name__, level=LEVEL_MAPPING.get(config_app.get_internal_log_level(), logging.INFO))
 
 
 class NatsManager:
@@ -37,14 +36,11 @@ class NatsManager:
         return cls._instance
 
     def __init__(self, app):
-        self.print_ls = PrintHelper('[helpers.nast_manager]',
-                                    level=config.get_internal_log_level())
-
         self.app = app
         self.nc = None
         self.js = None
 
-        self.kv_bucket_name = f"kv-{config.cluster_id()}"
+        self.kv_bucket_name = f"kv-{config_app.cluster_id()}"
 
         # self.kv_stats_path = "/api/v1/stats/get"
         # self.kv_stats_name = 'stast_get'
@@ -55,37 +51,37 @@ class NatsManager:
         # self.kv_health_k8s_interval = config.get_nats_update_sec_k8s_health()
         self.kv_job_cron = NatsCronJobs()
 
-        self.channel_id = config.cluster_id()
-        self.retry_registration_sec = config.get_nast_retry_registration()
-        self.alive_sec = config.get_nast_send_alive()
-        self.timeout_request = config.get_timeout_request()
+        self.channel_id = config_app.cluster_id()
+        self.retry_registration_sec = config_app.get_nast_retry_registration()
+        self.alive_sec = config_app.get_nast_send_alive()
+        self.timeout_request = config_app.get_timeout_request()
 
     async def __nats_error_cb(self, e):
-        self.print_ls.wrn(f"_nats_error_cb {e}")
+        logger.error(f"_nats_error_cb {str(e)}")
 
     async def __nats_closed_cb(self):
-        self.print_ls.info(f"_nats_closed_cb")
+        logger.info(f"_nats_closed_cb")
 
     async def __nats_reconnected_cb(self):
-        self.print_ls.info(f"_nats_reconnect reconnect at {self.nc.connected_url.netloc}")
-        self.print_ls.debug(f"run.registration")
+        logger.info(f"_nats_reconnect reconnect at {self.nc.connected_url.netloc}")
+        logger.debug(f"run.registration")
         await self.client_registration()
 
     async def __nats_disconnected_cb(self):
-        self.print_ls.info(f"_nats_disconnected_cb disconnect from server")
+        logger.info(f"_nats_disconnected_cb disconnect from server")
 
     async def __init_nats_connection(self):
         try:
-            self.print_ls.info(f"__init_nats_connection")
+            logger.info(f"__init_nats_connection")
             if self.nc is None:
-                nats_server = f"{config.get_nats_client_url()}"
-                reconnect_sec = config.get_nast_retry_connection()
+                nats_server = f"{config_app.get_nats_client_url()}"
+                reconnect_sec = config_app.get_nast_retry_connection()
                 if reconnect_sec < 10:
                     reconnect_sec = 10
-                self.print_ls.info(f"Connect to server: {nats_server}- timeout reconnect: {reconnect_sec} sec")
+                logger.info(f"Connect to server: {nats_server}- timeout reconnect: {reconnect_sec} sec")
 
                 options = {
-                    "name": "AgentAPI." + config.cluster_id(),
+                    "name": "AgentAPI." + config_app.cluster_id(),
                     "servers": [nats_server],
                     "error_cb": self.__nats_error_cb,
                     "closed_cb": self.__nats_closed_cb,
@@ -96,7 +92,7 @@ class NatsManager:
 
                 self.nc = await nats.connect(**options)
         except Exception as e:
-            self.print_ls.wrn(f"__init_nats_connection ({str(e)})")
+            logger.warning(f"__init_nats_connection ({str(e)})")
             self.nc = None
 
     def __ensure_encoded(self, data):
@@ -104,7 +100,7 @@ class NatsManager:
         Ensures that the given data is encoded in bytes. If it's already encoded,
         it returns the data as is. If not, it encodes the data.
         """
-        self.print_ls.trace(f"__ensure_encoded")
+        logger.debug(f"__ensure_encoded")
         if isinstance(data, bytes):
             # Data is already encoded
             return data
@@ -116,7 +112,7 @@ class NatsManager:
             return json.dumps(data).encode()
 
     async def create_bucket_store(self, key_value, max_size=500000):
-        self.print_ls.info(f"create_bucket_store {key_value} ")
+        logger.info(f"create_bucket_store {key_value} ")
         self.js = self.nc.jetstream()
         bucket_name = f"{key_value}"
         interval = 2
@@ -124,11 +120,11 @@ class NatsManager:
         # Check if the KV store exists and delete it if it does
         try:
             await self.js.stream_info(bucket_name)
-            self.print_ls.debug(f"create_bucket_store.{bucket_name} store exists.")
+            logger.debug(f"create_bucket_store.{bucket_name} store exists.")
             exists = True
             # await self.js.delete_key_value(bucket_name)
         except Exception as e:
-            self.print_ls.debug(f"create_bucket_store.KV {bucket_name} store does not exist or cannot be retrieved. {str(e)}")
+            logger.debug(f"create_bucket_store.KV {bucket_name} store does not exist or cannot be retrieved. {str(e)}")
         is_not_created = False
         if not exists:
             while not is_not_created:
@@ -141,10 +137,10 @@ class NatsManager:
                     )
                     await self.js.create_key_value(kv_config)
 
-                    self.print_ls.info(f"create_bucket_store.{bucket_name} store created.")
+                    logger.info(f"create_bucket_store.{bucket_name} store created.")
                     is_not_created = True
                 except Exception as e:
-                    self.print_ls.debug(f"create_bucket_store. {bucket_name} cannot create the kv. {str(e)}")
+                    logger.debug(f"create_bucket_store. {bucket_name} cannot create the kv. {str(e)}")
                 finally:
                     if is_not_created:
                         return True
@@ -154,7 +150,7 @@ class NatsManager:
         return True
 
     async def client_registration(self):
-        self.print_ls.info(f"__init_client_register")
+        logger.info(f"__init_client_register")
         connected = False
         in_error = False
         attempt = 0
@@ -162,32 +158,32 @@ class NatsManager:
         while not connected and not in_error:
             try:
                 attempt += 1
-                data = {'client': self.nc.client_id, 'name': config.cluster_id()}
+                data = {'client': self.nc.client_id, 'name': config_app.cluster_id()}
                 # Convert the dictionary to a JSON string
                 message = json.dumps(data)
                 # Request-reply pattern
-                self.print_ls.info(f"registration.sent attempt={attempt}")
+                logger.info(f"registration.sent attempt={attempt}")
                 response = await self.nc.request(f"register.client.{self.nc.client_id}",
                                                  message.encode('utf-8'), timeout=2)
                 key_to_res = response.data.decode()
-                self.print_ls.debug(f"command.Received reply: {key_to_res}")
+                logger.debug(f"command.Received reply: {key_to_res}")
 
                 if "registered" in key_to_res:
-                    self.print_ls.debug(f"client ready to receive message ")
+                    logger.debug(f"client ready to receive message ")
                     connected = True
                 else:
-                    self.print_ls.wrn(f"try to register to nats server")
+                    logger.warning(f"try to register to nats server")
 
             except ErrTimeout as e:
-                self.print_ls.wrn(f"No reply received (timeout)-{str(e)}")
+                logger.warning(f"No reply received (timeout)-{str(e)}")
             except ErrNoServers as e:
-                self.print_ls.wrn(f"No reply received (no-server)-{str(e)}")
+                logger.warning(f"No reply received (no-server)-{str(e)}")
                 in_error = True
             except NoRespondersError as e:
-                self.print_ls.wrn(f"No responders available for request-{str(e)}")
+                logger.warning(f"No responders available for request-{str(e)}")
             except Exception as e:
                 in_error = True
-                self.print_ls.wrn(f"No reply received ({str(e)})")
+                logger.warning(f"No reply received ({str(e)})")
 
             if not connected:
                 await asyncio.sleep(interval)
@@ -196,15 +192,15 @@ class NatsManager:
 
     async def get_nats_connection(self):
         try:
-            self.print_ls.info(f"get_nats_connection")
+            logger.info(f"get_nats_connection")
             if self.nc is None:
                 await self.__init_nats_connection()
-            self.print_ls.info(f"Nast connection: Status: {self.nc.is_connected} - client id {self.nc.client_id}")
+            logger.info(f"Nast connection: Status: {self.nc.is_connected} - client id {self.nc.client_id}")
 
             return self.nc
 
         except Exception as e:
-            self.print_ls.wrn(f"get_nats_connection ({str(e)})")
+            logger.warning(f"get_nats_connection ({str(e)})")
             self.nc = None
             return None
 
@@ -245,21 +241,21 @@ class NatsManager:
         return {k: v[0] for k, v in query_dict.items()}
 
     async def message_handler(self, msg):
-        self.print_ls.info(f"message_handler")
+        logger.info(f"message_handler")
         command = msg.data.decode()
 
-        self.print_ls.trace(f"message_handler:{command}")
+        logger.debug(f"message_handler:{command}")
 
         if command:
             command = json.loads(command)
         else:
             await self.nc.publish(msg.reply, "error".encode())
-        self.print_ls.trace(f"message_handle.command {command['method']} \tpath:{command['path']} ")
+        logger.debug(f"message_handle.command {command['method']} \tpath:{command['path']} ")
         # path = "/api/info/get"
         endpoint_function = self.__get_endpoint_function_by_path(self.app, command['path'])
 
         if endpoint_function is not None:
-            self.print_ls.trace(f"message_handle.endpoint_function is ok ")
+            logger.debug(f"message_handle.endpoint_function is ok ")
 
             # access_token = create_access_token(
             #     data={'sub': 'nats', 'is_nats': True}
@@ -279,7 +275,7 @@ class NatsManager:
             if command['method'] in commands:
 
                 if command['method'] == 'GET' or command['method'] == 'DELETE':
-                    self.print_ls.trace(f"message_handle.command {command['method']}")
+                    logger.debug(f"message_handle.command {command['method']}")
 
                     # Call endpoint function with TestClient
                     # response = TestClient(self.app).get(command['path'],
@@ -297,7 +293,7 @@ class NatsManager:
                         response = json.loads(response.body.decode())
 
                 elif command['method'] == 'POST' or command['method'] == 'PATCH':
-                    self.print_ls.trace(f"message_handle.command POST")
+                    logger.debug(f"message_handle.command POST")
 
                     # Call endpoint function with TestClient
                     # response = TestClient(self.app).post(command['path'],
@@ -331,20 +327,20 @@ class NatsManager:
                     # else:
                     #     raise HTTPException(status_code=400, detail="Unsupported parameter type")
 
-                    # Se la risposta è un oggetto JSONResponse, get contenuto
+                    # If the response is a JSONResponse object, get content
                     if isinstance(response, JSONResponse):
                         response = json.loads(response.body.decode())
 
                 content = json.dumps(response)
 
             else:  # command['method'] not in commands:
-                self.print_ls.wrn(f"message_handle.command {command['method']} not recognized ")
+                logger.warning(f"message_handle.command {command['method']} not recognized ")
                 data = {'success': False, 'error': {'title': 'message_handler',
                                                     'description': f"Method not recognized {command['method']}"
                                                     }
                         }
                 content = json.dumps(data)
-                self.print_ls.wrn(f"message_handler:{content}")
+                logger.warning(f"message_handler:{content}")
         else:  # endpoint_function is None
             data = {'success': False, 'error': {'title': 'message_handler',
                                                 'description': f"No endpoint found for path: {command['path']}"
@@ -352,36 +348,36 @@ class NatsManager:
                     }
             content = json.dumps(data)
 
-            self.print_ls.wrn(f"message_handler:{content}")
+            logger.warning(f"message_handler:{content}")
 
         await self.nc.publish(msg.reply, self.__ensure_encoded(content))
 
     async def subscribe_to_nats(self):
-        self.print_ls.debug(f"initialize nats subscriptions")
-        await self.nc.subscribe(f"agent.{config.cluster_id()}.request", cb=self.message_handler)
+        logger.debug(f"initialize nats subscriptions")
+        await self.nc.subscribe(f"agent.{config_app.cluster_id()}.request", cb=self.message_handler)
         await self.nc.subscribe(f"server.cmd", cb=self.__server_cmd_handler)
 
     async def __server_cmd_handler(self, msg):
         try:
-            self.print_ls.debug(f"cmd from server")
+            logger.debug(f"cmd from server")
             command = msg.data.decode()
-            self.print_ls.debug(f"cmd from server. command : {command}")
+            logger.debug(f"cmd from server. command : {command}")
 
             if command:
                 command = json.loads(command)
-                self.print_ls.debug(f"force registration and subscription")
+                logger.debug(f"force registration and subscription")
                 if command['command'] == 'restart':
-                    self.print_ls.debug(f"run.registration")
+                    logger.debug(f"run.registration")
                     await self.client_registration()
-                    self.print_ls.debug(f"run.subscription")
+                    logger.debug(f"run.subscription")
                     await self.subscribe_to_nats()
 
         except Exception as e:
-            self.print_ls.wrn(f"__server_cmd_handler ({str(e)})")
+            logger.warning(f"__server_cmd_handler ({str(e)})")
 
     async def __send_client_alive(self):
         subject = f"status.client.{self.channel_id}"
-        data = {'client': self.nc.client_id, 'name': config.cluster_id(), 'status': 'alive'}
+        data = {'client': self.nc.client_id, 'name': config_app.cluster_id(), 'status': 'alive'}
 
         # Convert the dictionary to a JSON string
         message = json.dumps(data)
@@ -392,22 +388,22 @@ class NatsManager:
         while True:
             try:
                 if self.nc.is_connected:
-                    self.print_ls.trace(f"alive message {subject}: {message}")
+                    logger.debug(f"alive message {subject}: {message}")
                     response = await self.nc.request(subject, message.encode(),
                                                      timeout=self.timeout_request)
-                    self.print_ls.trace(f"__send_client_alive .Received reply: {response.data.decode()}")
+                    logger.debug(f"__send_client_alive .Received reply: {response.data.decode()}")
             except ErrTimeout:
-                self.print_ls.wrn("__send_client_alive No reply received from server (timeout)")
+                logger.warning("__send_client_alive No reply received from server (timeout)")
             except ErrNoServers:
-                self.print_ls.wrn("__send_client_alive No reply received (no nats server)")
+                logger.warning("__send_client_alive No reply received (no nats server)")
             except Exception as e:
-                self.print_ls.wrn(f"__send_client_alive ({str(e)})")
+                logger.warning(f"__send_client_alive ({str(e)})")
             finally:
                 await asyncio.sleep(interval)  # Publish every x seconds
 
     async def __get_data_from_api(self, path, credential: bool = False):
 
-        self.print_ls.debug(f"__get_data_from_api {path}")
+        logger.debug(f"__get_data_from_api {path}")
         try:
             if credential:
                 # create temp user
@@ -426,12 +422,12 @@ class NatsManager:
 
             return response
         except Exception as e:
-            self.print_ls.wrn(f"__get_data_from_api ({str(e)})")
+            logger.warning(f"__get_data_from_api ({str(e)})")
             return None
 
     async def __publish_kv_pair(self, key, value):
         try:
-            self.print_ls.debug(f"__publish_kv_pair.key {key}")
+            logger.debug(f"__publish_kv_pair.key {key}")
             js = self.nc.jetstream()
             kv = await js.key_value(self.kv_bucket_name)
 
@@ -439,25 +435,25 @@ class NatsManager:
 
             # await kv.put(key, json.dumps(value).encode())
             await kv.put(key, data)
-            self.print_ls.debug(f"__publish_kv_pair.published {key}")
+            logger.debug(f"__publish_kv_pair.published {key}")
             return True
 
         except ErrTimeout:
-            self.print_ls.wrn("__publish_kv_pair No reply received from server (timeout)")
+            logger.warning("__publish_kv_pair No reply received from server (timeout)")
         except ErrNoServers:
-            self.print_ls.wrn("__publish_kv_pair No reply received (no nats server)")
+            logger.warning("__publish_kv_pair No reply received (no nats server)")
         except Exception as e:
-            self.print_ls.wrn(f"__publish_kv_pair ({str(e)})")
+            logger.warning(f"__publish_kv_pair ({str(e)})")
 
         return False
 
     async def __publish_data_to_kv(self):
-        self.print_ls.info(f"__publish_data_to_kv.client {self.kv_bucket_name}")
+        logger.info(f"__publish_data_to_kv.client {self.kv_bucket_name}")
 
         interval = 1
 
-        # self.print_ls.info(f"__publish_data_to_kv.k8s health updated every {self.kv_health_k8s_interval} sec")
-        # self.print_ls.info(f"__publish_data_to_kv.statistics updated every {self.kv_stats_interval} sec")
+        # logger.info(f"__publish_data_to_kv.k8s health updated every {self.kv_health_k8s_interval} sec")
+        # logger.info(f"__publish_data_to_kv.statistics updated every {self.kv_stats_interval} sec")
         self.kv_job_cron.print_info()
 
         # last_stats = self.kv_stats_interval + 1
@@ -475,19 +471,19 @@ class NatsManager:
                 #     data = await self.__get_data_from_api(path=self.kv_stats_path, credential=True)
                 #     if data is not None:
                 #         update = await self.__publish_kv_pair(key=self.kv_stats_name, value=data)
-                #         self.print_ls.info(f"__publish_data_to_kv. update {self.kv_stats_name} res: {update}")
+                #         logger.info(f"__publish_data_to_kv. update {self.kv_stats_name} res: {update}")
                 #
                 # if last_health_k8s > self.kv_health_k8s_interval:
                 #     last_health_k8s = 0
                 #     data = await self.__get_data_from_api(path=self.kv_health_path)
                 #     if data is not None:
                 #         update = await self.__publish_kv_pair(key=self.kv_health_k8s_name, value=data)
-                #         self.print_ls.info(f"__publish_data_to_kv. update {self.kv_health_k8s_name} res: {update}")
+                #         logger.info(f"__publish_data_to_kv. update {self.kv_health_k8s_name} res: {update}")
                 #     else:
-                #         self.print_ls.wrn("__publish_data_to_kv. No data published")
+                #         logger.warning("__publish_data_to_kv. No data published")
                 for name, job in self.kv_job_cron.jobs.items():
                     if job.is_elapsed:
-                        self.print_ls.trace(f"__publish_data_to_kv. batch {name}")
+                        logger.debug(f"__publish_data_to_kv. batch {name}")
                         job.reset_timer()
                         data = await self.__get_data_from_api(path=job.endpoint,
                                                               credential=job.credential)
@@ -500,29 +496,29 @@ class NatsManager:
                             update = await self.__publish_kv_pair(key=job.ky_key,
                                                                   value=data)
 
-                            self.print_ls.info(f"__publish_data_to_kv. update {job.ky_key} res: {update}")
+                            logger.info(f"__publish_data_to_kv. update {job.ky_key} res: {update}")
 
             except ErrTimeout:
-                self.print_ls.wrn("__publish_data_to_kv No reply received from server (timeout)")
+                logger.warning("__publish_data_to_kv No reply received from server (timeout)")
             except ErrNoServers:
-                self.print_ls.wrn("__publish_data_to_kv No reply received (no nats server)")
+                logger.warning("__publish_data_to_kv No reply received (no nats server)")
             except Exception as e:
-                self.print_ls.wrn(f"__publish_data_to_kv ({str(e)})")
+                logger.warning(f"__publish_data_to_kv ({str(e)})")
             finally:
                 await asyncio.sleep(interval)  # Publish every x seconds
 
     async def run(self):
-        self.print_ls.debug(f"run")
+        logger.debug(f"run")
 
-        self.print_ls.debug(f"run.connection")
+        logger.debug(f"run.connection")
         await self.get_nats_connection()
 
-        self.print_ls.debug(f"run.registration")
+        logger.debug(f"run.registration")
         await self.client_registration()
-        self.print_ls.debug(f"run.create bucket  {self.kv_bucket_name}")
+        logger.debug(f"run.create bucket  {self.kv_bucket_name}")
         await self.create_bucket_store(key_value=self.kv_bucket_name)
 
-        self.print_ls.debug(f"run.subscription")
+        logger.debug(f"run.subscription")
         await self.subscribe_to_nats()
 
         # Create a task to publish messages at intervals

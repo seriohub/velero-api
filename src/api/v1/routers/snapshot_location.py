@@ -6,7 +6,6 @@ from security.service.helpers.rate_limiter import RateLimiter, LimiterRequests
 
 from utils.commons import route_description
 from utils.handle_exceptions import handle_exceptions_endpoint
-from helpers.printer import PrintHelper
 
 from api.common.response_model.failed_request import FailedRequest
 from api.common.response_model.successful_request import SuccessfulRequest
@@ -20,18 +19,15 @@ router = APIRouter()
 rate_limiter = RateLimiter()
 snapshotLocation = SnapshotLocation()
 config_app = ConfigHelper()
-print_ls = PrintHelper('[v1.routers.snapshot_location]',
-                       level=config_app.get_internal_log_level())
-
 
 tag_name = 'Volume Snapshot Locations'
-endpoint_limiter = LimiterRequests(printer=print_ls,
-                                   tags=tag_name,
+endpoint_limiter = LimiterRequests(tags=tag_name,
                                    default_key='L1')
-
 
 limiter_vsl = endpoint_limiter.get_limiter_cust('vsl')
 route = '/vsl'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get locations for the snapshot',
@@ -47,8 +43,11 @@ route = '/vsl'
 async def get():
     return await snapshotLocation.get()
 
+
 limiter_create = endpoint_limiter.get_limiter_cust('vsl')
 route = '/vsl'
+
+
 @router.post(path=route,
              tags=[tag_name],
              summary='Create a backup storage location',
@@ -64,8 +63,11 @@ route = '/vsl'
 async def create(create_bsl: CreateVsl):
     return await snapshotLocation.create(create_bsl=create_bsl)
 
+
 limiter_del = endpoint_limiter.get_limiter_cust('vsl')
 route = '/vsl'
+
+
 @router.delete(path=route,
                tags=[tag_name],
                summary='Delete storage classes mapping in config map',

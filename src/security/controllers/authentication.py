@@ -1,7 +1,5 @@
 from requests import Session
-from starlette.responses import JSONResponse
 
-from api.common.response_model.failed_request import FailedRequest
 from security.service.autenthication import AuthenticationService
 from utils.handle_exceptions import handle_exceptions_controller
 
@@ -21,4 +19,3 @@ class Authentication:
     async def refresh_login(self, refresh_token, db: Session):
         # print(f"refresh_login refresh_token :{refresh_token}")
         return authenticationService.refresh_token(refresh_token, db)
-

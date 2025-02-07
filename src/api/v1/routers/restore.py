@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, status
-# from fastapi import Request
 from typing import Union
 
 from core.config import ConfigHelper
@@ -7,7 +6,6 @@ from security.service.helpers.rate_limiter import RateLimiter, LimiterRequests
 
 from utils.commons import route_description
 from utils.handle_exceptions import handle_exceptions_endpoint
-from helpers.printer import PrintHelper
 
 from api.common.response_model.failed_request import FailedRequest
 from api.common.response_model.successful_request import SuccessfulRequest
@@ -19,19 +17,16 @@ from api.v1.schemas.create_restore import CreateRestore
 router = APIRouter()
 restore = Restore()
 config_app = ConfigHelper()
-print_ls = PrintHelper('[v1.routers.restore]',
-                       level=config_app.get_internal_log_level())
-
 
 tag_name = 'Restore'
 
-endpoint_limiter = LimiterRequests(printer=print_ls,
-                                   tags=tag_name,
+endpoint_limiter = LimiterRequests(tags=tag_name,
                                    default_key='L1')
-
 
 limiter_restores = endpoint_limiter.get_limiter_cust("restores")
 route = '/restores'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get restores',
@@ -50,6 +45,8 @@ async def restore_get(in_progress=''):
 
 limiter_logs = endpoint_limiter.get_limiter_cust('restore_logs')
 route = '/restore/logs'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get logs for restore',
@@ -68,6 +65,8 @@ async def restore_logs(resource_name=None):
 
 limiter_des = endpoint_limiter.get_limiter_cust('restore_describe')
 route = '/restore/describe'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get detail for restore',
@@ -86,6 +85,8 @@ async def restore_describe(resource_name=None):
 
 limiter_delete = endpoint_limiter.get_limiter_cust('restore')
 route = '/restore'
+
+
 @router.delete(path=route,
                tags=[tag_name],
                summary='Delete a restore',
@@ -104,6 +105,8 @@ async def restore_delete(delete_restore: DeleteRestore):
 
 limiter_create = endpoint_limiter.get_limiter_cust('restore')
 route = '/restore'
+
+
 @router.post(path=route,
              tags=[tag_name],
              summary='Create a new restore',

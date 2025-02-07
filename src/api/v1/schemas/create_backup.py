@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class CreateBackup(BaseModel):
     name: str
     includedNamespaces: list
@@ -14,5 +15,3 @@ class CreateBackup(BaseModel):
     selector: str
     backupLocation: str
     snapshotLocation: list
-
-

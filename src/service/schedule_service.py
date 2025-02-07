@@ -9,13 +9,14 @@ from service.k8s_service import K8sService
 
 k8s = K8sService()
 
+
 class ScheduleService:
 
     def __init(self):
         pass
 
     @handle_exceptions_async_method
-    async def get(self,):
+    async def get(self, ):
         output = await run_process_check_output(['velero', 'schedule', 'get', '-o', 'json',
                                                  '-n', os.getenv('K8S_VELERO_NAMESPACE', 'velero')])
         if not output['success']:

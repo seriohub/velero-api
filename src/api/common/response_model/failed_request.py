@@ -5,8 +5,8 @@ from pydantic import BaseModel, Field
 
 class FailedRequest(BaseModel):
     error: dict = Field({
-         'title': '',
-         'description': ''
+        'title': '',
+        'description': ''
     })
     notifications: list = []
     messages: list = []
