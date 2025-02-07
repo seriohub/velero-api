@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+## [v0.1.22] - 2025-02-07
+
+🚀 New Features
+- ⚙️ Introduced a feature to allow users to configure user notification preferences
+
+🔧 qImprovements
+- 📜 Enhanced logging system for better debugging and traceability
+- ✨ Various optimizations and minor fixes to improve performance and stability
+- 📦 Upgraded various dependencies to their latest stable versions for better security and performance
+- 🌐 Enhanced connection manager for improved stability and performance
+
 ## [v0.1.21] - 2025-01-23
 
 New Features

@@ -2,7 +2,7 @@ from fastapi import WebSocket, WebSocketDisconnect
 from typing import Dict
 import json
 import traceback
-import asyncio
+# import asyncio
 
 from security.service.helpers.users import get_current_user_token
 
@@ -14,27 +14,27 @@ class ConnectionManager:
         self.active_connections: Dict[str, WebSocket] = {}
 
     async def connect(self, websocket: WebSocket):
-        """Gestisce la connessione WebSocket e autentica l'utente solo dopo aver ricevuto un token valido."""
+        """Manages the WebSocket connection and authenticates the user only after receiving a valid token."""
         try:
             await websocket.accept()
-            user = None  # Inizializza l'utente come None
+            user = None  # Initialize the user as None
 
-            while user is None:  # Continua finché non riceve un token valido
+            while user is None:  # Continue until it receives a valid token
                 try:
                     message = await websocket.receive_text()
-                    data = json.loads(message) if message.startswith('{') else message  # Prova a decodificare JSON
+                    data = json.loads(message) if message.startswith('{') else message  # Try decoding JSON
                 except Exception as e:
                     print(f"WebSocket Receive Error: {e}")
                     traceback.print_exc()
-                    return  # Termina la connessione se c'è un errore nella ricezione del messaggio
+                    return  # Terminate the connection if there is an error in receiving the message
 
                 if isinstance(data, dict) and "action" in data and data["action"] == "ping":
-                    # Risponde al ping per mantenere la connessione aperta
+                    # Responds to ping to keep the connection open
                     await websocket.send_text(json.dumps({"type": "pong"}))
-                    continue  # Continua a ricevere messaggi senza chiudere la connessione
+                    continue  # Continue to receive messages without closing the connection
 
                 elif isinstance(data, str):
-                    # Tratta il messaggio come un token JWT
+                    # Treats the message as a JWT token
                     user = await get_current_user_token(data)
 
                 if user is not None and not user.is_disabled:
@@ -42,11 +42,11 @@ class ConnectionManager:
                     response = {'response_type': 'notification', 'message': 'Connection READY!'}
                     await self.send_personal_message(str(user.id), json.dumps(response))
 
-                    # Inizia ad ascoltare i messaggi solo per utenti autenticati
+                    # Start listening to messages for authenticated users only
                     await self.listen_for_messages(websocket, str(user.id))
-                    return  # Termina il ciclo dopo aver autenticato l'utente
+                    return  # Ends the loop after authenticating the user
 
-            # Se nessun token valido è stato ricevuto, chiudi la connessione
+            # If no valid token has been received, close the connection
             await websocket.close(1001)
 
         except WebSocketDisconnect:
