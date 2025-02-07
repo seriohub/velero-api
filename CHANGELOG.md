@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file.
 🚀 New Features
 - ⚙️ Introduced a feature to allow users to configure user notification preferences
 
-🔧 qImprovements
+🔧 Improvements
 - 📜 Enhanced logging system for better debugging and traceability
 - ✨ Various optimizations and minor fixes to improve performance and stability
 - 📦 Upgraded various dependencies to their latest stable versions for better security and performance
