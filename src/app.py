@@ -6,13 +6,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 # from contextlib import asynccontextmanager
 
-from helpers.connection_manager import WebSocket, manager
+from helpers.websocket_manager import WebSocket, manager
 
 from core.config import ConfigHelper
 from core.context import called_endpoint_var
 # from security.helpers.database import SessionLocal
 
-from security.service.helpers.middleware import add_process_time_header
+from security.middleware.middleware import add_process_time_header
 # from security.service.helpers.users import create_default_user
 
 from api.common.app_info import appInfo

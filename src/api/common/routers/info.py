@@ -6,7 +6,7 @@ from typing import Union
 from requests import Session
 
 from core.config import ConfigHelper
-from security.helpers.database import get_db
+from helpers.database.database import get_db
 from utils.commons import route_description
 from utils.handle_exceptions import handle_exceptions_endpoint
 
@@ -21,8 +21,8 @@ from app_data import (__version__,
                       __helm_ui__,
                       __helm_watchdog__)
 
-from security.service.helpers.rate_limiter import LimiterRequests
-from security.service.helpers.rate_limiter import RateLimiter
+from security.helpers.rate_limiter import LimiterRequests
+from security.helpers.rate_limiter import RateLimiter
 
 from api.common.response_model.failed_request import FailedRequest
 from api.common.response_model.successful_request import SuccessfulRequest
@@ -64,13 +64,15 @@ async def get_app_info():
     res = {'app_name': __app_name__,
            'app_description': __app_description__,
            'admin_email': __admin_email__,
-           'api_release_version': f'{__version__}',
-           'api_release_date': f'{__date__}',
            'helm_version': f'{__helm_version__}',
            'helm_app_version': f'{__helm_app_version__}',
            'helm_api': f'{__helm_api__}',
            'helm_ui': f'{__helm_ui__}',
            'helm_watchdog': f'{__helm_watchdog__}',
+           'auth_enabled': f'{config_app.get_auth_enabled()}',
+           'auth_type': f'{config_app.get_auth_type()}',
+           'api_release_version': f'{__version__}',
+           'api_release_date': f'{__date__}',
            }
     if watchdog_release['success']:
         res['watchdog_release_version'] = watchdog_release['data']['release_version']

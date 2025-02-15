@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from fastapi import HTTPException, Request
 
 from core.config import ConfigHelper, LimiterRequestConfig
-from security.service.helpers.ip_from_request import IpClient
+from security.helpers.ip_from_request import IpClient
 
 from helpers.logger import ColoredLogger, LEVEL_MAPPING
 import logging

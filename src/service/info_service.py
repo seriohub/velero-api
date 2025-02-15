@@ -11,8 +11,8 @@ from utils.handle_exceptions import handle_exceptions_async_method
 from datetime import datetime
 import re
 
-from security.helpers.database import ProjectsVersion
-from security.helpers.database import SessionLocal
+from security.models.project_versions import ProjectsVersion
+from helpers.database.database import SessionLocal
 from typing import Optional
 
 from helpers.logger import ColoredLogger, LEVEL_MAPPING

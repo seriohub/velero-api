@@ -6,7 +6,7 @@ import os
 
 from core.config import ConfigHelper
 from core.context import current_user_var, cp_user
-from helpers.connection_manager import manager
+from helpers.websocket_manager import manager
 
 from helpers.logger import ColoredLogger, LEVEL_MAPPING
 import logging
@@ -37,7 +37,7 @@ async def send_message(message):
                 await nc.publish("socket." + config_app.cluster_id(), json.dumps(data).encode())
                 pass
             elif user is not None:
-                response = {'response_type': 'process', 'message': message}
+                response = {'type': 'process', 'message': message}
                 await manager.send_personal_message(str(user.id), json.dumps(response))
 
     except WebSocketDisconnect:

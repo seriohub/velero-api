@@ -1,5 +1,3 @@
-import os
-
 import aiohttp
 
 from core.config import ConfigHelper
@@ -8,7 +6,7 @@ from service.k8s_service import K8sService
 
 from utils.handle_exceptions import handle_exceptions_async_method
 
-from security.helpers.database import SessionLocal
+from helpers.database.database import SessionLocal
 
 from api.v1.schemas.update_user_config import UpdateUserConfig
 from helpers.logger import ColoredLogger, LEVEL_MAPPING

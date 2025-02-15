@@ -15,7 +15,7 @@ from nats.aio.errors import ErrTimeout, ErrNoServers
 from nats.errors import NoRespondersError
 
 from helpers.nats_cron_jobs import NatsCronJobs
-from security.helpers.database import User
+from security.models.user import User
 
 from core.context import current_user_var, cp_user
 from core.config import ConfigHelper
@@ -320,7 +320,7 @@ class NatsManager:
                         # call endpoint with Request object
                         response = await endpoint_function(request)
                     elif issubclass(first_param.annotation, BaseModel):
-                        # Create Pydantic model
+                        # Create Pydantic schemas
                         model_instance = first_param.annotation(**command['params'])
                         # call endpoint with Pydantic object
                         response = await endpoint_function(model_instance)

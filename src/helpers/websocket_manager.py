@@ -1,14 +1,16 @@
+from starlette.requests import Request
 from fastapi import WebSocket, WebSocketDisconnect
 from typing import Dict
 import json
 import traceback
 # import asyncio
 
-from security.service.helpers.users import get_current_user_token
+# from security.authentication.tokens import get_user_from_token
+from security.authentication.tokens import get_user_entity_from_token
 
 
 # socket manager
-class ConnectionManager:
+class WebSocketManager:
     def __init__(self):
         # self.active_connections: List[WebSocket] = []
         self.active_connections: Dict[str, WebSocket] = {}
@@ -35,9 +37,10 @@ class ConnectionManager:
 
                 elif isinstance(data, str):
                     # Treats the message as a JWT token
-                    user = await get_current_user_token(data)
+                    # user = await get_user_from_token(data)
+                    user = await get_user_entity_from_token(data)
 
-                if user is not None and not user.is_disabled:
+                if user is not None:
                     self.active_connections[str(user.id)] = websocket
                     response = {'response_type': 'notification', 'message': 'Connection READY!'}
                     await self.send_personal_message(str(user.id), json.dumps(response))
@@ -136,4 +139,4 @@ class ConnectionManager:
             await self.disconnect_websocket(websocket)
 
 
-manager = ConnectionManager()
+manager = WebSocketManager()

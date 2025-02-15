@@ -8,7 +8,7 @@ config_app = ConfigHelper()
 logger = ColoredLogger.get_logger(__name__, level=LEVEL_MAPPING.get(config_app.get_internal_log_level(), logging.INFO))
 
 
-class ResponseData:
+class AuthenticationResponse:
 
     def is_response(self, response):
         logger.debug(f"is_response")
