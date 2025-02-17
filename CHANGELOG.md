@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+## [v0.1.23] - 2025-02-17
+
+🔒 Authentication Improvements
+- 🔑 Added LDAP authentication for improved integration with directory services
+- 🛂 Added LDAP authorization to enhance access control
+- ⚙️ Added an option for no authentication for environments that don't require authentication
+
+🛠 Security Enhancements
+- 📂 Restructured files in the security module for better maintainability and organization
+- 🔄 Enhanced session management to improve security and user experience
+
 ## [v0.1.22] - 2025-02-07
 
 🚀 New Features
@@ -18,9 +29,9 @@ All notable changes to this project will be documented in this file.
 ## [v0.1.21] - 2025-01-23
 
 New Features
-- Backup Storage Location Management: Added functionality to configure and manage backup storage locations.
-- Volume Snapshot Location Management: Introduced the ability to configure and manage volume snapshot locations.
-- Velero Resource Consultation: Added a feature to consult Velero resources.
+- Backup Storage Location Management: Added functionality to configure and manage backup storage locations
+- Volume Snapshot Location Management: Introduced the ability to configure and manage volume snapshot locations
+- Velero Resource Consultation: Added a feature to consult Velero resources
 
 Improvements
 - Various enhancements
@@ -158,6 +169,12 @@ Improvements
 ***
 
 ## Tags
+
+[v0.1.23] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.23](https://github.com/seriohub/velero-api/releases/tag/v0.1.23)
+
+[v0.1.22] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.22](https://github.com/seriohub/velero-api/releases/tag/v0.1.22)
+
+[v0.1.21] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.21](https://github.com/seriohub/velero-api/releases/tag/v0.1.21)
 
 [v0.1.20] : [https://github.com/seriohub/velero-api/releases/tag/v0.1.20](https://github.com/seriohub/velero-api/releases/tag/v0.1.20)
 
