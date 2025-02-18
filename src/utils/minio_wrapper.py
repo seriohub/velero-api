@@ -12,29 +12,6 @@ logger = ColoredLogger.get_logger(__name__, level=LEVEL_MAPPING.get(config_app.g
 bsl = BackupLocationService()
 
 
-# def extract_parts(self, url):
-#     logger.info(f"extract_parts")
-#     # Define the regular expression pattern to extract the endpoint, bucket name, and backup name
-#     # pattern = r"s3:(http://[^/]+)/([^/]+)/(.+)"
-#     pattern = r"s3:(http[s]?://)?([^/]+)/([^/]+)/(.+)"
-#     # Search for the pattern in the given URL
-#     match = re.search(pattern, url)
-#
-#     # If a match is found, return the captured groups (endpoint, bucket name, backup name)
-#     if match:
-#         protocol = match.group(1) or ''
-#         endpoint = match.group(2)
-#         bucket_name = match.group(3)
-#         backup_name = match.group(4)
-#         logger.info(f"Protocol:{protocol}")
-#         logger.info(f"Endpoint:{endpoint}")
-#         logger.info(f"bucket_name:{bucket_name}")
-#         logger.info(f"backup_name:{backup_name}")
-#         return endpoint, bucket_name, backup_name
-#     else:
-#         return None, None, None
-
-
 class MinioInterface:
     def __init__(self):
         logger.debug("init MinioInterface")

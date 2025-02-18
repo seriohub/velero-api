@@ -1,6 +1,6 @@
 from fastapi.responses import JSONResponse
 
-from security.helpers.database import SessionLocal
+from helpers.database.database import SessionLocal
 from utils.handle_exceptions import handle_exceptions_controller
 from core.config import ConfigHelper
 

@@ -3,7 +3,7 @@ import json
 
 from core.config import ConfigHelper
 from core.context import current_user_var
-from helpers.connection_manager import manager
+from helpers.websocket_manager import manager
 
 from helpers.logger import ColoredLogger, LEVEL_MAPPING
 import logging
@@ -20,7 +20,7 @@ def trace_k8s_async_method(description):
             try:
                 user = current_user_var.get()
                 logger.debug(f"user:{user}, message:{message}")
-                response = {'response_type': 'k8s_tracker', 'message': message}
+                response = {'type': 'k8s_tracker', 'message': message}
                 await manager.send_personal_message(str(user.id), json.dumps(response))
             except Exception as Ex:
                 logger.warning(f"{str(Ex)}, message:{message}")

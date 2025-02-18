@@ -7,8 +7,8 @@ import time
 
 from app_data import __version__, __app_name__
 
-from security.helpers.database import SessionLocal
-from security.service.helpers.users import create_default_user
+from helpers.database.database import SessionLocal
+from security.authentication.built_in_authentication.users import create_default_user
 
 from service.info_service import InfoService
 
@@ -18,8 +18,6 @@ from helpers.logger import ColoredLogger, LEVEL_MAPPING
 import logging
 
 from core.config import ConfigHelper
-
-import uvicorn_filter
 
 # import sentry_sdk
 #

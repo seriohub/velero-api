@@ -623,12 +623,12 @@ class ConfigHelper:
             res = '7'
         return int(res)
 
-    @staticmethod
-    def get_security_manage_users():
-        res = os.getenv('SECURITY_USERS_ON', '0')
-        if len(res) == 0:
-            res = '0'
-        return int(res)
+    # @staticmethod
+    # def get_security_manage_users():
+    #     res = os.getenv('SECURITY_USERS_ON', '0')
+    #     if len(res) == 0:
+    #         res = '0'
+    #     return int(res)
 
     @staticmethod
     def get_security_disable_pwd_rate():
@@ -709,12 +709,11 @@ class ConfigHelper:
         data = dotenv_values(find_dotenv())
         kv = {}
         for k, v in data.items():
-            if (k.startswith('SECURITY_TOKEN_KEY') or
-                    k.startswith('SECURITY_REFRESH_TOKEN_KEY') or
-                    k.startswith('AWS_SECRET_ACCESS_KEY')):
-                # LS 2024.12.12 check value len
+            if (k in ['SECURITY_TOKEN_KEY',
+                      'SECURITY_REFRESH_TOKEN_KEY',
+                      'LDAP_BIND_PASSWORD', 'DEFAULT_ADMIN_PASSWORD']):
                 if len(v) > 0:
-                    v = v[0].ljust(len(v) - 1, '*')
+                    v = ''.ljust(8, '*')
                 else:
                     v = ''
             if len(k) > 0:
@@ -973,3 +972,62 @@ class ConfigHelper:
         if len(res) == 0:
             res = '300'
         return int(res)
+
+    #
+    # AUTHENTICATION
+    #
+    def get_auth_enabled(self):
+        return bool(self.load_key('AUTH_ENABLED', 'True').lower() == 'true')
+
+    @staticmethod
+    def get_auth_type():
+        return os.getenv('AUTH_TYPE', 'BUILT-IN')
+
+    #
+    # LDAP
+    #
+    @staticmethod
+    def get_ldap_server():
+        return os.getenv('LDAP_URI', '').split(',')
+
+    def get_ldap_use_ssl(self):
+        return bool(self.load_key('LDAP_USE_SSL', 'False').lower() == 'true')
+
+    @staticmethod
+    def get_ldap_base_dn():
+        return os.getenv('LDAP_BASE_DN', '')
+
+    @staticmethod
+    def get_ldap_bind_dn():
+        return os.getenv('LDAP_BIND_DN', '')
+
+    @staticmethod
+    def get_ldap_bind_password():
+        return os.getenv('LDAP_BIND_PASSWORD', '')
+
+    @staticmethod
+    def ldap_user_search_filter():
+        return os.getenv('LDAP_USER_SEARCH_FILTER', '(&(objectClass=person)(uid={username}))')
+
+    def get_ldap_authz_enabled(self):
+        return bool(self.load_key('LDAP_AUTHZ_ENABLED', 'False').lower() == 'true')
+
+    @staticmethod
+    def get_ldap_authz_strategy():
+        return os.getenv('LDAP_AUTHZ_STRATEGY', 'GROUP').upper()
+
+    @staticmethod
+    def get_ldap_authz_base_dn():
+        return os.getenv('LDAP_AUTHZ_BASE_DN', '')
+
+    @staticmethod
+    def get_ldap_authz_filter():
+        return os.getenv('LDAP_AUTHZ_FILTER', '')
+
+    @staticmethod
+    def get_ldap_authz_attribute():
+        return os.getenv('LDAP_AUTHZ_ATTRIBUTE', '')
+
+    @staticmethod
+    def get_ldap_authz_value():
+        return os.getenv('LDAP_AUTHZ_VALUE', '')
