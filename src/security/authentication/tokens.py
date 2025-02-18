@@ -20,8 +20,8 @@ from security.authentication.dependencies import oauth2_scheme
 # from security.authentication.built_in_authentication.users import (logger, secret_access_key, config_app, algorithm,
 #                                                                   get_user_by_name)
 from security.authentication.built_in_authentication.users import get_user_by_name
-from security.schemas.runtime.user_session import UserSession
-from security.schemas.runtime.token import TokenSession
+from security.models.user_session import UserSession
+from security.schemas.token import TokenSession
 
 config_app = ConfigHelper()
 

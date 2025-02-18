@@ -33,10 +33,6 @@ route = '/token'
              dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
                                                max_requests=limiter.max_request))],
              response_model=Union[Token, TokenRefresh])
-# async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-#                                  db: Session = Depends(get_db)):
-# async def login_for_access_token(form_data: Annotated[OAuth2PasswordAndRefreshRequestForm, Depends()],
-#                                 db: Session = Depends(get_db)):
 async def login_for_access_token(form_data: Annotated[OAuth2PasswordAndRefreshRequestForm, Depends()]):
     if form_data.grant_type == "refresh_token":
         return await auth.refresh_login(form_data.refresh_token)

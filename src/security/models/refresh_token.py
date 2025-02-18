@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, ForeignKey, DateTime as DateTimeA, func
 
-from security.schemas.runtime.guid import GUID
+from security.schemas.guid import GUID
 from helpers.database.base import Base
 
 
