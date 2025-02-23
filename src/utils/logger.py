@@ -8,7 +8,7 @@ LEVEL_MAPPING = {
     'critical': logging.CRITICAL
 }
 
-# Codici ANSI per i colori
+# Color ANSI code
 COLORS = {
     'DEBUG': '\033[94m',  # Blue
     'INFO': '\033[92m',  # Green

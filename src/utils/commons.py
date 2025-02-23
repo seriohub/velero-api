@@ -2,9 +2,9 @@ import re
 # from datetime import datetime
 
 
-def is_valid_name(name):
-    regex = r"[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
-    return re.fullmatch(regex, name) is not None
+# def is_valid_name(name):
+#     regex = r"[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
+#     return re.fullmatch(regex, name) is not None
 
 
 # def filter_in_progress(data):

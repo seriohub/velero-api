@@ -8,8 +8,6 @@ from ws.websocket_manager import manager
 from utils.logger_boot import logger
 
 
-
-
 def trace_k8s_async_method(description):
     def decorator(fn):
         @wraps(fn)

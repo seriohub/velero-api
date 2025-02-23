@@ -7,8 +7,6 @@ from service.bsl import get_bsl_credentials_service
 from utils.logger_boot import logger
 
 
-
-
 class MinioInterface:
     def __init__(self):
         logger.debug("init MinioInterface")

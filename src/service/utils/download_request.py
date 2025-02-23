@@ -12,7 +12,7 @@ from configs.resources import RESOURCES, ResourcesNames
 from configs.config_boot import config_app
 from utils.logger_boot import logger
 
-v1 = client.CustomObjectsApi()
+custom_objects = client.CustomObjectsApi()
 
 
 async def create_download_request(resource_name: str, resource_kind: str) -> Optional[str]:
@@ -29,7 +29,7 @@ async def create_download_request(resource_name: str, resource_kind: str) -> Opt
 
     try:
         # Check if a DownloadRequest already exists
-        existing_request = v1.get_namespaced_custom_object(
+        existing_request = custom_objects.get_namespaced_custom_object(
             group=VELERO["GROUP"],
             version=VELERO["VERSION"],
             namespace=config_app.get_k8s_velero_namespace(),
@@ -70,7 +70,7 @@ async def create_download_request(resource_name: str, resource_kind: str) -> Opt
             }
         }
 
-        v1.create_namespaced_custom_object(
+        custom_objects.create_namespaced_custom_object(
             group=VELERO["GROUP"],
             version=VELERO["VERSION"],
             namespace=config_app.get_k8s_velero_namespace(),
@@ -81,7 +81,7 @@ async def create_download_request(resource_name: str, resource_kind: str) -> Opt
         # Wait up to 5 attempts for the request to be processed
         for _ in range(5):
             time.sleep(4)
-            download_request = v1.get_namespaced_custom_object(
+            download_request = custom_objects.get_namespaced_custom_object(
                 group=VELERO["GROUP"],
                 version=VELERO["VERSION"],
                 namespace=config_app.get_k8s_velero_namespace(),
@@ -142,7 +142,7 @@ def cleanup_download_request(resource_name: str):
     logger.info(f"Cleanup download request {resource_name}")
     download_request_name = f"download-{resource_name}"
     try:
-        v1.delete_namespaced_custom_object(
+        custom_objects.delete_namespaced_custom_object(
             group=VELERO["GROUP"],
             version=VELERO["VERSION"],
             namespace=config_app.get_k8s_velero_namespace(),

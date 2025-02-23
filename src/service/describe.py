@@ -6,7 +6,7 @@ from configs.resources import RESOURCES, ResourcesNames
 from configs.config_boot import config_app
 from utils.k8s_tracer import trace_k8s_async_method
 
-v1 = client.CustomObjectsApi()
+custom_objects = client.CustomObjectsApi()
 
 
 @trace_k8s_async_method(description="Gets the details of a Velero resource")
@@ -21,7 +21,7 @@ async def get_velero_resource_details_service(resource_name: str, resource_type:
         resource_enum = ResourcesNames[resource_type.upper()]
 
         # Retrieve resource details directly from Kubernetes
-        resource = v1.get_namespaced_custom_object(
+        resource = custom_objects.get_namespaced_custom_object(
             group=VELERO['GROUP'],
             version=VELERO['VERSION'],
             namespace=config_app.get_k8s_velero_namespace(),

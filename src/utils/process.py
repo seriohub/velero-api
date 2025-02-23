@@ -10,8 +10,6 @@ from ws.websocket_manager import manager
 
 from utils.logger_boot import logger
 
-
-
 if config_app.get_enable_nats():
     from integrations.nats_manager import get_nats_manager_instance
 
@@ -46,9 +44,6 @@ async def run_check_output_process(cmd, publish_message=True, cwd='./', env=None
     try:
         if publish_message:
             await _send_message('check output: ' + ' '.join(cmd))
-        # sync
-        # output = subprocess.check_output(
-        #     cmd, stderr=subprocess.PIPE, cwd=cwd).decode('utf-8')
 
         # Starts the secondary process asynchronously
         process = await asyncio.create_subprocess_exec(*cmd,
@@ -91,25 +86,23 @@ async def run_check_output_process(cmd, publish_message=True, cwd='./', env=None
         return error
 
 
-async def run_check_call_process(cmd, publish_message=True):
-    try:
-        if publish_message:
-            await _send_message('check call: ' + ' '.join(cmd))
-        # sync
-        # subprocess.check_call(cmd)
-
-        # Starts the secondary process asynchronously
-        process = await asyncio.create_subprocess_exec(*cmd,
-                                                       stdout=asyncio.subprocess.PIPE,
-                                                       stderr=asyncio.subprocess.STDOUT, )
-
-        # Wait for the completion of the process
-        await process.wait()
-
-        return {'success': True}
-    except Exception as e:
-        error = {'success': False, 'error': {'title': 'Run Process Check Output Error',
-                                             'description': str(' '.join(cmd)) + '\n' + str(e)
-                                             }
-                 }
-        return error
+# async def run_check_call_process(cmd, publish_message=True):
+#     try:
+#         if publish_message:
+#             await _send_message('check call: ' + ' '.join(cmd))
+#
+#         # Starts the secondary process asynchronously
+#         process = await asyncio.create_subprocess_exec(*cmd,
+#                                                        stdout=asyncio.subprocess.PIPE,
+#                                                        stderr=asyncio.subprocess.STDOUT, )
+#
+#         # Wait for the completion of the process
+#         await process.wait()
+#
+#         return {'success': True}
+#     except Exception as e:
+#         error = {'success': False, 'error': {'title': 'Run Process Check Output Error',
+#                                              'description': str(' '.join(cmd)) + '\n' + str(e)
+#                                              }
+#                  }
+#         return error
