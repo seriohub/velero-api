@@ -16,9 +16,6 @@ from typing import Optional
 
 from utils.logger_boot import logger
 
-
-
-
 last_version_data = {}
 last_version_scan_datetime = datetime.utcnow()
 
@@ -308,7 +305,8 @@ async def ui_compatibility_service(version: str):
             data_ui, data_api, error = _retrieve_data_from_md_file(ui_version=version,
                                                                    api_version=api_version)
             if data_ui is None:
-                raise HTTPException(status_code=400, detail=f"Error get data from GitHub repository', 'description': {error}")
+                raise HTTPException(status_code=400,
+                                    detail=f"Error get data from GitHub repository', 'description': {error}")
 
             is_comp = _get_compatibility(data=data_ui, ui_version=version, api_version=api_version)
 

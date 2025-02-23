@@ -12,8 +12,6 @@ from schemas.response.successful_request import SuccessfulRequest
 from controllers.setup import (get_env_handler,
                                get_velero_version_handler)
 
-from configs.config_boot import config_app
-
 router = APIRouter()
 rate_limiter = RateLimiter()
 

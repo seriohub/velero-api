@@ -14,8 +14,6 @@ from controllers.k8s import (get_k8s_storage_classes_handler,
                              get_logs_handler,
                              get_manifest_handler)
 
-from configs.config_boot import config_app
-
 router = APIRouter()
 
 tag_name = 'Kubernetes'

@@ -13,7 +13,6 @@ from schemas.request.storage_class_map import StorageClassMapRequestSchema
 from controllers.sc_mapping import (delete_storages_classes_mapping_handler,
                                     update_storages_classes_mapping_handler,
                                     get_storages_classes_map_handler)
-from configs.config_boot import config_app
 
 router = APIRouter()
 

@@ -4,11 +4,10 @@ from typing import List, Dict
 
 from fastapi import HTTPException
 
-from service.utils.download_request import (_create_download_request,
-                                            _download_and_extract_backup,
-                                            _cleanup_download_request)
+from service.utils.download_request import (create_download_request,
+                                            download_and_extract_backup,
+                                            cleanup_download_request)
 from schemas.velero_storage_class import VeleroStorageClass
-
 
 from utils.k8s_tracer import trace_k8s_async_method
 
@@ -20,12 +19,12 @@ async def get_backup_storage_classes_service(backup_name: str) -> VeleroStorageC
     """
 
     # Create a DownloadRequest to retrieve backup data
-    download_url = await _create_download_request(backup_name, "BackupContents")
+    download_url = await create_download_request(backup_name, "BackupContents")
     if not download_url:
         raise HTTPException(status_code=400, detail=f"Create a DownloadRequest to retrieve backup data")
 
     # Download and extract the file containing the Kubernetes manifest
-    extracted_path = await _download_and_extract_backup(download_url)
+    extracted_path = await download_and_extract_backup(download_url)
     if not extracted_path:
         raise HTTPException(status_code=400, detail=f"Error while extracting backup '{backup_name}'")
 
@@ -33,7 +32,7 @@ async def get_backup_storage_classes_service(backup_name: str) -> VeleroStorageC
     storage_classes = _extract_storage_classes_from_pvc_service(extracted_path)
 
     # Cleaning the DownloadRequest after use
-    _cleanup_download_request(backup_name)
+    cleanup_download_request(backup_name)
 
     if storage_classes:
         return VeleroStorageClass(storage_classes=storage_classes)

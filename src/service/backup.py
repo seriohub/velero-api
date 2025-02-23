@@ -15,9 +15,6 @@ from schemas.request.create_backup import CreateBackupRequestSchema
 
 from models.k8s.backup import BackupResponseSchema
 
-
-
-
 custom_objects = client.CustomObjectsApi()
 
 

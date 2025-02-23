@@ -19,8 +19,6 @@ from utils.logger_boot import logger
 db = SessionLocal()
 
 
-
-
 # def filter_dict_by_keys(input_dict, keys_to_keep):
 #     """
 #     Filters a dictionary to include only specified keys.
@@ -123,7 +121,7 @@ async def send_watchdog_test_notification_service(provider_config: str):
     url = protocol + config_app.get_watchdog_url() + '/test-service'
 
     response = await __do_api_call_post(url, payload={'config': provider_config})
-    print("----",response)
+    print("----", response)
     if 'success' in response and response['success']:
         return True
     else:

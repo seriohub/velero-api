@@ -12,8 +12,6 @@ from schemas.response.successful_request import SuccessfulRequest
 from controllers.pod_volume_backup import (get_pod_volume_backups_handler,
                                            get_pod_volume_backup_handler)
 
-from configs.config_boot import config_app
-
 router = APIRouter()
 
 tag_name = "Pod Volume Backups"

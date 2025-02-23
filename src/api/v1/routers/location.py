@@ -16,9 +16,6 @@ from controllers.k8s import (create_cloud_credentials_handler,
                              get_velero_secret_handler,
                              get_velero_secret_key_handler)
 
-from configs.config_boot import config_app
-
-
 router = APIRouter()
 
 tag_name = 'Locations'

@@ -16,8 +16,6 @@ from controllers.repo import (get_repos_handler,
                               unlock_repo_handler,
                               check_repo_handler)
 
-from configs.config_boot import config_app
-
 router = APIRouter()
 
 tag_name = 'Repository'

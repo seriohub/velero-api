@@ -5,7 +5,7 @@ import gzip
 import tempfile
 
 from schemas.velero_log import VeleroLog
-from service.utils.download_request import _create_download_request, _cleanup_download_request
+from service.utils.download_request import create_download_request, cleanup_download_request
 
 VELERO_LOG_TYPES = {
     "backup": "BackupLog",
@@ -22,7 +22,7 @@ async def get_velero_logs_service(resource_name: str, resource_type: str) -> Vel
 
     try:
         # Creation of the DownloadRequest or retrieval of the URL if already available
-        log_url = await _create_download_request(resource_name, log_kind)
+        log_url = await create_download_request(resource_name, log_kind)
         if not log_url:
             raise HTTPException(status_code=408, detail=f"Unable to retrieve log download URL")
 
@@ -30,7 +30,7 @@ async def get_velero_logs_service(resource_name: str, resource_type: str) -> Vel
         logs = await _download_and_extract_logs(log_url)
 
         # DownloadRequest cleanup to avoid buildup
-        _cleanup_download_request(resource_name)
+        cleanup_download_request(resource_name)
         return logs
 
     except Exception as e:

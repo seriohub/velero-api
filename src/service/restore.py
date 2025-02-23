@@ -10,10 +10,7 @@ from schemas.request.create_restore import CreateRestoreRequestSchema
 from models.k8s.restore import RestoreResponseSchema
 from configs.config_boot import config_app
 
-
-
 custom_objects = client.CustomObjectsApi()
-
 
 
 # @trace_k8s_async_method(description="get a restores list")
@@ -94,6 +91,7 @@ async def create_restore_service(restore_data: CreateRestoreRequestSchema):
     )
 
     return response
+
 
 @trace_k8s_async_method(description="delete a restore")
 async def delete_restore_service(restore_name: str):

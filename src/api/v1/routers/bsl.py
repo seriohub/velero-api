@@ -19,8 +19,6 @@ from controllers.bsl import (get_bsls_handler,
                              set_remove_default_bsl_handler,
                              delete_bsl_handler)
 
-from configs.config_boot import config_app
-
 router = APIRouter()
 
 tag_name = 'Backup Storage Locations'

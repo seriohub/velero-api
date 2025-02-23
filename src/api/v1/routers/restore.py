@@ -16,7 +16,7 @@ from controllers.restore import (get_restores_handler,
                                  delete_restore_handler)
 from controllers.common import (get_resource_describe_handler,
                                 get_resource_logs_handler)
-from configs.config_boot import config_app
+
 router = APIRouter()
 
 

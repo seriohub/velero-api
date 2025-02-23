@@ -12,7 +12,6 @@ from schemas.response.failed_request import FailedRequest
 from schemas.response.successful_request import SuccessfulRequest
 
 from controllers.agent import watchdog_online_handler
-from configs.config_boot import config_app
 
 router = APIRouter()
 

@@ -13,8 +13,6 @@ from configs.config_boot import config_app
 from configs.velero import VELERO
 from configs.resources import RESOURCES, ResourcesNames
 
-
-
 custom_objects = client.CustomObjectsApi()
 
 

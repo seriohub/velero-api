@@ -14,8 +14,6 @@ from utils.k8s_tracer import trace_k8s_async_method
 from utils.logger_boot import logger
 
 
-
-
 def _parse_config_string(config_string):
     # Create a ConfigParser object
     config_parser = configparser.ConfigParser()
@@ -382,7 +380,6 @@ async def remove_key_from_configmap_service(namespace, configmap_name, key):
     """
     # Upload Kubernetes configuration
     # config.load_kube_config()  # Use for local execution with kubectl configured
-
 
     v1 = client.CoreV1Api()
 
@@ -782,5 +779,3 @@ aws_secret_access_key={aws_secret_access_key}
 
     except client.exceptions.ApiException as e:
         raise HTTPException(status_code=400, detail=f"Exception when create cloud credentials: {e}")
-
-

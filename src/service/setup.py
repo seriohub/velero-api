@@ -5,7 +5,6 @@ from kubernetes.client import ApiException
 
 from configs.config_boot import config_app
 
-
 coreV1 = client.CoreV1Api()
 
 

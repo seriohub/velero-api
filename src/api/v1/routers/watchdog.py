@@ -1,6 +1,5 @@
 from fastapi import APIRouter, status, Depends
 
-from configs.config_boot import config_app
 from configs.response import common_error_authenticated_response
 
 from controllers.setup import get_env_handler

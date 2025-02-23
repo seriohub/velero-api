@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, status
 
-from configs.config_boot import config_app
 from configs.response import common_error_authenticated_response
 
 from security.helpers.rate_limiter import RateLimiter, LimiterRequests

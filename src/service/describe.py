@@ -6,7 +6,6 @@ from configs.resources import RESOURCES, ResourcesNames
 from configs.config_boot import config_app
 from utils.k8s_tracer import trace_k8s_async_method
 
-
 v1 = client.CustomObjectsApi()
 
 

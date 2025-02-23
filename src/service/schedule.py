@@ -10,8 +10,6 @@ from configs.velero import VELERO
 from configs.resources import RESOURCES, ResourcesNames
 from utils.logger_boot import logger
 
-
-
 custom_objects = client.CustomObjectsApi()
 
 

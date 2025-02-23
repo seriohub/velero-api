@@ -12,8 +12,6 @@ from service.k8s import get_namespaces_service
 from service.schedule import get_schedules_service
 
 
-
-
 def _build_data(phase, counter, total_count):
     return {'label': phase,
             'count': counter,

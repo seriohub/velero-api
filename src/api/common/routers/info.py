@@ -31,7 +31,6 @@ from service.watchdog import get_watchdog_version_service
 router = APIRouter()
 
 
-
 tag_name = "Info"
 
 endpoint_limiter = LimiterRequests(tags=tag_name,

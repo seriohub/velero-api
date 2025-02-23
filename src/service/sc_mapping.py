@@ -9,8 +9,6 @@ from configs.config_boot import config_app
 from utils.k8s_tracer import trace_k8s_async_method
 from utils.logger_boot import logger
 
-
-
 core_v1 = client.CoreV1Api()
 custom_object = client.CustomObjectsApi()
 storage_v1 = client.StorageV1Api()

@@ -10,12 +10,12 @@ from typing import Optional
 from configs.velero import VELERO
 from configs.resources import RESOURCES, ResourcesNames
 from configs.config_boot import config_app
-
+from utils.logger_boot import logger
 
 v1 = client.CustomObjectsApi()
 
 
-async def _create_download_request(resource_name: str, resource_kind: str) -> Optional[str]:
+async def create_download_request(resource_name: str, resource_kind: str) -> Optional[str]:
     """
     Creates a Velero DownloadRequest to download the requested data.
     If a request already exists, reuses or deletes it and creates a new one.
@@ -44,7 +44,7 @@ async def _create_download_request(resource_name: str, resource_kind: str) -> Op
 
         # If it exists but is not Processed, we delete it and recreate it
         logger.info(f"DownloadRequest ‘{download_request_name}’ already exists but is not Processed. By deleting it...")
-        _cleanup_download_request(resource_name)
+        cleanup_download_request(resource_name)
 
     except client.exceptions.ApiException as e:
         if e.status != 404:  # Ignoriamo l'errore 404 (not found)
@@ -98,7 +98,7 @@ async def _create_download_request(resource_name: str, resource_kind: str) -> Op
                             detail=f"Error in DownloadRequest for ‘{resource_name}’: {e}")
 
 
-async def _download_and_extract_backup(download_url: str) -> Optional[str]:
+async def download_and_extract_backup(download_url: str) -> Optional[str]:
     """
     Downloads and extracts the backup containing Kubernetes manifest.
 
@@ -133,7 +133,7 @@ async def _download_and_extract_backup(download_url: str) -> Optional[str]:
                             detail=f"Error while downloading and extracting backup: {e}")
 
 
-def _cleanup_download_request(resource_name: str):
+def cleanup_download_request(resource_name: str):
     """
     Deletes the DownloadRequest after use to avoid accumulation in the cluster.
 

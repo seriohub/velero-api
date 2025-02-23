@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, status
 
 from datetime import datetime
 
-from configs.config_boot import config_app
 from utils.commons import route_description
 from utils.handle_exceptions import handle_exceptions_endpoint
 
