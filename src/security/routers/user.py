@@ -1,26 +1,29 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from requests import Session
+
+from configs.config_boot import config_app
+
 from security.authentication.auth_service import get_current_active_user
 from security.schemas.request.user import UserUPDPassword
 from security.helpers.rate_limiter import LimiterRequests, RateLimiter
 from security.authentication.built_in_authentication.users import update_user
-from security.models.user import User
-from security.schemas.response.user import UserOut
-from helpers.database.database import get_db
-from utils.commons import route_description
-from core.config import ConfigHelper
 
-# move to controller
-from api.common.response_model.failed_request import FailedRequest
-from api.common.response_model.successful_request import SuccessfulRequest
-from api.common.response_model.message import Message
+from security.schemas.response.user import UserOut
+from database.db_connection import get_db
+from models.db.user import User
+
+from utils.commons import route_description
+
+from schemas.response.failed_request import FailedRequest
+from schemas.response.successful_request import SuccessfulRequest
+from schemas.notification import Notification
+
 #
 
-config = ConfigHelper()
 router = APIRouter()
-token_expires_minutes = config.get_security_token_expiration()
-token_expires_days = config.get_security_token_refresh_expiration()
+token_expires_minutes = config_app.get_security_token_expiration()
+token_expires_days = config_app.get_security_token_refresh_expiration()
 
 # enable_users = config.get_security_manage_users()
 
@@ -28,9 +31,15 @@ tag_name = 'User'
 endpoint_limiter = LimiterRequests(tags=tag_name,
                                    default_key='L1')
 
+# ------------------------------------------------------------------------------------------------
+#             GET USER INFO
+# ------------------------------------------------------------------------------------------------
+
 
 limiter_me_info = endpoint_limiter.get_limiter_cust('users_me_info')
 route = '/users/me/info'
+
+
 @router.get(path=route,
             tags=[tag_name],
             summary='Get information about the user authenticated',
@@ -47,6 +56,8 @@ async def read_current_user(current_user: User = Depends(get_current_active_user
 
 limiter_me_pwd = endpoint_limiter.get_limiter_cust('users_me_update_pwd')
 route = '/users/me/update/pwd'
+
+
 @router.put(path=route,
             tags=[tag_name],
             summary='Update user password',
@@ -63,18 +74,18 @@ def update_current_user(user: UserUPDPassword,
                           full_name='',
                           password=user.password,
                           db=db)
-    if not payload['success']:
+    if not payload:
         response = FailedRequest()
-        return JSONResponse(content=response.toJSON(), status_code=400)
+        return JSONResponse(content=response.model_dump(), status_code=400)
 
-    msg = Message(title='Password', description=f"Updated!", type='INFO')
-    response = SuccessfulRequest(notifications=[msg.toJSON()])
-    return JSONResponse(content=response.toJSON(), status_code=201)
+    msg = Notification(title='Password', description=f"Updated!", type_='INFO')
+    response = SuccessfulRequest(notifications=[msg])
+    return JSONResponse(content=response.model_dump(), status_code=201)
 
 
-# ###################
-# NOT YET IMPLEMENTED
-# ###################
+# ------------------------------------------------------------------------------------------------
+#             USER MANAGEMENT
+# ------------------------------------------------------------------------------------------------
 
 # if enable_users:
 #     # Routes for user management

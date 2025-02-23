@@ -2,19 +2,17 @@ import re
 import uuid
 from fastapi import HTTPException
 # from security.schemas.schemas import UserOut, UserCreate
-from core.config import ConfigHelper #, get_configmap_parameter, get_secret_parameter
+from configs.config_boot import config_app  # , get_configmap_parameter, get_secret_parameter
 
 from typing import Optional
 from security.authentication.dependencies import pwd_context
-from helpers.database.database import SessionLocal
+from database.db_connection import SessionLocal
 # from security.authentication.built_in_authentication.database import Configs
-from security.models.user import User
+from models.db.user import User
 
-from helpers.logger import ColoredLogger, LEVEL_MAPPING
-import logging
+from utils.logger_boot import logger
 
-config_app = ConfigHelper()
-logger = ColoredLogger.get_logger(__name__, level=LEVEL_MAPPING.get(config_app.get_internal_log_level(), logging.INFO))
+
 
 disable_password_rate = config_app.get_security_disable_pwd_rate()
 secret_access_key = config_app.get_security_access_token_key()
@@ -177,10 +175,10 @@ def update_user(user_id: uuid.UUID, full_name: str, password: str, db: SessionLo
 
             db.commit()
             # data = {'title': 'Update Password', 'description': 'User updates successfully!'}
-            return {'success': True}
+            return True
         else:
             # raise HTTPException(status_code=404, detail='User not found')
-            return {'success': False}
+            return False
 
 
 def authenticate_user(db, username: str, password: str):

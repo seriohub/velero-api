@@ -1,15 +1,14 @@
 from functools import wraps
 import json
 
-from core.config import ConfigHelper
-from core.context import current_user_var
-from helpers.websocket_manager import manager
+from configs.config_boot import config_app
+from configs.context import current_user_var
+from ws.websocket_manager import manager
 
-from helpers.logger import ColoredLogger, LEVEL_MAPPING
-import logging
+from utils.logger_boot import logger
 
-config_app = ConfigHelper()
-logger = ColoredLogger.get_logger(__name__, level=LEVEL_MAPPING.get(config_app.get_internal_log_level(), logging.INFO))
+
+
 
 def trace_k8s_async_method(description):
     def decorator(fn):

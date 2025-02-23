@@ -55,3 +55,4 @@ websocket-client==1.8.0
 wsproto==1.2.0
 yarl==1.18.3
 ldap3~=2.9.1
+boto3~=1.36.24

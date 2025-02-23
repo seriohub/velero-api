@@ -1,13 +1,12 @@
 from ldap3 import Server, Connection, ALL
-from core.config import ConfigHelper
-from helpers.logger import ColoredLogger, LEVEL_MAPPING
-import logging
+from configs.config_boot import config_app
+
+from utils.logger_boot import logger
+
 from ldap3.core.exceptions import LDAPBindError, LDAPSocketOpenError
 import time
 
-config_app = ConfigHelper()
 
-logger = ColoredLogger.get_logger(__name__, level=LEVEL_MAPPING.get(config_app.get_internal_log_level(), logging.INFO))
 
 # Load configs
 ldap_servers = config_app.get_ldap_server()

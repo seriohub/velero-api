@@ -6,26 +6,22 @@ from requests import Session
 from starlette import status
 from starlette.responses import Response
 from typing import Optional
-from core.config import ConfigHelper
+from configs.config_boot import config_app
 
 from datetime import timedelta, datetime
 
-from helpers.database.database import SessionLocal, get_db
-from security.models.refresh_token import RefreshToken
+from database.db_connection import SessionLocal, get_db
+from models.db.refresh_token import RefreshToken
 
-from helpers.logger import ColoredLogger, LEVEL_MAPPING
-import logging
+from utils.logger_boot import logger
 
 from security.authentication.dependencies import oauth2_scheme
-# from security.authentication.built_in_authentication.users import (logger, secret_access_key, config_app, algorithm,
-#                                                                   get_user_by_name)
 from security.authentication.built_in_authentication.users import get_user_by_name
-from security.models.user_session import UserSession
+from models.user_session import UserSession
 from security.schemas.token import TokenSession
 
-config_app = ConfigHelper()
 
-logger = ColoredLogger.get_logger(__name__, level=LEVEL_MAPPING.get(config_app.get_internal_log_level(), logging.INFO))
+
 
 token_access_expire = config_app.get_security_token_expiration()
 token_refresh_expires_days = config_app.get_security_token_refresh_expiration()
@@ -124,7 +120,6 @@ def __get_refresh_token_by_user(token: str,
 #
 # access token
 #
-
 def create_token(username, userid, auth_type='BUILT-IN', db: Session = None, only_access=True):
     logger.debug(f"create_token username:{username}")
     access_token_expires = timedelta(minutes=token_access_expire)
@@ -214,6 +209,7 @@ async def get_user_entity_from_token(token: str = Depends(oauth2_scheme)) -> Use
         raise credentials_exception
     return user_entity
 
+
 #
 # refresh token
 #
@@ -265,7 +261,6 @@ def verify_refresh_token(token: str):
         return Response("Could not validate request",
                         status_code=status.HTTP_401_UNAUTHORIZED,
                         headers={'WWW-Authenticate': 'Bearer'})
-
 
 # async def get_user_from_token(token: str = Depends(oauth2_scheme)) -> UserOut:
 #     credentials_exception = HTTPException(

@@ -1,29 +1,31 @@
 from fastapi import APIRouter, Depends, status
 
 from datetime import datetime
-from typing import Union
 
-from core.config import ConfigHelper
+from configs.config_boot import config_app
 from utils.commons import route_description
 from utils.handle_exceptions import handle_exceptions_endpoint
 
 from security.helpers.rate_limiter import LimiterRequests
 from security.helpers.rate_limiter import RateLimiter
 
-from api.common.response_model.failed_request import FailedRequest
-from api.common.response_model.successful_request import SuccessfulRequest
+from schemas.response.successful_request import SuccessfulRequest
 
-from api.common.controllers.health import Health
+from controllers.health import get_k8s_online_handler
 
 router = APIRouter()
 
-health = Health()
-config_app = ConfigHelper()
+
 
 tag_name = 'Health'
 
 endpoint_limiter = LimiterRequests(tags=tag_name,
                                    default_key='L1')
+
+# ------------------------------------------------------------------------------------------------
+#             GET UTC
+# ------------------------------------------------------------------------------------------------
+
 
 limiter_utc = endpoint_limiter.get_limiter_cust('health_utc')
 route = '/utc'
@@ -42,8 +44,13 @@ route = '/utc'
             status_code=status.HTTP_200_OK
             )
 @handle_exceptions_endpoint
-async def get_health() -> dict:
+async def get_utc() -> dict:
     return {'timestamp': datetime.utcnow().strftime('%B %d %Y - %H:%M:%S')}
+
+
+# ------------------------------------------------------------------------------------------------
+#             GET KUBERNETES HEALTH
+# ------------------------------------------------------------------------------------------------
 
 
 limiter_k8s = endpoint_limiter.get_limiter_cust('health_k8s')
@@ -59,8 +66,8 @@ route = '/k8s'
                                           limiter_seconds=limiter_k8s.seconds),
             dependencies=[Depends(RateLimiter(interval_seconds=limiter_k8s.seconds,
                                               max_requests=limiter_k8s.max_request))],
-            response_model=Union[SuccessfulRequest, FailedRequest],
+            response_model=SuccessfulRequest,
             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def get_k8s_nodes_status():
-    return await health.get_k8s_online()
+async def get_k8s_health():
+    return await get_k8s_online_handler()

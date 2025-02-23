@@ -4,22 +4,19 @@ import json
 from fastapi import WebSocketDisconnect
 import os
 
-from core.config import ConfigHelper
-from core.context import current_user_var, cp_user
-from helpers.websocket_manager import manager
+from configs.config_boot import config_app
+from configs.context import current_user_var, cp_user
+from ws.websocket_manager import manager
 
-from helpers.logger import ColoredLogger, LEVEL_MAPPING
-import logging
+from utils.logger_boot import logger
 
-config_app = ConfigHelper()
+
 
 if config_app.get_enable_nats():
-    from helpers.nats_manager import get_nats_manager_instance
-
-logger = ColoredLogger.get_logger(__name__, level=LEVEL_MAPPING.get(config_app.get_internal_log_level(), logging.INFO))
+    from integrations.nats_manager import get_nats_manager_instance
 
 
-async def send_message(message):
+async def _send_message(message):
     try:
         logger.debug(message)
         # await manager.broadcast(message)
@@ -44,11 +41,11 @@ async def send_message(message):
         logger.error('send message error')
 
 
-async def run_process_check_output(cmd, publish_message=True, cwd='./', env=None):
+async def run_check_output_process(cmd, publish_message=True, cwd='./', env=None):
     output = ''
     try:
         if publish_message:
-            await send_message('check output: ' + ' '.join(cmd))
+            await _send_message('check output: ' + ' '.join(cmd))
         # sync
         # output = subprocess.check_output(
         #     cmd, stderr=subprocess.PIPE, cwd=cwd).decode('utf-8')
@@ -94,10 +91,10 @@ async def run_process_check_output(cmd, publish_message=True, cwd='./', env=None
         return error
 
 
-async def run_process_check_call(cmd, publish_message=True):
+async def run_check_call_process(cmd, publish_message=True):
     try:
         if publish_message:
-            await send_message('check call: ' + ' '.join(cmd))
+            await _send_message('check call: ' + ' '.join(cmd))
         # sync
         # subprocess.check_call(cmd)
 

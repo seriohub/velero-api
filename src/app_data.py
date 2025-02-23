@@ -1,6 +1,4 @@
-from core.config import ConfigHelper
-
-config_app = ConfigHelper()
+from configs.config_boot import config_app
 
 __version__ = config_app.get_build_version()
 __date__ = config_app.get_date_build()

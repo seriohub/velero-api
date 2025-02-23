@@ -2,30 +2,28 @@ from fastapi import APIRouter, Depends, status
 
 from typing import Union
 
-from core.config import ConfigHelper
-
 from utils.commons import route_description
 from utils.handle_exceptions import handle_exceptions_endpoint
 
 from security.helpers.rate_limiter import LimiterRequests
 from security.helpers.rate_limiter import RateLimiter
 
-from api.common.response_model.failed_request import FailedRequest
-from api.common.response_model.successful_request import SuccessfulRequest
+from schemas.response.failed_request import FailedRequest
+from schemas.response.successful_request import SuccessfulRequest
 
-from api.common.controllers.agent import Agent
-from service.watchdog_service import WatchdogService
+from controllers.agent import watchdog_online_handler
+from configs.config_boot import config_app
 
 router = APIRouter()
-
-agent = Agent()
-watchdogService = WatchdogService()
-
-config_app = ConfigHelper()
 
 tag_name = "Agent"
 endpoint_limiter = LimiterRequests(tags=tag_name,
                                    default_key='L1')
+
+# ------------------------------------------------------------------------------------------------
+#             GET WATCHDOG INFO
+# ------------------------------------------------------------------------------------------------
+
 
 limiter_watchdog = endpoint_limiter.get_limiter_cust('info_watchdog')
 route = '/watchdog'
@@ -44,4 +42,4 @@ route = '/watchdog'
             status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
 async def watchdog_config():
-    return await agent.watchdog_online()
+    return await watchdog_online_handler()
