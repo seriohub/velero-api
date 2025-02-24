@@ -1,20 +1,20 @@
 from fastapi import APIRouter, Depends, status
 
-from configs.response import common_error_authenticated_response
+from constants.response import common_error_authenticated_response
 
 from security.helpers.rate_limiter import RateLimiter, LimiterRequests
 
-from utils.commons import route_description
-from utils.handle_exceptions import handle_exceptions_endpoint
+from utils.swagger import route_description
+from utils.exceptions import handle_exceptions_endpoint
 
 from schemas.response.successful_request import SuccessfulRequest
 from schemas.request.unlock_restic_repo import UnlockResticRepoRequestSchema
 
 from controllers.repo import (get_repos_handler,
                               get_backup_size_handler,
-                              get_repo_locks_handler,
-                              unlock_repo_handler,
-                              check_repo_handler)
+                              get_restic_repo_locks_handler,
+                              unlock_restic_repo_handler,
+                              check_restic_repo_handler)
 
 router = APIRouter()
 
@@ -110,8 +110,8 @@ route = '/repo/locks'
     responses=common_error_authenticated_response,
     status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def get_repos_locks(bsl: str, repository_url: str = None):
-    return await get_repo_locks_handler(bsl, repository_url)
+async def get_restic_repo_locks(bsl: str, repository_url: str = None):
+    return await get_restic_repo_locks_handler(bsl, repository_url)
 
 
 # ------------------------------------------------------------------------------------------------
@@ -136,8 +136,8 @@ route = '/repo/unlock'
              responses=common_error_authenticated_response,
              status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def unlock_repo(repo: UnlockResticRepoRequestSchema):
-    return await unlock_repo_handler(repo=repo)
+async def unlock_restic_repo(repo: UnlockResticRepoRequestSchema):
+    return await unlock_restic_repo_handler(repo=repo)
 
 
 # ------------------------------------------------------------------------------------------------
@@ -163,5 +163,5 @@ route = '/repo/check'
     responses=common_error_authenticated_response,
     status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def check_repo(bsl: str, repository_url: str = None):
-    return await check_repo_handler(bsl, repository_url)
+async def check_restic_repo(bsl: str, repository_url: str = None):
+    return await check_restic_repo_handler(bsl, repository_url)

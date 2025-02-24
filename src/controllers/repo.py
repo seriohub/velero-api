@@ -9,9 +9,9 @@ from schemas.request.unlock_restic_repo import UnlockResticRepoRequestSchema
 from service.bsl import get_bsl_credentials_service
 from service.repo import (get_repos_service,
                           get_repo_backup_size_service,
-                          get_repo_locks_service,
-                          unlock_repo_service,
-                          check_repo_service)
+                          get_restic_repo_locks_service,
+                          unlock_restic_repo_service,
+                          check_restic_repo_service)
 
 
 async def get_repos_handler():
@@ -37,14 +37,14 @@ async def get_backup_size_handler(repository_url: str = None,
     return JSONResponse(content=response.model_dump(), status_code=200)
 
 
-async def get_repo_locks_handler(bsl, repository_url):
+async def get_restic_repo_locks_handler(bsl, repository_url):
     aws_access_key_id, aws_secret_access_key = await get_bsl_credentials_service(backup_storage_location=bsl)
     env = {
         **os.environ,
         "AWS_ACCESS_KEY_ID": aws_access_key_id,
         "AWS_SECRET_ACCESS_KEY": aws_secret_access_key
     }
-    payload = await get_repo_locks_service(env, repository_url)
+    payload = await get_restic_repo_locks_service(env, repository_url)
 
     msg = Notification(title='Get locks',
                        description=f"{len(payload[repository_url])} locks found",
@@ -54,27 +54,27 @@ async def get_repo_locks_handler(bsl, repository_url):
     return JSONResponse(content=response.model_dump(), status_code=200)
 
 
-async def unlock_repo_handler(repo: UnlockResticRepoRequestSchema):
+async def unlock_restic_repo_handler(repo: UnlockResticRepoRequestSchema):
     aws_access_key_id, aws_secret_access_key = await get_bsl_credentials_service(backup_storage_location=repo.bsl)
     env = {
         **os.environ,
         "AWS_ACCESS_KEY_ID": aws_access_key_id,
         "AWS_SECRET_ACCESS_KEY": aws_secret_access_key
     }
-    payload = await unlock_repo_service(env, repo.bsl, repo.repositoryUrl, repo.removeAll)
+    payload = await unlock_restic_repo_service(env, repo.bsl, repo.repositoryUrl, repo.removeAll)
 
     response = SuccessfulRequest(payload=payload)
     return JSONResponse(content=response.model_dump(), status_code=200)
 
 
-async def check_repo_handler(bsl, repository_url):
+async def check_restic_repo_handler(bsl, repository_url):
     aws_access_key_id, aws_secret_access_key = await get_bsl_credentials_service(backup_storage_location=bsl)
     env = {
         **os.environ,
         "AWS_ACCESS_KEY_ID": aws_access_key_id,
         "AWS_SECRET_ACCESS_KEY": aws_secret_access_key
     }
-    payload = await check_repo_service(env, repository_url)
+    payload = await check_restic_repo_service(env, repository_url)
 
     msg = Message(title=f"Check {repository_url}",
                   description=payload[repository_url],

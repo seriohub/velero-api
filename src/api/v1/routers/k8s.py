@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, status
 
-from configs.response import common_error_authenticated_response
+from constants.response import common_error_authenticated_response
 
 from security.helpers.rate_limiter import RateLimiter, LimiterRequests
 
-from utils.commons import route_description
-from utils.handle_exceptions import handle_exceptions_endpoint
+from utils.swagger import route_description
+from utils.exceptions import handle_exceptions_endpoint
 
 from schemas.response.successful_request import SuccessfulRequest
 

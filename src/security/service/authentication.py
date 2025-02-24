@@ -11,10 +11,8 @@ from security.authentication.ldap.ldap_manager import LdapManager
 
 from utils.logger_boot import logger
 
-
-
 ldapManager = None
-if config_app.get_auth_type() == 'LDAP':
+if config_app.app.auth_type == 'LDAP':
     ldapManager = LdapManager()
 
 
@@ -24,7 +22,7 @@ if config_app.get_auth_type() == 'LDAP':
 
 
 def login_service(username, password):
-    if config_app.get_auth_type() == 'BUILT-IN':
+    if config_app.app.auth_type == 'BUILT-IN':
         db = next(get_db())
         try:
             logger.debug(f"User:{username}-Password:{password[:2]}**")

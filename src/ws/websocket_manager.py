@@ -108,7 +108,8 @@ class WebSocketManager:
         try:
             while True:
                 message = await websocket.receive_text()
-                print(f"Received message from user {user_id}: {message}")
+                if message != '{"action":"ping"}':
+                    print(f"Received message from user {user_id}: {message}")
 
                 # Handle different types of messages
                 try:

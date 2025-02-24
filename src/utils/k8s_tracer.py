@@ -1,8 +1,7 @@
 from functools import wraps
 import json
 
-from configs.config_boot import config_app
-from configs.context import current_user_var
+from contexts.context import current_user_var
 from ws.websocket_manager import manager
 
 from utils.logger_boot import logger

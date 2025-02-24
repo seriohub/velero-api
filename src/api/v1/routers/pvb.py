@@ -1,16 +1,16 @@
 from fastapi import APIRouter, status, Depends
 
-from configs.response import common_error_authenticated_response
+from constants.response import common_error_authenticated_response
 
 from security.helpers.rate_limiter import RateLimiter, LimiterRequests
 
-from utils.commons import route_description
-from utils.handle_exceptions import handle_exceptions_endpoint
+from utils.swagger import route_description
+from utils.exceptions import handle_exceptions_endpoint
 
 from schemas.response.successful_request import SuccessfulRequest
 
-from controllers.pod_volume_backup import (get_pod_volume_backups_handler,
-                                           get_pod_volume_backup_handler)
+from controllers.pvb import (get_pod_volume_backups_handler,
+                             get_pod_volume_backup_details_handler)
 
 router = APIRouter()
 
@@ -68,5 +68,5 @@ route = '/pod-volume-backup'
     responses=common_error_authenticated_response,
     status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def get_pvb(backup_name: str):
-    return await get_pod_volume_backup_handler(backup_name)
+async def get_pvb_details(backup_name: str):
+    return await get_pod_volume_backup_details_handler(backup_name)

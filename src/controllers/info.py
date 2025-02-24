@@ -6,7 +6,9 @@ from database.db_connection import SessionLocal
 
 from configs.config_boot import config_app
 
-from service.info import identify_architecture_service, ui_compatibility_service, last_tags_from_github_service
+from service.app_version import last_tags_from_github_service
+from service.architecture import identify_architecture_service
+from service.app_compatibility import ui_compatibility_service
 
 
 async def identify_architecture_handler():
@@ -17,7 +19,7 @@ async def identify_architecture_handler():
 
 
 async def get_origins_handler():
-    payload = config_app.get_origins()
+    payload = config_app.security.get_origins()
 
     response = SuccessfulRequest(payload=payload)
     return JSONResponse(content=response.model_dump(), status_code=200)

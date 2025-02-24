@@ -11,6 +11,7 @@ from service.schedule import (get_schedules_service,
                               create_schedule_service,
                               pause_schedule_service,
                               update_schedule_service)
+from utils.logger_boot import logger
 
 
 async def get_schedules_handler():
@@ -21,7 +22,8 @@ async def get_schedules_handler():
 
 
 async def pause_schedule_handler(schedule: str):
-    payload = pause_schedule_service(schedule)
+    logger.info(f"Sert schedule pause=True")
+    payload = await pause_schedule_service(schedule)
     msg = Notification(title='Pause schedule',
                        description=f"Schedule {schedule} pause request done!",
                        type_='INFO')

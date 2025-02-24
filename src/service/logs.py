@@ -6,13 +6,14 @@ import tempfile
 
 from schemas.velero_log import VeleroLog
 from service.utils.download_request import create_download_request, cleanup_download_request
+from utils.k8s_tracer import trace_k8s_async_method
 
 VELERO_LOG_TYPES = {
     "backup": "BackupLog",
     "restore": "RestoreLog"
 }
 
-
+@trace_k8s_async_method(description="Get velero resource logs")
 async def get_velero_logs_service(resource_name: str, resource_type: str) -> VeleroLog:
     """Retrieve logs from a Velero resource (Backup, Restore, etc.) using DownloadRequest"""
     if resource_type not in VELERO_LOG_TYPES:

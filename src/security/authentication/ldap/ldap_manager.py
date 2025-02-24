@@ -6,24 +6,22 @@ from utils.logger_boot import logger
 from ldap3.core.exceptions import LDAPBindError, LDAPSocketOpenError
 import time
 
-
-
 # Load configs
-ldap_servers = config_app.get_ldap_server()
-ldap_use_ssl = config_app.get_ldap_use_ssl()
+ldap_servers = config_app.ldap.server
+ldap_use_ssl = config_app.ldap.use_ssl
 
-ldap_base_dn = config_app.get_ldap_base_dn()
-ldap_bind_dn = config_app.get_ldap_bind_dn()
-ldap_bind_password = config_app.get_ldap_bind_password()
-ldap_user_search_filter = config_app.ldap_user_search_filter()
-ldap_authz_strategy = config_app.get_ldap_authz_strategy()
+ldap_base_dn = config_app.ldap.base_dn
+ldap_bind_dn = config_app.ldap.bind_dn
+ldap_bind_password = config_app.ldap.bind_password
+ldap_user_search_filter = config_app.ldap.search_filter
+ldap_authz_strategy = config_app.ldap.authz_strategy
 
 # Authorization options
-ldap_authz_enable = config_app.get_ldap_authz_enabled()
-ldap_authz_base_dn = config_app.get_ldap_authz_base_dn()
-ldap_authz_filter = config_app.get_ldap_authz_filter()
-ldap_authz_attribute = config_app.get_ldap_authz_attribute()
-ldap_authz_value = config_app.get_ldap_authz_value()
+ldap_authz_enable = config_app.ldap.authz_enabled
+ldap_authz_base_dn = config_app.ldap.authz_base_dn
+ldap_authz_filter = config_app.ldap.authz_filter
+ldap_authz_attribute = config_app.ldap.authz_attribute
+ldap_authz_value = config_app.ldap.authz_value
 
 # Timeout e Retry Configuration
 max_retries = 3

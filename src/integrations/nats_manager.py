@@ -17,12 +17,10 @@ from nats.errors import NoRespondersError
 from integrations.nats_cron_jobs import NatsCronJobs
 from models.db.user import User
 
-from configs.context import current_user_var, cp_user
+from contexts.context import current_user_var, cp_user
 from configs.config_boot import config_app
 
 from utils.logger_boot import logger
-
-
 
 
 class NatsManager:
@@ -38,7 +36,7 @@ class NatsManager:
         self.nc = None
         self.js = None
 
-        self.kv_bucket_name = f"kv-{config_app.cluster_id()}"
+        self.kv_bucket_name = f"kv-{config_app.k8s.cluster_id}"
 
         # self.kv_stats_path = "/api/v1/stats/get"
         # self.kv_stats_name = 'stast_get'
@@ -50,9 +48,9 @@ class NatsManager:
         self.kv_job_cron = NatsCronJobs()
 
         self.channel_id = config_app.cluster_id()
-        self.retry_registration_sec = config_app.get_nast_retry_registration()
-        self.alive_sec = config_app.get_nast_send_alive()
-        self.timeout_request = config_app.get_timeout_request()
+        self.retry_registration_sec = config_app.nats.retry_registration
+        self.alive_sec = config_app.nats.send_alive
+        self.timeout_request = config_app.nats.timeout_request
 
     async def __nats_error_cb(self, e):
         logger.error(f"_nats_error_cb {str(e)}")
@@ -73,7 +71,7 @@ class NatsManager:
             logger.info(f"__init_nats_connection")
             if self.nc is None:
                 nats_server = f"{config_app.get_nats_client_url()}"
-                reconnect_sec = config_app.get_nast_retry_connection()
+                reconnect_sec = config_app.nats.retry_connection
                 if reconnect_sec < 10:
                     reconnect_sec = 10
                 logger.info(f"Connect to server: {nats_server}- timeout reconnect: {reconnect_sec} sec")

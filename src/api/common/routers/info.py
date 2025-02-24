@@ -4,9 +4,10 @@ from fastapi.responses import JSONResponse
 from requests import Session
 
 from configs.config_boot import config_app
+from controllers.agent import watchdog_online_handler
 from database.db_connection import get_db
-from utils.commons import route_description
-from utils.handle_exceptions import handle_exceptions_endpoint
+from utils.swagger import route_description
+from utils.exceptions import handle_exceptions_endpoint
 
 from app_data import (__version__,
                       __date__,
@@ -29,7 +30,6 @@ from controllers.info import (identify_architecture_handler, get_origins_handler
 from service.watchdog import get_watchdog_version_service
 
 router = APIRouter()
-
 
 tag_name = "Info"
 
@@ -67,8 +67,8 @@ async def get_app_info():
            'helm_api': f'{__helm_api__}',
            'helm_ui': f'{__helm_ui__}',
            'helm_watchdog': f'{__helm_watchdog__}',
-           'auth_enabled': f'{config_app.get_auth_enabled()}',
-           'auth_type': f'{config_app.get_auth_type()}',
+           'auth_enabled': f'{config_app.app.auth_enabled}',
+           'auth_type': f'{config_app.app.auth_type}',
            'api_release_version': f'{__version__}',
            'api_release_date': f'{__date__}',
            }
@@ -130,31 +130,11 @@ route = '/origins'
 async def k8s_nodes_origins():
     return await get_origins_handler()
 
-
 # ------------------------------------------------------------------------------------------------
-#             GET COMPONENTS COMPATIBILITY
+#
+#             SOFTWARE VERSION
+#
 # ------------------------------------------------------------------------------------------------
-
-
-limiter_comp = endpoint_limiter.get_limiter_cust('info_compatibility_table')
-route = '/compatibility-table'
-
-
-@router.get(path=route,
-            tags=[tag_name],
-            summary='Obtain compatibility of the user interface version with the other components of the project.',
-            description=route_description(tag=tag_name,
-                                          route=route,
-                                          limiter_calls=limiter_comp.max_request,
-                                          limiter_seconds=limiter_comp.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_comp.seconds,
-                                              max_requests=limiter_comp.max_request))],
-            response_model=SuccessfulRequest,
-            status_code=status.HTTP_200_OK)
-@handle_exceptions_endpoint
-async def ui_compatibility(version: str):
-    return await ui_compatibility_handler(version)
-
 
 tag_name = "Info software versions"
 
@@ -208,3 +188,28 @@ route = '/velero-repo-tag'
 async def repository_velero_tag(force_scrapy: bool = False, db: Session = Depends(get_db)):
     return await last_tag_velero_from_github_handler(force_refresh=force_scrapy,
                                                      db=db)
+
+
+# ------------------------------------------------------------------------------------------------
+#             GET COMPONENTS COMPATIBILITY
+# ------------------------------------------------------------------------------------------------
+
+
+limiter_comp = endpoint_limiter.get_limiter_cust('info_compatibility_table')
+route = '/compatibility-table'
+
+
+@router.get(path=route,
+            tags=[tag_name],
+            summary='Obtain compatibility of the user interface version with the other components of the project.',
+            description=route_description(tag=tag_name,
+                                          route=route,
+                                          limiter_calls=limiter_comp.max_request,
+                                          limiter_seconds=limiter_comp.seconds),
+            dependencies=[Depends(RateLimiter(interval_seconds=limiter_comp.seconds,
+                                              max_requests=limiter_comp.max_request))],
+            response_model=SuccessfulRequest,
+            status_code=status.HTTP_200_OK)
+@handle_exceptions_endpoint
+async def ui_compatibility(version: str):
+    return await ui_compatibility_handler(version)

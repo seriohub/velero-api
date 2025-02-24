@@ -64,7 +64,7 @@ async def __set_storages_classes_map(namespace=os.getenv('K8S_VELERO_NAMESPACE',
         logger.error(f"Error writing ConfigMap 'change-storage-class-config' in namespace 'velero': {e}")
 
 
-@trace_k8s_async_method(description="get storage class config map")
+@trace_k8s_async_method(description="Get storage class config map")
 async def get_storages_classes_map_service(config_map_name='change-storage-classes-config',
                                            namespace=os.getenv('K8S_VELERO_NAMESPACE', 'velero')):
     # Create an instance of the Kubernetes core API
@@ -114,6 +114,7 @@ async def update_storages_classes_mapping_service(data_list=None):
     raise HTTPException(status_code=400, detail=f'Update storage classes error')
 
 
+@trace_k8s_async_method(description="Delete storage classes map")
 async def delete_storages_classes_mapping_service(data_list=None):
     if data_list is not None:
         payload = await get_storages_classes_map_service()

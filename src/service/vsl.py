@@ -3,20 +3,21 @@ from schemas.request.create_vsl import CreateVslRequestSchema
 
 from kubernetes import client
 
-from utils.logger_boot import logger
+from utils.k8s_tracer import trace_k8s_async_method
 
 from configs.config_boot import config_app
-from configs.velero import VELERO
-from configs.resources import RESOURCES, ResourcesNames
+from constants.velero import VELERO
+from constants.resources import RESOURCES, ResourcesNames
 
 custom_objects = client.CustomObjectsApi()
 
 
+@trace_k8s_async_method(description="Get Volume Snapshot Locations")
 async def get_vsls_service():
     vsl = custom_objects.list_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.VOLUME_SNAPSHOT_LOCATION].plural,
     )
     print(vsl)
@@ -25,6 +26,7 @@ async def get_vsls_service():
     return vsl_list
 
 
+@trace_k8s_async_method(description="Create Volume Snapshot Locations")
 async def create_vsl_service(vsl_data: CreateVslRequestSchema):
     """
     Create a new VolumeSnapshotLocation in Kubernetes via the Velero API.
@@ -52,13 +54,14 @@ async def create_vsl_service(vsl_data: CreateVslRequestSchema):
     response = custom_objects.create_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.VOLUME_SNAPSHOT_LOCATION].plural,
         body=vsl_body
     )
     return response
 
 
+@trace_k8s_async_method(description="Delete Volume Snapshot Locations")
 async def delete_vsl_service(vsl_name: str):
     """Delete a Velero BSL"""
     response = custom_objects.delete_namespaced_custom_object(

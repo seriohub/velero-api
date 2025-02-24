@@ -9,7 +9,7 @@ from fastapi import HTTPException
 # import sentry_sdk
 
 
-def get_relative_path(filepath):
+def _get_relative_path(filepath):
     """Returns the relative path from the project root"""
     project_root = os.getcwd()  # Gets the current directory (where the main is running)
     return os.path.relpath(filepath, project_root)
@@ -23,7 +23,7 @@ def handle_exceptions_endpoint(fn):
         except Exception as Ex:
             _, _, exc_tb = sys.exc_info()
             tb_last = traceback.extract_tb(exc_tb)[-1]
-            file_path = get_relative_path(tb_last[0])  # Relative path
+            file_path = _get_relative_path(tb_last[0])  # Relative path
             line_number = tb_last[1]
 
             error_message = (f"Error: {Ex} | "

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, status, Depends
 
-from configs.response import common_error_authenticated_response
+from constants.response import common_error_authenticated_response
+from schemas.request.pause_schedule import PauseScheduleRequestSchema
 
 from security.helpers.rate_limiter import RateLimiter, LimiterRequests
 
@@ -10,8 +11,8 @@ from schemas.request.create_schedule import CreateScheduleRequestSchema
 from schemas.request.update_schedule import UpdateScheduleRequestSchema
 from schemas.response.successful_request import SuccessfulRequest
 
-from utils.commons import route_description
-from utils.handle_exceptions import handle_exceptions_endpoint
+from utils.swagger import route_description
+from utils.exceptions import handle_exceptions_endpoint
 
 from controllers.backup import get_creation_settings_handler
 from controllers.common import get_resource_describe_handler
@@ -162,8 +163,8 @@ route = '/schedule/unpause'
     responses=common_error_authenticated_response,
     status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def unpause_schedule(schedule_name: str):
-    return await unpause_schedule_handler(schedule=schedule_name)
+async def unpause_schedule(schedule: PauseScheduleRequestSchema):
+    return await unpause_schedule_handler(schedule=schedule.name)
 
 
 # ------------------------------------------------------------------------------------------------
@@ -189,8 +190,8 @@ route = '/schedule/pause'
     responses=common_error_authenticated_response,
     status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def pause_schedule(schedule_name: str):
-    return await pause_schedule_handler(schedule=schedule_name)
+async def pause_schedule(schedule: PauseScheduleRequestSchema):
+    return await pause_schedule_handler(schedule=schedule.name)
 
 
 # ------------------------------------------------------------------------------------------------

@@ -5,7 +5,7 @@ from configs.config_boot import config_app
 
 class CreateBslRequestSchema(BaseModel):
     name: str = Field(..., description="The name of the BSL.")
-    namespace: Optional[str] = config_app.get_k8s_velero_namespace()
+    namespace: Optional[str] = config_app.k8s.velero_namespace
 
     provider: str = Field(..., description="The name of the provider.")
     bucketName: str = Field(..., description="The S3 bucket name.")

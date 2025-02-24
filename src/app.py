@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from ws.websocket_manager import WebSocket, manager
 
-from configs.context import called_endpoint_var
+from contexts.context import called_endpoint_var
 
 from security.middleware.middleware import add_process_time_header
 
@@ -23,7 +23,7 @@ load_dotenv()
 # docs redocs
 docs_url = '/docs'
 re_docs_url = '/redoc'
-enabled_docs = config_app.get_api_disable_documentation()
+enabled_docs = config_app.app.swagger_documentation_disabled
 if not enabled_docs:
     docs_url = None
     re_docs_url = None
@@ -39,7 +39,7 @@ app = FastAPI(root_path="/api",  # if not config.get_developer_mode() else '/',
 
               )
 
-origins = config_app.get_origins()
+origins = config_app.security.get_origins()
 
 app.add_middleware(CORSMiddleware,
                    allow_origins=origins,
@@ -68,7 +68,7 @@ async def set_called_endpoint(request: Request, call_next):
 @app.get('/')
 async def online():
     return JSONResponse(
-        content={'data': {'payload': {'status': 'alive', 'type': 'agent', 'cluster_id': config_app.cluster_id()}}},
+        content={'data': {'payload': {'status': 'alive', 'type': 'agent', 'cluster_id': config_app.k8s.cluster_id}}},
         status_code=200)
 
 

@@ -3,26 +3,26 @@ import re
 from fastapi import HTTPException
 
 from models.k8s.repo import BackupRepositoryResponseSchema
+from utils.k8s_tracer import trace_k8s_async_method
 
 from utils.minio_wrapper import MinioInterface
 from utils.process import run_check_output_process
 
 from kubernetes import client
 
-from utils.logger_boot import logger
-
 from configs.config_boot import config_app
-from configs.velero import VELERO
-from configs.resources import RESOURCES, ResourcesNames
+from constants.velero import VELERO
+from constants.resources import RESOURCES, ResourcesNames
 
 custom_objects = client.CustomObjectsApi()
 
 
+@trace_k8s_async_method(description="Get repositories list")
 async def get_repos_service():
     repos = custom_objects.list_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.BACKUP_REPOSITORY].plural
     )
 
@@ -31,6 +31,7 @@ async def get_repos_service():
     return bsl_list
 
 
+@trace_k8s_async_method(description="Get repository backup size from s3")
 async def get_repo_backup_size_service(repository_url: str = None,
                                        backup_storage_location: str = None,
                                        repository_name: str = None,
@@ -73,7 +74,8 @@ async def get_repo_backup_size_service(repository_url: str = None,
                                                  volume_namespace=volume_namespace)
 
 
-async def get_repo_locks_service(env, repository_url):
+@trace_k8s_async_method(description="Get restic repository locks")
+async def get_restic_repo_locks_service(env, repository_url):
     cmd = ['restic', '-q', '--no-lock', 'list', 'locks', '-r', repository_url]
 
     output = await run_check_output_process(cmd=cmd, env=env)
@@ -86,7 +88,8 @@ async def get_repo_locks_service(env, repository_url):
     return {str(repository_url): list(filter(None, locks.split('\n')))}
 
 
-async def unlock_repo_service(env, bsl, repository_url, remove_all=False):
+@trace_k8s_async_method(description="Unlock restic repository")
+async def unlock_restic_repo_service(env, bsl, repository_url, remove_all=False):
     cmd = ['restic', 'unlock', '-r', repository_url]
     if remove_all:
         cmd.append('--remove-all')
@@ -103,7 +106,8 @@ async def unlock_repo_service(env, bsl, repository_url, remove_all=False):
             'locks': list(filter(None, locks.split('\n')))}
 
 
-async def check_repo_service(env, repository_url):
+@trace_k8s_async_method(description="Check restic repository")
+async def check_restic_repo_service(env, repository_url):
     cmd = ['restic', 'check', '-r', repository_url]
 
     output = await run_check_output_process(cmd=cmd, env=env)

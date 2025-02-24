@@ -1,15 +1,21 @@
 from service.bsl import get_bsls_service
 from service.k8s import get_namespaces_service, get_resources_service
 from service.vsl import get_vsls_service
+from utils.k8s_tracer import trace_k8s_async_method
 
 
-async def get_backup_creation_settings_service():
-    namespaces = (await get_namespaces_service())
-    backup_location = await get_bsls_service()
-    snapshot_location = await get_vsls_service()
-    backup_location_list = [item['metadata']['name'] for item in backup_location if
+@trace_k8s_async_method(description="Get backup/schedule creation settings")
+async def get_resource_creation_settings_service():
+    namespaces = await get_namespaces_service()
+    bsls = await get_bsls_service()
+    vsls = await get_vsls_service()
+
+    bsls = [bsl.model_dump() for bsl in bsls]
+    vsls = [vsl.model_dump() for vsl in vsls]
+
+    backup_location_list = [item['metadata']['name'] for item in bsls if
                             'metadata' in item and 'name' in item['metadata']]
-    snapshot_location_list = [item['metadata']['name'] for item in snapshot_location if
+    snapshot_location_list = [item['metadata']['name'] for item in vsls if
                               'metadata' in item and 'name' in item['metadata']]
     valid_resources = (await get_resources_service())
 

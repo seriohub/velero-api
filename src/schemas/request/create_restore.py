@@ -6,7 +6,7 @@ from configs.config_boot import config_app
 
 class CreateRestoreRequestSchema(BaseModel):
     name: str
-    namespace: Optional[str] = config_app.get_k8s_velero_namespace()
+    namespace: Optional[str] = config_app.k8s.velero_namespace
 
     # spec
     backupName: str

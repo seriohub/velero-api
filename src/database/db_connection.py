@@ -12,9 +12,7 @@ from models.db.user import User
 from models.db.project_versions import ProjectsVersion
 from models.db.refresh_token import RefreshToken
 
-
-
-path_db = config_app.get_path_db()
+path_db = config_app.security.database_path
 
 # SQLite database initialization
 DATABASE_URL = f"sqlite:///./{path_db}/data.db"

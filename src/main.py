@@ -29,7 +29,6 @@ from configs.config_boot import config_app
 # )
 
 
-
 logger.info('VUI API starting...')
 logger.info('loading config...')
 
@@ -39,11 +38,11 @@ if config_app.validate_env_variables():
     exit(200)
 
 logger.debug(f"App name: {__app_name__}, Version={__version__}")
-logger.debug(f"run server at url:{config_app.get_endpoint_url()}, port={config_app.get_endpoint_port()}")
+logger.debug(f"run server at url:{config_app.api.endpoint_url}, port={config_app.api.endpoint_port}")
 logger.debug(
-    f"uvicorn log level:{config_app.get_internal_log_level()}, limit concurrency : "
-    f"{config_app.get_limit_concurrency()}")
-logger.debug(f"uvicorn reload: {config_app.uvicorn_reload_update()}")
+    f"uvicorn log level:{config_app.logger.debug_level}, limit concurrency : "
+    f"{config_app.security.limit_concurrency}")
+logger.debug(f"uvicorn reload: {config_app.app.uvicorn_reload}")
 
 if __name__ == '__main__':
 
@@ -64,12 +63,12 @@ if __name__ == '__main__':
 
     def start_uvicorn():
         uvicorn.run('app:app',
-                    host=config_app.get_endpoint_url(),
-                    port=int(config_app.get_endpoint_port()),
-                    reload=config_app.uvicorn_reload_update(),
-                    log_level=config_app.get_internal_log_level(),
+                    host=config_app.api.endpoint_url,
+                    port=config_app.api.endpoint_port,
+                    reload=config_app.app.uvicorn_reload,
+                    log_level=config_app.logger.debug_level,
                     workers=1,
-                    limit_concurrency=int(config_app.get_limit_concurrency())
+                    limit_concurrency=config_app.security.limit_concurrency
                     )
 
 
@@ -79,7 +78,7 @@ if __name__ == '__main__':
 
     from integrations.nats_manager import boot_nats_start_manager
 
-    if config_app.get_enable_nats():
+    if config_app.nats.enable:
         from app import app
 
         asyncio.run(boot_nats_start_manager(app))

@@ -1,10 +1,6 @@
 from configs.config_boot import config_app
 from integrations.nats_cron_job import NatsCronJob
-
-
-
-
-
+from utils.logger_boot import logger
 
 
 class NatsCronJobs:
@@ -16,39 +12,39 @@ class NatsCronJobs:
         # logger.debug(f"__init_default_api")
         self.add_job(endpoint="/v1/stats",
                      credential=True,
-                     interval=config_app.get_nats_cron_update_sec_statistic())
+                     interval=config_app.nats.cron_get_stats_update)
 
         self.add_job(endpoint="/health/k8s",
                      credential=False,
-                     interval=config_app.get_nats_cron_update_sec_statistic())
+                     interval=config_app.nats.cron_k8s_health_update)
 
         self.add_job(endpoint="/v1/backups",
                      credential=True,
-                     interval=config_app.get_nats_cron_update_sec_backup())
+                     interval=config_app.nats.cron_backup_update)
 
         self.add_job(endpoint="/v1/restores",
                      credential=True,
-                     interval=config_app.get_nats_cron_update_sec_restore())
+                     interval=config_app.nats.cron_restore_update)
 
         self.add_job(endpoint="/v1/schedules",
                      credential=True,
-                     interval=config_app.get_nats_cron_update_sec_schedules())
+                     interval=config_app.nats.cron_schedules_update)
 
         self.add_job(endpoint="/v1/bsl",
                      credential=True,
-                     interval=config_app.get_nats_cron_update_sec_backup_location())
+                     interval=config_app.nats.cron_backup_location_update)
 
         self.add_job(endpoint="/v1/vsl",
                      credential=True,
-                     interval=config_app.get_nats_cron_update_sec_storage_location())
+                     interval=config_app.nats.cron_locations_update)
 
         self.add_job(endpoint="/v1/repos",
                      credential=True,
-                     interval=config_app.get_nats_cron_update_sec_repositories())
+                     interval=config_app.nats.cron_repository_update)
 
         self.add_job(endpoint="/v1/sc-mapping",
                      credential=True,
-                     interval=config_app.get_nats_cron_update_sec_sc_mapping())
+                     interval=config_app.nats.cron_storage_classes_mapping_update)
 
     def add_job(self, endpoint: str, credential: bool, interval: int):
         if len(endpoint) and interval > 0:

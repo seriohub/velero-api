@@ -1,5 +1,5 @@
 from models.k8s.bsl import BackupStorageLocationResponseSchema
-from service.k8s import get_credential_service, get_default_credential_service
+from service.location_credentials import get_credential_service, get_default_credential_service
 
 from schemas.request.create_bsl import CreateBslRequestSchema
 
@@ -7,11 +7,9 @@ from kubernetes import client
 
 from utils.k8s_tracer import trace_k8s_async_method
 
-from utils.logger_boot import logger
-
 from configs.config_boot import config_app
-from configs.velero import VELERO
-from configs.resources import RESOURCES, ResourcesNames
+from constants.velero import VELERO
+from constants.resources import RESOURCES, ResourcesNames
 
 custom_objects = client.CustomObjectsApi()
 
@@ -21,7 +19,7 @@ async def get_bsls_service():
     bsls = custom_objects.list_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.BACKUP_STORAGE_LOCATION].plural
     )
 
@@ -38,7 +36,7 @@ async def get_bsl_service(name: str):
     bsl = custom_objects.get_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.BACKUP_STORAGE_LOCATION].plural,
         name=name
     )
@@ -94,7 +92,7 @@ async def create_bsl_service(bsl_data: CreateBslRequestSchema):
     response = custom_objects.create_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.BACKUP_STORAGE_LOCATION].plural,
         body=bsl_body
     )
@@ -108,7 +106,7 @@ async def delete_bsl_service(bsl_name: str):
     response = custom_objects.delete_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.BACKUP_STORAGE_LOCATION].plural,
         name=bsl_name
     )
@@ -121,7 +119,7 @@ async def set_default_bsl_service(bsl_name: str):
     bsl_list = custom_objects.list_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.BACKUP_STORAGE_LOCATION].plural,
     )
 
@@ -146,7 +144,7 @@ async def set_default_bsl_service(bsl_name: str):
     response = custom_objects.patch_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.BACKUP_STORAGE_LOCATION].plural,
         name=bsl_name,
         body=patch_body
@@ -166,7 +164,7 @@ async def remove_default_bsl_service(bsl_name: str):
     response = custom_objects.patch_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.BACKUP_STORAGE_LOCATION].plural,
         name=bsl_name,
         body=patch_body

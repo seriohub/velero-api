@@ -12,11 +12,9 @@ from models.db.user import User
 
 from utils.logger_boot import logger
 
-
-
-disable_password_rate = config_app.get_security_disable_pwd_rate()
-secret_access_key = config_app.get_security_access_token_key()
-algorithm = config_app.get_security_algorithm()
+disable_password_rate = config_app.security.disable_pwd_rate
+secret_access_key = config_app.security.token_key
+algorithm = config_app.security.algorithm
 
 
 def hash_password(password: str) -> str:
@@ -134,11 +132,11 @@ def get_user_by_name(username: str, db: SessionLocal) -> Optional[User]:
 
 def create_default_user(db: SessionLocal):
     logger.info("create_default_user.check")
-    default_username = config_app.get_default_admin_username()
+    default_username = config_app.database.default_admin_user
     default_user = db.query(User).filter(User.username == default_username).first()
     if default_user is None:
         logger.info("create_default_user.forced")
-        default_password = config_app.get_default_admin_password()
+        default_password = config_app.database.default_admin_password
         hashed_default_password = hash_password(default_password)
         new_default_user = User(username=default_username,
                                 full_name='administrator',
@@ -193,7 +191,6 @@ def authenticate_user(db, username: str, password: str):
         return False
     logger.info(f"Login in :{username}")
     return user
-
 
 # LS 2024.03.18 moved in tokens.py script
 # def create_access_token(data: dict, expires_delta: timedelta | None = None):

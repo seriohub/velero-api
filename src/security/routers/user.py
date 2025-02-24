@@ -13,17 +13,15 @@ from security.schemas.response.user import UserOut
 from database.db_connection import get_db
 from models.db.user import User
 
-from utils.commons import route_description
+from utils.swagger import route_description
 
 from schemas.response.failed_request import FailedRequest
 from schemas.response.successful_request import SuccessfulRequest
 from schemas.notification import Notification
 
-#
-
 router = APIRouter()
-token_expires_minutes = config_app.get_security_token_expiration()
-token_expires_days = config_app.get_security_token_refresh_expiration()
+token_expires_minutes = config_app.security.token_expiration
+token_expires_days = config_app.security.refresh_token_expiration
 
 # enable_users = config.get_security_manage_users()
 
@@ -40,16 +38,17 @@ limiter_me_info = endpoint_limiter.get_limiter_cust('users_me_info')
 route = '/users/me/info'
 
 
-@router.get(path=route,
-            tags=[tag_name],
-            summary='Get information about the user authenticated',
-            description=route_description(tag=tag_name,
-                                          route=route,
-                                          limiter_calls=limiter_me_info.max_request,
-                                          limiter_seconds=limiter_me_info.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_me_info.seconds,
-                                              max_requests=limiter_me_info.max_request))],
-            response_model=UserOut)
+@router.get(
+    path=route,
+    tags=[tag_name],
+    summary='Get information about the user authenticated',
+    description=route_description(tag=tag_name,
+                                  route=route,
+                                  limiter_calls=limiter_me_info.max_request,
+                                  limiter_seconds=limiter_me_info.seconds),
+    dependencies=[Depends(RateLimiter(interval_seconds=limiter_me_info.seconds,
+                                      max_requests=limiter_me_info.max_request))],
+    response_model=UserOut)
 async def read_current_user(current_user: User = Depends(get_current_active_user)):
     return JSONResponse(content={'data': current_user.toJSON()}, status_code=201)
 
@@ -58,15 +57,16 @@ limiter_me_pwd = endpoint_limiter.get_limiter_cust('users_me_update_pwd')
 route = '/users/me/update/pwd'
 
 
-@router.put(path=route,
-            tags=[tag_name],
-            summary='Update user password',
-            description=route_description(tag=tag_name,
-                                          route=route,
-                                          limiter_calls=limiter_me_pwd.max_request,
-                                          limiter_seconds=limiter_me_pwd.seconds),
-            dependencies=[Depends(RateLimiter(interval_seconds=limiter_me_pwd.seconds,
-                                              max_requests=limiter_me_pwd.max_request))], )
+@router.put(
+    path=route,
+    tags=[tag_name],
+    summary='Update user password',
+    description=route_description(tag=tag_name,
+                                  route=route,
+                                  limiter_calls=limiter_me_pwd.max_request,
+                                  limiter_seconds=limiter_me_pwd.seconds),
+    dependencies=[Depends(RateLimiter(interval_seconds=limiter_me_pwd.seconds,
+                                      max_requests=limiter_me_pwd.max_request))], )
 def update_current_user(user: UserUPDPassword,
                         current_user: User = Depends(get_current_active_user),
                         db: Session = Depends(get_db)):
@@ -81,7 +81,6 @@ def update_current_user(user: UserUPDPassword,
     msg = Notification(title='Password', description=f"Updated!", type_='INFO')
     response = SuccessfulRequest(notifications=[msg])
     return JSONResponse(content=response.model_dump(), status_code=201)
-
 
 # ------------------------------------------------------------------------------------------------
 #             USER MANAGEMENT

@@ -7,10 +7,10 @@ from schemas.request.create_cloud_credentials import CreateCloudCredentialsReque
 
 from service.k8s import (get_namespaces_service,
                          get_storage_classes_service,
-                         create_cloud_credentials_secret_service,
-                         get_secret_keys_service,
-                         get_resource_manifest_service, get_default_credential_service, get_credential_service,
-                         get_velero_secret_service)
+                         get_resource_manifest_service)
+from service.k8s_secret import get_velero_secret_service, get_secret_keys_service
+from service.location_credentials import (get_credential_service, get_default_credential_service,
+                                          create_cloud_credentials_secret_service)
 
 
 async def get_ns_handler():
@@ -73,7 +73,7 @@ async def get_velero_secret_handler():
 
 
 async def get_velero_secret_key_handler(secret_name):
-    payload = await get_secret_keys_service(config_app.get_k8s_velero_namespace(), secret_name)
+    payload = await get_secret_keys_service(config_app.k8s.velero_namespace, secret_name)
 
     response = SuccessfulRequest(payload=payload)
     return JSONResponse(content=response.model_dump(), status_code=200)

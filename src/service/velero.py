@@ -4,6 +4,7 @@ from kubernetes import client
 from kubernetes.client import ApiException
 
 from configs.config_boot import config_app
+from utils.k8s_tracer import trace_k8s_async_method
 
 coreV1 = client.CoreV1Api()
 
@@ -32,8 +33,9 @@ def _parse_version_output(output):
     return result
 
 
+@trace_k8s_async_method(description="Get velero Version")
 async def get_velero_version_service():
-    namespace = config_app.get_k8s_velero_namespace()
+    namespace = config_app.k8s.velero_namespace
     label_selector = "app.kubernetes.io/name=velero"
 
     try:

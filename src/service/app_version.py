@@ -1,9 +1,5 @@
-import platform
-
 import aiohttp
-import requests
 import starlette.status
-from fastapi import HTTPException
 
 from configs.config_boot import config_app
 
@@ -35,96 +31,6 @@ def _prepare_json_out(api, ui, helm, watchdog, velero, timestamp) -> dict:
     return output
 
 
-def _get_compatibility(data, ui_version, api_version) -> bool:
-    logger.info(f"__get_compatibility")
-    is_ok = False
-
-    logger.info(f"__get_compatibility.ui={ui_version}-api={api_version}")
-    if len(api_version) > 0 and data:
-        for revision in data:
-            logger.info(f"__get_compatibility.json={revision}")
-            is_ok = revision['api'] == api_version and revision['ui'] == ui_version
-            if is_ok:
-                break
-    return is_ok
-
-
-def _version_content(content, ui_version, api_version):
-    logger.info(f"__version_content")
-    lines = content.split('\n')
-    header_index = None
-    headers = []
-    header_ui = -1
-    header_api = -1
-    i = 0
-    for row, line in enumerate(lines):
-        i += 1
-        logger.debug(f'__version_content.line: {line}')
-        idx_start = line.find('| version')
-        if '| version' in line:
-            logger.debug(f"__version_content.header found:{idx_start}")
-            header_index = i
-            header_line = line.strip()
-            headers = header_line.split('|')[1:-1]
-            headers = [h.strip() for h in headers]
-            if ui_version:
-                header_ui = headers.index("ui")
-            if api_version:
-                header_api = headers.index("api")
-            break
-
-    if header_index is None:
-        message = "Header (| version ) row not found."
-        logger.debug(message)
-        return None, None, message
-    # Process the data lines
-    data_lines = lines[header_index + 1:]  # Skip the separator line
-    versions_ui = []
-    versions_api = []
-
-    for line in data_lines:
-        # logger.debug(f"stripped:{line}")
-        if line and line.strip():
-            data = line.strip().split('|')[1:-1]
-            data = [d.strip() for d in data]
-            add_row = True
-            if ui_version:
-                # logger.debug(f"header:{data[header_ui] }- required:{ui_version}")
-                add_row = data[header_ui] == ui_version
-
-            if add_row:
-                version_info = {headers[i]: data[i] for i in range(len(headers))}
-                versions_ui.append(version_info)
-
-            add_row = True
-            if api_version:
-                add_row = data[header_api] == api_version
-            if add_row:
-                version_info = {headers[i]: data[i] for i in range(len(headers))}
-                versions_api.append(version_info)
-        else:
-            break
-
-    logger.debug(f"__retrieve_data_from_md_file output data: {versions_ui}")
-
-    return versions_ui, versions_api, None
-
-
-def _retrieve_data_from_md_file(ui_version: str = None, api_version: str = None):
-    logger.info(f"__retrieve_data_from_md_file")
-    url = 'https://raw.githubusercontent.com/seriohub/velero-helm/main/components.txt'
-    response = requests.get(url)
-
-    if response.status_code == 200:
-        content = response.text
-        versions_ui, versions_api, msg_error = _version_content(content, ui_version, api_version)
-        return versions_ui, versions_api, msg_error
-    else:
-        message = "no data read from md file"
-        logger.info(f"__retrieve_data_from_md_file: {message}")
-        return None, None, message
-
-
 def _get_last_version_from_db(db: SessionLocal) -> Optional[ProjectsVersion]:
     logger.info(f"__get_last_data_from_db")
     data = db.query(ProjectsVersion).first()
@@ -150,8 +56,8 @@ def _save_last_version_from_db(api, ui, helm, watchdog, velero, db: SessionLocal
 async def _is_elapsed_time_to_scrapy():
     diff = datetime.utcnow() - last_version_scan_datetime
     logger.info(f"minutes elapsed {round(diff.total_seconds() / 60, 2)} - "
-                f"threshold {config_app.get_github_scrapy_versions_minutes()}")
-    return (diff.total_seconds() / 60) > config_app.get_github_scrapy_versions_minutes()
+                f"threshold {config_app.app.scrapy_version}")
+    return (diff.total_seconds() / 60) > config_app.app.scrapy_version
 
 
 async def _do_api_call(url):
@@ -201,29 +107,6 @@ async def _get_last_version(repo, owner="seriohub", check_last_release=False) ->
         return "n.y.a."
 
 
-async def identify_architecture_service():
-    architecture = platform.machine()
-
-    identify = False
-    if architecture == 'AMD64' or architecture == 'x86_64':
-        identify = True
-        arch = 'amd64'
-    elif architecture.startswith('arm'):
-        identify = True
-        arch = 'arm'
-    elif architecture.startswith('aarch64'):
-        identify = True
-        arch = 'arm64'
-    else:
-        arch = 'Error: Unsupported architecture'
-
-    output = {'arch': arch, }
-    if not identify:
-        output['platform'] = platform.machine()
-
-    return output
-
-
 async def last_tags_from_github_service(db: SessionLocal, check_version=True, only_velero=False, force_refresh=False):
     global last_version_data
     global last_version_scan_datetime
@@ -257,7 +140,7 @@ async def last_tags_from_github_service(db: SessionLocal, check_version=True, on
     if in_memory:
         logger.info(f"get in-memory data (no scrapy is done). "
                     f"last scan: {last_version_scan_datetime.strftime('%d/%m/%Y %H:%M:%S')}"
-                    f"- cycle time min {config_app.get_github_scrapy_versions_minutes()}")
+                    f"- cycle time min {config_app.app.scrapy_version}")
         output = last_version_data
     else:
         logger.info(f"scrapy the last version from github")
@@ -286,36 +169,3 @@ async def last_tags_from_github_service(db: SessionLocal, check_version=True, on
     return output_data
 
 
-async def ui_compatibility_service(version: str):
-    logger.info(f"ui_compatibility version :{version}")
-
-    # avoid error in developer mode
-    if version == "dev" or version == "local dev":
-        output = {'compatibility': True}
-        return output
-
-    if version and len(version) > 0:
-        # Compile the regex pattern
-        version_regex = re.compile(r'^(dev|\d+\.\d+\.\d+)$')
-        if version_regex.match(version):
-            output = {}
-            # is_comp = False
-            api_version = config_app.get_build_version()
-            # retrieve data from github
-            data_ui, data_api, error = _retrieve_data_from_md_file(ui_version=version,
-                                                                   api_version=api_version)
-            if data_ui is None:
-                raise HTTPException(status_code=400,
-                                    detail=f"Error get data from GitHub repository', 'description': {error}")
-
-            is_comp = _get_compatibility(data=data_ui, ui_version=version, api_version=api_version)
-
-            output['compatibility'] = is_comp
-            output['versions_ui'] = data_ui
-            output['versions_api'] = data_api
-            return output
-        else:
-            raise HTTPException(status_code=400, detail=f'Parameters missed')
-
-    else:
-        raise HTTPException(status_code=400, detail=f'Parameters missed, No version provided')

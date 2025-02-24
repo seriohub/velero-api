@@ -5,8 +5,6 @@ from configs.config_boot import config_app
 from utils.logger_boot import logger
 
 
-
-
 def extract_ip_from_request(request: Request):
     try:
         logger.debug(f"extract_ip_from_request")

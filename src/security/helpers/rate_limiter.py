@@ -1,9 +1,10 @@
 from datetime import datetime, timedelta
 from fastapi import HTTPException, Request
 
-from configs.config import LimiterRequestConfig
+
 from configs.config_boot import config_app
 from security.helpers.ip_from_request import extract_ip_from_request
+from security.helpers.limiter_request_config import LimiterRequestConfig
 
 from utils.logger_boot import logger
 
@@ -13,7 +14,7 @@ class LimiterRequests:
         self.requests = {}
         self.tags = tags
         self.default_key = default_key
-        self.api_limiter = config_app.get_api_limiter(tags)
+        self.api_limiter = config_app.security.get_api_limiter(tags)
 
     def get_limiter_cust(self, key):
         bCustom_tags = False

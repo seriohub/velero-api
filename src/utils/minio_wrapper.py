@@ -74,7 +74,7 @@ class MinioInterface:
             if secure:
                 aws_secure_connection = secure
             else:
-                aws_secure_connection = config_app.get_aws_secure_connection()
+                aws_secure_connection = config_app.location.aws_ssl
 
             if len(aws_access_key) > 0 and len(aws_secret_key) > 0:
                 minio_client = MinioClientWrapper(

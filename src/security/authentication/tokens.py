@@ -20,16 +20,13 @@ from security.authentication.built_in_authentication.users import get_user_by_na
 from models.user_session import UserSession
 from security.schemas.token import TokenSession
 
+token_access_expire = config_app.security.token_expiration
+token_refresh_expires_days = config_app.security.refresh_token_expiration
 
+secret_access_key = config_app.security.token_key
+secret_refresh_key = config_app.security.refresh_token_key
 
-
-token_access_expire = config_app.get_security_token_expiration()
-token_refresh_expires_days = config_app.get_security_token_refresh_expiration()
-
-secret_access_key = config_app.get_security_access_token_key()
-secret_refresh_key = config_app.get_security_refresh_token_key()
-
-algorithm = config_app.get_security_algorithm()
+algorithm = config_app.security.algorithm
 
 
 #
@@ -45,7 +42,7 @@ def __create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode.update({"exp": expire})
     # LS 2024.12.12 check token key
     # encoded_jwt = jwt.encode(to_encode, secret_access_key, algorithm=algorithm)
-    access_key = config_app.get_security_access_token_key()
+    access_key = config_app.security.token_key
     encoded_jwt = jwt.encode(to_encode, access_key, algorithm=algorithm)
     return encoded_jwt
 
@@ -101,7 +98,7 @@ def __create_refresh_token(data: dict, expires_delta: timedelta = None):
     to_encode.update({"exp": expire})
     # LS 2024.12.12 check refresh key token
     # encoded_jwt = jwt.encode(to_encode, secret_refresh_key, algorithm=algorithm)
-    refresh_key = config_app.get_security_refresh_token_key()
+    refresh_key = config_app.security.refresh_token_key
     encoded_jwt = jwt.encode(to_encode, refresh_key, algorithm=algorithm)
     return encoded_jwt
 
@@ -170,7 +167,7 @@ async def get_user_entity_from_token(token: str = Depends(oauth2_scheme)) -> Use
     try:
         # LS 2024.12.12 reload from env
         # payload = jwt.decode(token, secret_access_key, algorithms=[algorithm])
-        access_key = config_app.get_security_access_token_key()
+        access_key = config_app.security.token_key
         payload = jwt.decode(token, access_key, algorithms=[algorithm])
 
         sub: str = payload.get('sub')

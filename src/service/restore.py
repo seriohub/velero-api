@@ -1,10 +1,10 @@
 from typing import List
 
-from kubernetes import client, config
+from kubernetes import client
 
 from utils.k8s_tracer import trace_k8s_async_method
-from configs.velero import VELERO
-from configs.resources import RESOURCES, ResourcesNames
+from constants.velero import VELERO
+from constants.resources import RESOURCES, ResourcesNames
 from datetime import datetime
 from schemas.request.create_restore import CreateRestoreRequestSchema
 from models.k8s.restore import RestoreResponseSchema
@@ -20,7 +20,7 @@ async def get_restores_service(in_progress: bool = False) -> List[RestoreRespons
     restores = custom_objects.list_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.RESTORE].plural
     )
 
@@ -55,20 +55,20 @@ async def get_restores_service(in_progress: bool = False) -> List[RestoreRespons
     return restore_list
 
 
-@trace_k8s_async_method(description="get a restore details")
+@trace_k8s_async_method(description="Get a restore details")
 async def get_restore_details_service(restore_name: str) -> RestoreResponseSchema:
     """Retrieve details of a single schedule"""
     restore = custom_objects.get_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.RESTORE].plural,
         name=restore_name
     )
     return RestoreResponseSchema(**restore)
 
 
-@trace_k8s_async_method(description="create a restore")
+@trace_k8s_async_method(description="Create a restore")
 async def create_restore_service(restore_data: CreateRestoreRequestSchema):
     """Create a Velero restore on Kubernetes"""
     backup_dict = restore_data.model_dump(exclude_unset=True)
@@ -93,7 +93,7 @@ async def create_restore_service(restore_data: CreateRestoreRequestSchema):
     return response
 
 
-@trace_k8s_async_method(description="delete a restore")
+@trace_k8s_async_method(description="Delete a restore")
 async def delete_restore_service(restore_name: str):
     """
     Delete an existing Restore from Kubernetes.
@@ -102,7 +102,7 @@ async def delete_restore_service(restore_name: str):
     response = custom_objects.delete_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.RESTORE].plural,
         name=restore_name
     )

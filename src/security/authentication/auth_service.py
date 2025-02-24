@@ -1,7 +1,7 @@
 from fastapi import Depends
 from starlette.requests import Request
 
-from configs.context import current_user_var, cp_user, called_endpoint_var
+from contexts.context import current_user_var, cp_user, called_endpoint_var
 from models.db.user import User
 from security.authentication.built_in_authentication.users import logger
 from security.authentication.tokens import get_user_entity_from_token

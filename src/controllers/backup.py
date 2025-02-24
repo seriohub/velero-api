@@ -9,7 +9,7 @@ from schemas.response.successful_backups import SuccessfulBackupResponse
 from schemas.notification import Notification
 
 from service.backup_storage_class import get_backup_storage_classes_service
-from service.resource import get_backup_creation_settings_service
+from service.resource import get_resource_creation_settings_service
 from service.backup import (get_backups_service,
                             delete_backup_service,
                             create_backup_service,
@@ -19,7 +19,7 @@ from service.backup import (get_backups_service,
 
 
 async def get_creation_settings_handler():
-    payload = await get_backup_creation_settings_service()
+    payload = await get_resource_creation_settings_service()
 
     response = SuccessfulRequest(payload=payload)
     return JSONResponse(content=response.model_dump(), status_code=200)

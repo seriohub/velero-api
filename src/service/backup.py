@@ -4,12 +4,11 @@ from datetime import datetime
 from kubernetes import client
 
 from utils.k8s_tracer import trace_k8s_async_method
-from utils.logger_boot import logger
 
 from configs.config_boot import config_app
 
-from configs.velero import VELERO
-from configs.resources import RESOURCES, ResourcesNames
+from constants.velero import VELERO
+from constants.resources import RESOURCES, ResourcesNames
 
 from schemas.request.create_backup import CreateBackupRequestSchema
 
@@ -25,7 +24,7 @@ async def get_backups_service(schedule_name: str | None = None, latest_per_sched
     backups = custom_objects.list_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.BACKUP].plural
     )
 
@@ -84,7 +83,7 @@ async def get_backup_details_service(backup_name: str) -> BackupResponseSchema:
     backup = custom_objects.get_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.BACKUP].plural,
         name=backup_name
     )
@@ -98,7 +97,7 @@ async def delete_backup_service(backup_name: str):
     response = custom_objects.delete_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.BACKUP].plural,
         name=backup_name
     )
@@ -136,7 +135,7 @@ async def create_backup_service(backup_data: CreateBackupRequestSchema):
 @trace_k8s_async_method(description="Create backup from schedule name")
 async def create_backup_from_schedule_service(schedule_name: str):
     """Create a backup based on a Velero schedule"""
-    namespace = config_app.get_k8s_velero_namespace()
+    namespace = config_app.k8s.velero_namespace
 
     #  Generate a name for the backup
     timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")

@@ -21,8 +21,6 @@ from service.watchdog import (get_watchdog_version_service,
                               delete_apprise_services)
 
 
-
-
 async def version_handler():
     payload = await get_watchdog_version_service()
 
@@ -45,7 +43,7 @@ async def get_env_handler():
 
 
 async def get_cron_handler():
-    payload = await get_watchdog_report_cron_service(job_name=config_app.get_cronjob_name())
+    payload = await get_watchdog_report_cron_service(job_name=config_app.watchdog.report_cronjob_name)
 
     response = SuccessfulRequest(payload=payload)
     return JSONResponse(content=response.model_dump(), status_code=200)

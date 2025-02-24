@@ -5,12 +5,12 @@ from fastapi import WebSocketDisconnect
 import os
 
 from configs.config_boot import config_app
-from configs.context import current_user_var, cp_user
+from contexts.context import current_user_var, cp_user
 from ws.websocket_manager import manager
 
 from utils.logger_boot import logger
 
-if config_app.get_enable_nats():
+if config_app.nats.enable:
     from integrations.nats_manager import get_nats_manager_instance
 
 
@@ -24,12 +24,12 @@ async def _send_message(message):
         except Exception as Ex:
             logger.error(f"send message failed {str(Ex)}")
         finally:
-            if config_app.get_enable_nats() and user.is_nats:
+            if config_app.nats.enable and user.is_nats:
                 nats_manager = get_nats_manager_instance()
                 nc = await nats_manager.get_nats_connection()
                 control_plane_user = cp_user.get()
                 data = {"user": control_plane_user, "msg": message}
-                await nc.publish("socket." + config_app.cluster_id(), json.dumps(data).encode())
+                await nc.publish("socket." + config_app.k8s.cluster_id, json.dumps(data).encode())
                 pass
             elif user is not None:
                 response = {'type': 'process', 'message': message}

@@ -6,18 +6,19 @@ from models.k8s.schedule import ScheduleResponseSchema
 from schemas.request.create_schedule import CreateScheduleRequestSchema
 
 from configs.config_boot import config_app
-from configs.velero import VELERO
-from configs.resources import RESOURCES, ResourcesNames
-from utils.logger_boot import logger
+from constants.velero import VELERO
+from constants.resources import RESOURCES, ResourcesNames
+from utils.k8s_tracer import trace_k8s_async_method
 
 custom_objects = client.CustomObjectsApi()
 
 
+@trace_k8s_async_method(description="Get velero schedules")
 async def get_schedules_service() -> List[ScheduleResponseSchema]:
     schedules = custom_objects.list_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.SCHEDULE].plural
     )
 
@@ -25,11 +26,12 @@ async def get_schedules_service() -> List[ScheduleResponseSchema]:
     return schedule_list
 
 
+@trace_k8s_async_method(description="Set pause schedule")
 async def pause_schedule_service(schedule_name, paused=True):
     schedule = custom_objects.get_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.SCHEDULE].plural,
         name=schedule_name
     )
@@ -39,7 +41,7 @@ async def pause_schedule_service(schedule_name, paused=True):
     response = custom_objects.replace_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.SCHEDULE].plural,
         name=schedule_name,
         body=schedule
@@ -48,6 +50,7 @@ async def pause_schedule_service(schedule_name, paused=True):
     return response
 
 
+@trace_k8s_async_method(description="Create schedule")
 async def create_schedule_service(schedule: CreateScheduleRequestSchema):
     """Create a Velero schedule on Kubernetes"""
     schedule_dict = schedule.model_dump(exclude_unset=True)
@@ -67,7 +70,7 @@ async def create_schedule_service(schedule: CreateScheduleRequestSchema):
     response = custom_objects.create_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.SCHEDULE].plural,
         body=schedule_body
     )
@@ -75,23 +78,25 @@ async def create_schedule_service(schedule: CreateScheduleRequestSchema):
     return response
 
 
+@trace_k8s_async_method(description="Delete schedule")
 async def delete_schedule_service(schedule_name: str):
     """Delete a Velero schedule"""
     response = custom_objects.delete_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.SCHEDULE].plural,
         name=schedule_name
     )
     return response
 
 
+@trace_k8s_async_method(description="Update schedule")
 async def update_schedule_service(schedule_data):
     existing_schedule = custom_objects.get_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.SCHEDULE].plural,
         name=schedule_data.name
     )
@@ -113,7 +118,7 @@ async def update_schedule_service(schedule_data):
     response = custom_objects.replace_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.SCHEDULE].plural,
         name=schedule_data.name,
         body=existing_schedule

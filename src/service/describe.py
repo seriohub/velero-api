@@ -1,15 +1,15 @@
 from fastapi import HTTPException
 from kubernetes import client
 from schemas.velero_describe import VeleroDescribe
-from configs.velero import VELERO
-from configs.resources import RESOURCES, ResourcesNames
+from constants.velero import VELERO
+from constants.resources import RESOURCES, ResourcesNames
 from configs.config_boot import config_app
 from utils.k8s_tracer import trace_k8s_async_method
 
 custom_objects = client.CustomObjectsApi()
 
 
-@trace_k8s_async_method(description="Gets the details of a Velero resource")
+@trace_k8s_async_method(description="Get velero resource details")
 async def get_velero_resource_details_service(resource_name: str, resource_type: str) -> VeleroDescribe:
     """Gets the details of a Velero resource (Backup, Restore, etc.) directly from the Kubernetes API"""
     # if resource_type not in VELERO_RESOURCES:

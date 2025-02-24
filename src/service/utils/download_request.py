@@ -7,8 +7,8 @@ from fastapi import HTTPException
 from kubernetes import client
 from typing import Optional
 
-from configs.velero import VELERO
-from configs.resources import RESOURCES, ResourcesNames
+from constants.velero import VELERO
+from constants.resources import RESOURCES, ResourcesNames
 from configs.config_boot import config_app
 from utils.logger_boot import logger
 
