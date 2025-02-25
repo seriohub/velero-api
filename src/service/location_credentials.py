@@ -48,7 +48,7 @@ async def get_default_credential_service():
 @trace_k8s_async_method(description="create cloud credentials")
 async def create_cloud_credentials_secret_service(secret_name: str, secret_key: str, aws_access_key_id: str,
                                                   aws_secret_access_key: str):
-    namespace = config_app.get_k8s_velero_namespace()
+    namespace = config_app.k8s.velero_namespace
 
     # Base64 content encode
     credentials_content = f"""

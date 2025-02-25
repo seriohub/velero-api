@@ -98,7 +98,7 @@ def _retrieve_data_from_md_file(ui_version: str = None, api_version: str = None)
 
 
 async def ui_compatibility_service(version: str):
-    logger.info(f"ui_compatibility version :{version}")
+    logger.info(f"ui_compatibility version: {version}")
 
     # avoid error in developer mode
     if version == "dev" or version == "local dev":

@@ -14,11 +14,10 @@ async def get_config_map_service(namespace, configmap_name):
     try:
         # Retrieve the ConfigMap
         configmap = core_api.read_namespaced_config_map(name=configmap_name, namespace=namespace)
-
         # Access the data in the ConfigMap
         data = configmap.data
         if not data:
-            raise HTTPException(status_code=400, detail=f"Error get config map service")
+            return None
         kv = {}
         # Print out the data
         for key, value in data.items():

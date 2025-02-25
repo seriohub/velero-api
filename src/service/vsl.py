@@ -67,7 +67,7 @@ async def delete_vsl_service(vsl_name: str):
     response = custom_objects.delete_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.VOLUME_SNAPSHOT_LOCATION].plural,
         name=vsl_name
     )

@@ -32,7 +32,7 @@ async def create_download_request(resource_name: str, resource_kind: str) -> Opt
         existing_request = custom_objects.get_namespaced_custom_object(
             group=VELERO["GROUP"],
             version=VELERO["VERSION"],
-            namespace=config_app.get_k8s_velero_namespace(),
+            namespace=config_app.k8s.velero_namespace,
             plural=RESOURCES[ResourcesNames.DOWNLOAD_REQUEST].plural,
             name=download_request_name
         )
@@ -60,7 +60,7 @@ async def create_download_request(resource_name: str, resource_kind: str) -> Opt
             "kind": "DownloadRequest",
             "metadata": {
                 "name": download_request_name,
-                "namespace": config_app.get_k8s_velero_namespace()
+                "namespace": config_app.k8s.velero_namespace
             },
             "spec": {
                 "target": {
@@ -73,7 +73,7 @@ async def create_download_request(resource_name: str, resource_kind: str) -> Opt
         custom_objects.create_namespaced_custom_object(
             group=VELERO["GROUP"],
             version=VELERO["VERSION"],
-            namespace=config_app.get_k8s_velero_namespace(),
+            namespace=config_app.k8s.velero_namespace,
             plural=RESOURCES[ResourcesNames.DOWNLOAD_REQUEST].plural,
             body=download_request_body
         )
@@ -84,7 +84,7 @@ async def create_download_request(resource_name: str, resource_kind: str) -> Opt
             download_request = custom_objects.get_namespaced_custom_object(
                 group=VELERO["GROUP"],
                 version=VELERO["VERSION"],
-                namespace=config_app.get_k8s_velero_namespace(),
+                namespace=config_app.k8s.velero_namespace,
                 plural=RESOURCES[ResourcesNames.DOWNLOAD_REQUEST].plural,
                 name=download_request_name
             )
@@ -145,7 +145,7 @@ def cleanup_download_request(resource_name: str):
         custom_objects.delete_namespaced_custom_object(
             group=VELERO["GROUP"],
             version=VELERO["VERSION"],
-            namespace=config_app.get_k8s_velero_namespace(),
+            namespace=config_app.k8s.velero_namespace,
             plural=RESOURCES[ResourcesNames.DOWNLOAD_REQUEST].plural,
             name=download_request_name
         )

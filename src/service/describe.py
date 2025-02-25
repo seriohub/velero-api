@@ -24,7 +24,7 @@ async def get_velero_resource_details_service(resource_name: str, resource_type:
         resource = custom_objects.get_namespaced_custom_object(
             group=VELERO['GROUP'],
             version=VELERO['VERSION'],
-            namespace=config_app.get_k8s_velero_namespace(),
+            namespace=config_app.k8s.velero_namespace,
             plural=RESOURCES[resource_enum].plural,
             name=resource_name
         )

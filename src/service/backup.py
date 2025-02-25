@@ -171,7 +171,7 @@ async def update_backup_expiration_service(backup_name: str, expiration: str):
     backup = custom_objects.get_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.BACKUP].plural,
         name=backup_name)
 
@@ -182,7 +182,7 @@ async def update_backup_expiration_service(backup_name: str, expiration: str):
     custom_objects.replace_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
-        namespace=config_app.get_k8s_velero_namespace(),
+        namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.BACKUP].plural, name=backup_name,
         body=backup)
 

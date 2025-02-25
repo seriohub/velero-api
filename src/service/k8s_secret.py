@@ -11,7 +11,7 @@ from utils.k8s_tracer import trace_k8s_async_method
 @trace_k8s_async_method(description="Get velero secret list names")
 async def get_velero_secret_service():
     try:
-        secrets = client.CoreV1Api().list_namespaced_secret(config_app.get_k8s_velero_namespace())
+        secrets = client.CoreV1Api().list_namespaced_secret(config_app.k8s.velero_namespace)
         return [secret.metadata.name for secret in secrets.items]
     except Exception as e:
         print(f"Can't get secret: {e}")
