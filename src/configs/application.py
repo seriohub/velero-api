@@ -12,4 +12,4 @@ class ApplicationConfig:
         self.swagger_documentation_disabled = os.getenv('API_ENABLE_DOCUMENTATION', '0') == '1'
         # self.container_mode = os.getenv('CONTAINER_MODE', 'False').lower() == 'true'
         self.scrapy_version = int(os.getenv('SCRAPY_VERSION_MIN', '30'))
-        self.inspect_folder = os.getenv('DOWNLOAD_INSPECT_FOLDER', '/tmp/velero_logs')
+        self.inspect_folder = os.getenv('DOWNLOAD_INSPECT_FOLDER', '/tmp/velero-inspect-backups')
