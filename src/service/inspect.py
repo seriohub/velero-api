@@ -19,7 +19,8 @@ async def get_folders_list(directory: str):
     except FileNotFoundError:
         # Handle the case where the directory does not exist
         logger.error(f"Error: The directory '{directory}' does not exist.")
-        raise HTTPException(status_code=404, detail=f"Error: The directory '{directory}' does not exist.")
+        # raise HTTPException(status_code=404, detail=f"Error: The directory '{directory}' does not exist.")
+        return []
     except PermissionError:
         # Handle the case where access to the directory is denied
         logger.error(f"Error: Permission denied to access '{directory}'.")
