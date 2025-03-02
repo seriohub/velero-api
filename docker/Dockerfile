@@ -16,16 +16,16 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 
 # prepare dir
 RUN mkdir /app \
- && mkdir /app/data \
- && mkdir /app/velero-client \
- && mkdir /app/velero-client-binary
+ && mkdir /app/data
+# && mkdir /app/velero-client \
+# && mkdir /app/velero-client-binary
 
 # Set the working directory inside the container
 WORKDIR /app
 
 # Copy the project files to the container
 COPY ./src /app
-COPY ../velero-client /app/velero-client
+# COPY ../velero-client /app/velero-client
 
 # Exclude specific files or directories from the project
 RUN find . -type f \( -name "*.yaml" -o -name "*.db" -o -name ".env" \) -delete \
@@ -44,7 +44,7 @@ EXPOSE 8001
 VOLUME /app/data
 
 # Expose a volume for custom binary download
-VOLUME /app/velero-client-binary
+# VOLUME /app/velero-client-binary
 
 WORKDIR /app/
 
