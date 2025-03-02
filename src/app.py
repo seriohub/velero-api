@@ -68,7 +68,7 @@ async def set_called_endpoint(request: Request, call_next):
 @app.get('/')
 async def online():
     return JSONResponse(
-        content={'data': {'payload': {'status': 'alive', 'type': 'agent', 'cluster_id': config_app.k8s.cluster_id}}},
+        content={'data': {'status': 'alive', 'type': 'agent', 'cluster_id': config_app.k8s.cluster_id}},
         status_code=200)
 
 
