@@ -41,7 +41,7 @@ def login_service(username, password):
                                     headers={'WWW-Authenticate': 'Bearer'})
         finally:
             db.close()
-    elif config_app.get_auth_type() == 'LDAP':
+    elif config_app.app.auth_type == 'LDAP':
         logger.info("Try LDAP AUTHENTICATION")
         user = ldapManager.ldap_authenticate(username, password)
         if user:
