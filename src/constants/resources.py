@@ -34,6 +34,7 @@ PLURALS = [
     "podvolumebackups",
     "podvolumerestores",
     "resticrepositories",
+    "backuprepositories",
     "backupstoragelocations",
     "volumesnapshotlocations",
     "serverstatusrequests",

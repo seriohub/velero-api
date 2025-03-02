@@ -11,6 +11,7 @@ from schemas.request.update_user_config import UpdateUserConfigRequestSchema
 from utils.k8s_tracer import trace_k8s_async_method
 
 from utils.logger_boot import logger
+from constants.watchdog import ENVIRONMENT
 
 
 async def __do_api_call(url):
@@ -74,7 +75,10 @@ async def get_watchdog_env_services():
     protocol = 'http://'
     url = protocol + config_app.watchdog.url + '/environment'
 
-    return await __do_api_call(url)
+    watchdog_env = await __do_api_call(url)
+    filtered_kv = {k: v for k, v in watchdog_env.items() if k in ENVIRONMENT}
+
+    return filtered_kv
 
 
 @trace_k8s_async_method(description="Get watchdog cron")

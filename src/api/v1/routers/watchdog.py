@@ -2,7 +2,7 @@ from fastapi import APIRouter, status, Depends
 
 from constants.response import common_error_authenticated_response
 
-from controllers.setup import get_env_handler
+from controllers.watchdog import get_env_handler
 
 from security.helpers.rate_limiter import RateLimiter, LimiterRequests
 
@@ -28,7 +28,6 @@ from controllers.watchdog import (version_handler,
 
 router = APIRouter()
 rate_limiter = RateLimiter()
-
 
 
 tag_name = 'Watchdog'

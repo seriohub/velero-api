@@ -1,6 +1,8 @@
 from pydantic import BaseModel
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, List
 from configs.config_boot import config_app
+
+
 
 class CreateBackupRequestSchema(BaseModel):
     name: str
@@ -19,8 +21,6 @@ class CreateBackupRequestSchema(BaseModel):
     includedClusterScopedResources: Optional[List[str]] = None
     excludedNamespaceScopedResources: Optional[List[str]] = None
     includedNamespaceScopedResources: Optional[List[str]] = None
-    labelSelector: Optional[Dict[str, Dict[str, str]]] = None
-    orLabelSelectors: Optional[List[Dict[str, Dict[str, str]]]] = None
     snapshotVolumes: Optional[bool] = None
     storageLocation: Optional[str] = None
     volumeSnapshotLocations: Optional[List[str]] = None
@@ -28,6 +28,7 @@ class CreateBackupRequestSchema(BaseModel):
     defaultVolumesToFsBackup: Optional[bool] = None
     snapshotMoveData: Optional[bool] = None
     datamover: Optional[str] = None
-    uploaderConfig: Optional[Dict[str, int]] = None
-    hooks: Optional[Dict[str, Any]] = None
 
+    # spec childs
+    labelSelector: Optional[Dict[str, str]] = None  # "matchLabels": {"app": "velero", "component": "server"},
+    parallelFilesUpload: Optional[int] = 10

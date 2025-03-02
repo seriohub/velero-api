@@ -39,17 +39,21 @@ async def create_vsl_service(vsl_data: CreateVslRequestSchema):
             "namespace": vsl_data.namespace
         },
         "spec": {
-            "provider": vsl_data.provider,
-            "credential": {
-                "name": vsl_data.credentialName,
-                "key": vsl_data.credentialKey
-            } if vsl_data.credentialName and vsl_data.credentialKey else None,
-            "config": vsl_data.config or {}
+            "provider": vsl_data.provider
         }
     }
 
-    # Remove None values to avoid API errors
-    vsl_body["spec"] = {k: v for k, v in vsl_body["spec"].items() if v is not None}
+    if hasattr(vsl_data, "config") and len(vsl_data.config) > 0:
+        vsl_body["spec"]["config"] = vsl_data.config
+
+    if (hasattr(vsl_data, "credentialName") and
+            hasattr(vsl_data, "credentialKey") and
+            vsl_data.credentialName != ''
+            and vsl_data.credentialKey != ''):
+        vsl_body['spec']["credential"] = {
+            "name": vsl_data.credentialName,
+            "key": vsl_data.credentialKey
+        }
 
     response = custom_objects.create_namespaced_custom_object(
         group=VELERO["GROUP"],

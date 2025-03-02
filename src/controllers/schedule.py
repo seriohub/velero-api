@@ -42,7 +42,7 @@ async def unpause_schedule_handler(schedule: str):
 
 
 async def create_schedule_handler(info: CreateScheduleRequestSchema):
-    payload = await create_schedule_service(schedule=info)
+    payload = await create_schedule_service(schedule_data=info)
 
     msg = Notification(title='Create schedule',
                        description=f"Schedule {info.name} created!",

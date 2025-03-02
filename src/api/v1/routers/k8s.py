@@ -12,7 +12,8 @@ from schemas.response.successful_request import SuccessfulRequest
 from controllers.k8s import (get_k8s_storage_classes_handler,
                              get_ns_handler,
                              get_logs_handler,
-                             get_manifest_handler)
+                             get_velero_manifest_handler,
+                             get_k8s_manifest_handler)
 
 router = APIRouter()
 
@@ -127,5 +128,44 @@ route = '/k8s/velero/manifest'
     responses=common_error_authenticated_response,
     status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def get_manifest(resource_type: str, resource_name: str):
-    return await get_manifest_handler(resource_type=resource_type, resource_name=resource_name)
+async def get_velero_manifest(resource_type: str, resource_name: str, neat: bool = False):
+    return await get_velero_manifest_handler(resource_type=resource_type,
+                                             resource_name=resource_name,
+                                             neat=neat)
+
+
+# ------------------------------------------------------------------------------------------------
+#             GET K8S MANIFEST
+# ------------------------------------------------------------------------------------------------
+
+
+limiter_backups = endpoint_limiter.get_limiter_cust('resource_manifest')
+route = '/k8s/manifest'
+
+
+@router.get(
+    path=route,
+    tags=[tag_name],
+    summary='Get resource manifest',
+    description=route_description(tag=tag_name,
+                                  route=route,
+                                  limiter_calls=limiter_backups.max_request,
+                                  limiter_seconds=limiter_backups.seconds),
+    dependencies=[Depends(RateLimiter(interval_seconds=limiter_backups.seconds,
+                                      max_requests=limiter_backups.max_request))],
+    response_model=SuccessfulRequest,
+    responses=common_error_authenticated_response,
+    status_code=status.HTTP_200_OK)
+#@handle_exceptions_endpoint
+async def get_k8s_manifest(kind: str,
+                           name: str,
+                           namespace: str = None,
+                           api_version: str = "v1",
+                           is_cluster_resource: bool = False,
+                           neat=False):
+    return await get_k8s_manifest_handler(kind=kind,
+                                          name=name,
+                                          namespace=namespace,
+                                          api_version=api_version,
+                                          is_cluster_resource=is_cluster_resource,
+                                          neat=neat)

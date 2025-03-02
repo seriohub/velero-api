@@ -23,7 +23,9 @@ from controllers.backup import (get_backups_handler,
                                 delete_backup_handler,
                                 create_backup_from_schedule_handler,
                                 update_backup_expiration_handler,
-                                get_backup_expiration_handler)
+                                get_backup_expiration_handler,
+                                download_backup_handler,
+                                inspect_download_backup_handler)
 
 router = APIRouter()
 
@@ -305,3 +307,55 @@ route = '/backup/storage-classes'
 @handle_exceptions_endpoint
 async def get_backup_storage_classes(backup_name: str):
     return await get_backup_storage_classes_handler(backup_name)
+
+# ------------------------------------------------------------------------------------------------
+#             DOWNLOAD BACKUP
+# ------------------------------------------------------------------------------------------------
+
+
+limiter_storage_classes = endpoint_limiter.get_limiter_cust('backup_download')
+route = '/backup/download'
+
+
+@router.get(
+    path=route,
+    tags=[tag_name],
+    summary='Download backup',
+    description=route_description(tag=tag_name,
+                                  route=route,
+                                  limiter_calls=limiter_storage_classes.max_request,
+                                  limiter_seconds=limiter_storage_classes.seconds),
+    dependencies=[Depends(RateLimiter(interval_seconds=limiter_storage_classes.seconds,
+                                      max_requests=limiter_storage_classes.max_request))],
+    response_model=SuccessfulRequest,
+    responses=common_error_authenticated_response,
+    status_code=status.HTTP_200_OK)
+@handle_exceptions_endpoint
+async def download_backup(backup_name: str):
+    return await download_backup_handler(backup_name)
+
+# ------------------------------------------------------------------------------------------------
+#             DOWNLOAD BACKUP
+# ------------------------------------------------------------------------------------------------
+
+
+limiter_storage_classes = endpoint_limiter.get_limiter_cust('backup_download')
+route = '/backup/inspect-download'
+
+
+@router.get(
+    path=route,
+    tags=[tag_name],
+    summary='Download for inspect',
+    description=route_description(tag=tag_name,
+                                  route=route,
+                                  limiter_calls=limiter_storage_classes.max_request,
+                                  limiter_seconds=limiter_storage_classes.seconds),
+    dependencies=[Depends(RateLimiter(interval_seconds=limiter_storage_classes.seconds,
+                                      max_requests=limiter_storage_classes.max_request))],
+    response_model=SuccessfulRequest,
+    responses=common_error_authenticated_response,
+    status_code=status.HTTP_200_OK)
+@handle_exceptions_endpoint
+async def inspect_download_backup(backup_name: str):
+    return await inspect_download_backup_handler(backup_name)

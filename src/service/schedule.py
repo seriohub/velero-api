@@ -51,21 +51,39 @@ async def pause_schedule_service(schedule_name, paused=True):
 
 
 @trace_k8s_async_method(description="Create schedule")
-async def create_schedule_service(schedule: CreateScheduleRequestSchema):
+async def create_schedule_service(schedule_data: CreateScheduleRequestSchema):
     """Create a Velero schedule on Kubernetes"""
-    schedule_dict = schedule.model_dump(exclude_unset=True)
-    schedule_dict.pop("name", None)
-    schedule_dict.pop("namespace", None)
+    template = schedule_data.model_dump(exclude_unset=True)
+    template.pop("name", None)
+    template.pop("namespace", None)
+    template.pop("schedule", None)
+    template.pop("paused", None)
+    template.pop("useOwnerReferencesInBackup", None)
+    template.pop("labelSelector", None)
+    template.pop("orLabelSelectors", None)
+    template.pop("parallelFilesUpload", None)
 
     schedule_body = {
         "apiVersion": f"{VELERO['GROUP']}/{VELERO['VERSION']}",
         "kind": RESOURCES[ResourcesNames.SCHEDULE].name,
         "metadata": {
-            "name": schedule.name,
-            "namespace": schedule.namespace
+            "name": schedule_data.name,
+            "namespace": schedule_data.namespace
         },
-        "spec": schedule_dict
+        "spec": {
+            "schedule": schedule_data.schedule,
+            "paused": schedule_data.paused,
+            "useOwnerReferencesInBackup": schedule_data.useOwnerReferencesInBackup,
+            "template": template
+        },
     }
+
+    if schedule_data.labelSelector:
+        schedule_body['spec']['template']["labelSelector"] = {'matchLabels': schedule_data.labelSelector}
+
+    if schedule_data.parallelFilesUpload:
+        schedule_body['spec']['template']['uploaderConfig'] = {}
+        schedule_body['spec']['template']['uploaderConfig']["parallelFilesUpload"] = schedule_data.parallelFilesUpload
 
     response = custom_objects.create_namespaced_custom_object(
         group=VELERO["GROUP"],
@@ -103,16 +121,35 @@ async def update_schedule_service(schedule_data):
 
     # Update the necessary fields
     existing_schedule["spec"]["schedule"] = schedule_data.schedule
-    existing_schedule["spec"]["template"]["includedNamespaces"] = schedule_data.includedNamespaces
-    existing_schedule["spec"]["template"]["excludedNamespaces"] = schedule_data.excludedNamespaces
-    existing_schedule["spec"]["template"]["includedResources"] = schedule_data.includedResources
-    existing_schedule["spec"]["template"]["excludedResources"] = schedule_data.excludedResources
-    existing_schedule["spec"]["template"]["ttl"] = schedule_data.ttl
-    existing_schedule["spec"]["template"]["snapshotVolumes"] = schedule_data.snapshotVolumes
-    existing_schedule["spec"]["template"]["includeClusterResources"] = schedule_data.includeClusterResources
-    existing_schedule["spec"]["template"]["defaultVolumesToFsBackup"] = schedule_data.defaultVolumesToFsBackup
-    existing_schedule["spec"]["template"]["storageLocation"] = schedule_data.storageLocation
-    existing_schedule["spec"]["template"]["volumeSnapshotLocations"] = schedule_data.volumeSnapshotLocations
+    existing_schedule["spec"]["paused"] = schedule_data.paused
+    existing_schedule["spec"]["useOwnerReferencesInBackup"] = schedule_data.useOwnerReferencesInBackup
+
+    template = schedule_data.model_dump(exclude_unset=True)
+    template.pop("name", None)
+    template.pop("namespace", None)
+    template.pop("schedule", None)
+    template.pop("paused", None)
+    template.pop("useOwnerReferencesInBackup", None)
+    template.pop("labelSelector", None)
+    template.pop("orLabelSelectors", None)
+    template.pop("parallelFilesUpload", None)
+
+    new_spec = {
+        "schedule": schedule_data.schedule,
+        "paused": schedule_data.paused,
+        "useOwnerReferencesInBackup": schedule_data.useOwnerReferencesInBackup,
+        "template": template
+    }
+
+    if schedule_data.labelSelector:
+        # config_dict = {list(item.keys())[0]: list(item.values())[0] for item in schedule_data.labelSelector}
+        new_spec['template']["labelSelector"] = {'matchLabels': schedule_data.labelSelector}
+
+    if schedule_data.parallelFilesUpload:
+        new_spec['template']['uploaderConfig'] = {}
+        new_spec['template']['uploaderConfig']["parallelFilesUpload"] = schedule_data.parallelFilesUpload
+
+    existing_schedule['spec'] = new_spec
 
     #  Update the Schedule with the new settings
     response = custom_objects.replace_namespaced_custom_object(
@@ -123,4 +160,5 @@ async def update_schedule_service(schedule_data):
         name=schedule_data.name,
         body=existing_schedule
     )
+
     return response

@@ -24,6 +24,8 @@ def _get_cron_events(cron_string, days=7):
     :param days:
     :return: List of dictionaries with 'hour', 'minute' and 'weekday'
     """
+    if cron_string == '':
+        return []
     start_time = datetime.now()
     end_time = start_time + timedelta(days=days)
 
@@ -55,8 +57,8 @@ def _cron_heatmap_data(schedules, backups):
                    'lastBackup'] else ''}
 
         last_backup = _find_backup(backups, tmp['schedule_name'])
-        if tmp['last'] != '' and last_backup is not None and 'startTimestamp' in last_backup[
-            'status'] and 'completionTimestamp' in last_backup['status']:
+        if (tmp['last'] != '' and last_backup is not None and 'startTimestamp' in last_backup['status']
+                and 'completionTimestamp' in last_backup['status']):
             tmp['last_started'] = last_backup['status']['startTimestamp']
             tmp['last_finished'] = last_backup['status']['completionTimestamp']
             time1 = datetime.fromisoformat(tmp['last_started'].replace("Z", "+00:00"))

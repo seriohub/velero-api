@@ -17,7 +17,6 @@ router = APIRouter()
 rate_limiter = RateLimiter()
 
 
-
 tag_name = 'Statistics'
 endpoint_limiter = LimiterRequests(tags=tag_name,
                                    default_key='L1')
@@ -98,6 +97,6 @@ route = '/stats/schedules'
     response_model=SuccessfulRequest,
     responses=common_error_authenticated_response,
     status_code=status.HTTP_200_OK)
-@handle_exceptions_endpoint
+ #@handle_exceptions_endpoint
 async def get_schedules_heatmap():
     return await get_schedules_heatmap_handler()

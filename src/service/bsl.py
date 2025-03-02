@@ -76,18 +76,35 @@ async def create_bsl_service(bsl_data: CreateBslRequestSchema):
         },
         "spec": {
             "provider": bsl_data.provider,
-            "backupSyncPeriod": bsl_data.synchronizationPeriod,
-            "validationFrequency": bsl_data.validationFrequency,
             "objectStorage": {
-                "bucket": bsl_data.bucketName
-            },
-            "credential": {
-                "name": bsl_data.credentialName,
-                "key": bsl_data.credentialKey
-            },
-            "config": {field["key"]: field["value"] for field in bsl_data.config} if bsl_data.config else {}
+                "bucket": bsl_data.bucket
+            }
         }
     }
+
+    if hasattr(bsl_data, "backupSyncPeriod") and bsl_data.backupSyncPeriod != '':
+        bsl_body["spec"]["backupSyncPeriod"] = bsl_data.backupSyncPeriod
+
+    if hasattr(bsl_data, "validationFrequency") and bsl_data.validationFrequency != '':
+        bsl_body["spec"]["validationFrequency"] = bsl_data.validationFrequency
+
+    if hasattr(bsl_data, "accessMode") and bsl_data.accessMode in ['ReadOnly', 'ReadWrite']:
+        bsl_body["spec"]["accessMode"] = bsl_data.accessMode
+
+    if hasattr(bsl_data, "prefix") and bsl_data.prefix.strip() != '':
+        bsl_body["spec"]["objectStorage"]["prefix"] = bsl_data.prefix.strip()
+
+    if hasattr(bsl_data, "config") and len(bsl_data.config) > 0:
+        bsl_body["spec"]["config"] = bsl_data.config
+
+    if (hasattr(bsl_data, "credentialName") and
+            hasattr(bsl_data, "credentialKey") and
+            bsl_data.credentialName != ''
+            and bsl_data.credentialKey != ''):
+        bsl_body['spec']["credential"] = {
+            "name": bsl_data.credentialName,
+            "key": bsl_data.credentialKey
+        }
 
     response = custom_objects.create_namespaced_custom_object(
         group=VELERO["GROUP"],
@@ -96,6 +113,9 @@ async def create_bsl_service(bsl_data: CreateBslRequestSchema):
         plural=RESOURCES[ResourcesNames.BACKUP_STORAGE_LOCATION].plural,
         body=bsl_body
     )
+
+    if bsl_data.default:
+        await set_default_bsl_service(bsl_data.name)
 
     return response
 

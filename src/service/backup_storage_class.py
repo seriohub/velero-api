@@ -29,7 +29,7 @@ async def get_backup_storage_classes_service(backup_name: str) -> VeleroStorageC
         raise HTTPException(status_code=400, detail=f"Error while extracting backup '{backup_name}'")
 
     # Extracting StorageClasses from PVCs
-    storage_classes = _extract_storage_classes_from_pvc_service(extracted_path)
+    storage_classes = await _extract_storage_classes_from_pvc_service(extracted_path)
 
     # Cleaning the DownloadRequest after use
     cleanup_download_request(backup_name)
@@ -41,7 +41,7 @@ async def get_backup_storage_classes_service(backup_name: str) -> VeleroStorageC
 
 
 @trace_k8s_async_method(description="Extract storage classes from pvc")
-def _extract_storage_classes_from_pvc_service(extracted_path: str) -> List[Dict]:
+async def _extract_storage_classes_from_pvc_service(extracted_path: str) -> List[Dict]:
     """
     Extracts StorageClasses from the manifest of PersistentVolumeClaims (PVCs).
     """
@@ -63,7 +63,9 @@ def _extract_storage_classes_from_pvc_service(extracted_path: str) -> List[Dict]
                     pvc_data = json.load(f)
 
                 if "spec" in pvc_data and "storageClassName" in pvc_data["spec"]:
-                    storage_classes.append({"name": pvc_data["spec"]["storageClassName"]})
+                    print(pvc_data)
+                    storage_classes.append(
+                        {"name": pvc_data["metadata"]["name"], "storageClass": pvc_data["spec"]["storageClassName"]})
 
             except Exception as e:
                 raise HTTPException(status_code=400, detail=f"Error reading PVC {pvc_file_path}: {e}")

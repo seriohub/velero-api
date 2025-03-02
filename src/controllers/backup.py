@@ -15,7 +15,9 @@ from service.backup import (get_backups_service,
                             create_backup_service,
                             create_backup_from_schedule_service,
                             get_backup_expiration_service,
-                            update_backup_expiration_service)
+                            update_backup_expiration_service,
+                            download_backup_service)
+from service.inspect_download_backup import inspect_download_backup_service
 
 
 async def get_creation_settings_handler():
@@ -88,4 +90,18 @@ async def get_backup_storage_classes_handler(backup_name: str):
     payload = await get_backup_storage_classes_service(backup_name=backup_name)
 
     response = SuccessfulRequest(payload=json.loads(payload.model_dump_json())['storage_classes'])
+    return JSONResponse(content=response.model_dump(), status_code=200)
+
+
+async def download_backup_handler(backup_name: str):
+    payload = await download_backup_service(backup_name=backup_name)
+
+    response = SuccessfulRequest(payload=payload)
+    return JSONResponse(content=response.model_dump(), status_code=200)
+
+
+async def inspect_download_backup_handler(backup_name: str):
+    payload = await inspect_download_backup_service(backup_name=backup_name)
+
+    response = SuccessfulRequest(payload=payload)
     return JSONResponse(content=response.model_dump(), status_code=200)

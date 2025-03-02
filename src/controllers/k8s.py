@@ -8,6 +8,7 @@ from schemas.request.create_cloud_credentials import CreateCloudCredentialsReque
 from service.k8s import (get_namespaces_service,
                          get_storage_classes_service,
                          get_resource_manifest_service)
+from service.k8s_manifest import get_k8s_resource_manifest_service
 from service.k8s_secret import get_velero_secret_service, get_secret_keys_service
 from service.location_credentials import (get_credential_service, get_default_credential_service,
                                           create_cloud_credentials_secret_service)
@@ -79,8 +80,27 @@ async def get_velero_secret_key_handler(secret_name):
     return JSONResponse(content=response.model_dump(), status_code=200)
 
 
-async def get_manifest_handler(resource_type, resource_name):
-    payload = await get_resource_manifest_service(resource_type=resource_type, resource_name=resource_name)
+async def get_velero_manifest_handler(resource_type: str, resource_name: str, neat: bool):
+    payload = await get_resource_manifest_service(resource_type=resource_type,
+                                                  resource_name=resource_name,
+                                                  neat=neat)
+
+    response = SuccessfulRequest(payload=payload)
+    return JSONResponse(content=response.model_dump(), status_code=200)
+
+
+async def get_k8s_manifest_handler(kind: str,
+                                   name: str,
+                                   namespace: str = None,
+                                   api_version: str = "v1",
+                                   is_cluster_resource: bool = False,
+                                   neat=False):
+    payload = await get_k8s_resource_manifest_service(kind=kind,
+                                                      name=name,
+                                                      namespace=namespace,
+                                                      api_version=api_version,
+                                                      is_cluster_resource=is_cluster_resource,
+                                                      neat=neat)
 
     response = SuccessfulRequest(payload=payload)
     return JSONResponse(content=response.model_dump(), status_code=200)

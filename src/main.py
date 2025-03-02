@@ -67,7 +67,7 @@ if __name__ == '__main__':
                     port=config_app.api.endpoint_port,
                     reload=config_app.app.uvicorn_reload,
                     log_level=config_app.logger.debug_level,
-                    workers=1,
+                    workers=2,
                     limit_concurrency=config_app.security.limit_concurrency
                     )
 

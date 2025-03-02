@@ -71,15 +71,30 @@ async def get_restore_details_service(restore_name: str) -> RestoreResponseSchem
 @trace_k8s_async_method(description="Create a restore")
 async def create_restore_service(restore_data: CreateRestoreRequestSchema):
     """Create a Velero restore on Kubernetes"""
-    backup_dict = restore_data.model_dump(exclude_unset=True)
-    backup_dict.pop("name", None)
-    backup_dict.pop("namespace", None)
+    spec = restore_data.model_dump(exclude_unset=True)
+    spec.pop("name", None)
+    spec.pop("namespace", None)
+    spec.pop("labelSelector", None)
+    spec.pop("orLabelSelectors", None)
+    spec.pop("parallelFilesUpload", None)
+    spec.pop("writeSparseFiles", None)
 
     restore_body = {
         "apiVersion": f"{VELERO['GROUP']}/{VELERO['VERSION']}",
         "kind": RESOURCES[ResourcesNames.RESTORE].name,
-        "metadata": {"name": restore_data.name, "namespace": restore_data.namespace},
-        "spec": restore_data.model_dump(exclude_unset=True)
+        "metadata": {
+            "name": restore_data.name,
+            "namespace": restore_data.namespace
+        },
+        "spec": spec
+    }
+
+    if restore_data.labelSelector:
+        restore_body['spec']["labelSelector"] = {'matchLabels': restore_data.labelSelector}
+
+    restore_body['spec']['uploaderConfig'] = {
+        'writeSparseFiles': restore_data.writeSparseFiles,
+        'parallelFilesUpload': restore_data.parallelFilesUpload,
     }
 
     response = custom_objects.create_namespaced_custom_object(

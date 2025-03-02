@@ -21,9 +21,13 @@ def _resources_stats(resources, count_from_schedule=False):
     total_count = len(resources)
 
     # Count occurrences of each backup phase
+    # phase_counts = Counter(
+    #     x['status']['phase'] for x in resources
+    #     if isinstance(x, dict) and 'status' in x and 'phase' in x['status']
+    # )
     phase_counts = Counter(
         x['status']['phase'] for x in resources
-        if isinstance(x, dict) and 'status' in x and 'phase' in x['status']
+        if isinstance(x, dict) and isinstance(x.get('status'), dict) and 'phase' in x['status']
     )
 
     # Count scheduled backups
@@ -94,7 +98,17 @@ def _get_all_scheduled_namespace(scheduled):
 
 
 def _get_completion_timestamp(item):
-    return item['status']['completionTimestamp']
+    if not isinstance(item, dict):
+        return ''  # Ensure item is a dictionary
+
+    status = item.get('status')
+    if not isinstance(status, dict):  # Ensure status is a dictionary
+        return ''
+
+    if status.get('completionTimestamp'):
+        return status.get('completionTimestamp')
+
+    return ''
 
 
 @trace_k8s_async_method(description="Get service stats")

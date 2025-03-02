@@ -50,7 +50,6 @@ async def get_cron_handler():
 
 
 async def send_test_notification_handler(provider: AppriseTestServiceRequestSchema):
-    print("---", provider.config)
     payload = await send_watchdog_test_notification_service(provider.config)
 
     msg = Notification(title='Send Notification', description=f"Test notification done!", type_='Success')

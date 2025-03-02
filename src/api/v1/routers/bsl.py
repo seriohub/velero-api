@@ -74,7 +74,7 @@ route = '/bsl'
     response_model=SuccessfulRequest,
     responses=common_error_authenticated_response,
     status_code=status.HTTP_201_CREATED)
-@handle_exceptions_endpoint
+#@handle_exceptions_endpoint
 async def create_bsl(bsl: CreateBslRequestSchema):
     return await create_bsl_handler(bsl=bsl)
 

@@ -1,11 +1,11 @@
 import sys
-
 from fastapi import HTTPException
 from kubernetes import client
 from kubernetes.client import ApiException
 from datetime import datetime
 
 from configs.config_boot import config_app
+from constants.velero import VELERO
 from utils.k8s_tracer import trace_k8s_async_method
 
 from utils.logger_boot import logger
@@ -195,17 +195,32 @@ async def get_storage_classes_service():
         raise HTTPException(status_code=400, detail=f"Error when getting storage classes")
 
 
+def _kubectl_neat(manifest):
+    """
+    Removes non-essential information from the Kubernetes manifest
+    """
+    keys_to_remove = ['status', 'managedFields', 'creationTimestamp', 'uid', 'resourceVersion']
+
+    def clean_dict(d):
+        if isinstance(d, dict):
+            return {k: clean_dict(v) for k, v in d.items() if k not in keys_to_remove}
+        elif isinstance(d, list):
+            return [clean_dict(i) for i in d]
+        return d
+
+    return clean_dict(manifest)
+
+
 @trace_k8s_async_method(description="Get resource manifest")
-async def get_resource_manifest_service(resource_type, resource_name):
+async def get_resource_manifest_service(resource_type: str, resource_name: str, neat=False):
     # Create an instance of the API client
     api_instance = client.CustomObjectsApi()
 
     # Namespace in which Velero is operating
-    namespace = "velero"
-
+    namespace = config_app.k8s.velero_namespace
     # Group, version and plural to access Velero backups
-    group = "velero.io"
-    version = "v1"
+    group = VELERO['GROUP']
+    version = VELERO['VERSION']
     plural = resource_type
 
     try:
@@ -219,7 +234,11 @@ async def get_resource_manifest_service(resource_type, resource_name):
         ] if resource_name else backups.get('items', [])
 
         # Return only filtered objects
-        return filtered_items[0]
+        manifest = filtered_items[0]
+
+        if neat:
+            return _kubectl_neat(manifest)
+        return manifest
     except Exception as e:
         logger.error(f"Error: {str(e)}")
         raise HTTPException(status_code=400, detail=f"{str(e)}")

@@ -1,8 +1,11 @@
 from typing import List
 
 from datetime import datetime
+
+from fastapi import HTTPException
 from kubernetes import client
 
+from service.utils.download_request import create_download_request
 from utils.k8s_tracer import trace_k8s_async_method
 
 from configs.config_boot import config_app
@@ -107,9 +110,12 @@ async def delete_backup_service(backup_name: str):
 @trace_k8s_async_method(description="Create backup")
 async def create_backup_service(backup_data: CreateBackupRequestSchema):
     """Create a Velero backup on Kubernetes"""
-    backup_dict = backup_data.model_dump(exclude_unset=True)
-    backup_dict.pop("name", None)
-    backup_dict.pop("namespace", None)
+    spec = backup_data.model_dump(exclude_unset=True)
+    spec.pop("name", None)
+    spec.pop("namespace", None)
+    spec.pop("labelSelector", None)
+    spec.pop("orLabelSelectors", None)
+    spec.pop("parallelFilesUpload", None)
 
     backup_body = {
         "apiVersion": f"{VELERO['GROUP']}/{VELERO['VERSION']}",
@@ -118,8 +124,15 @@ async def create_backup_service(backup_data: CreateBackupRequestSchema):
             "name": backup_data.name,
             "namespace": backup_data.namespace
         },
-        "spec": backup_dict
+        "spec": spec
     }
+
+    if backup_data.labelSelector:
+        backup_body['spec']["labelSelector"] = {'matchLabels': backup_data.labelSelector}
+
+    if backup_data.parallelFilesUpload:
+        backup_body['spec']['uploaderConfig'] = {}
+        backup_body['spec']['uploaderConfig']["parallelFilesUpload"] = backup_data.parallelFilesUpload
 
     response = custom_objects.create_namespaced_custom_object(
         group=VELERO["GROUP"],
@@ -194,3 +207,12 @@ async def get_backup_expiration_service(backup_name: str):
     backup = await get_backup_details_service(backup_name)
 
     return backup.status.expiration
+
+
+@trace_k8s_async_method(description="Download backup")
+async def download_backup_service(backup_name: str) -> dict:
+    # Create a DownloadRequest to retrieve backup data
+    download_url = await create_download_request(backup_name, "BackupContents")
+    if not download_url:
+        raise HTTPException(status_code=400, detail=f"Create a DownloadRequest to retrieve backup data")
+    return {'url': download_url}

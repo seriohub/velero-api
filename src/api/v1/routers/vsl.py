@@ -20,7 +20,6 @@ router = APIRouter()
 rate_limiter = RateLimiter()
 
 
-
 tag_name = 'Volume Snapshot Locations'
 endpoint_limiter = LimiterRequests(tags=tag_name,
                                    default_key='L1')

@@ -28,8 +28,8 @@ async def create_bsl_handler(bsl: CreateBslRequestSchema):
 
 
 async def set_default_bsl_handler(default_bsl: DefaultBslRequestSchema):
-    #await remove_current_bsl_default()
-    payload = await set_default_bsl_service(default_bsl.name, True)
+
+    payload = await set_default_bsl_service(default_bsl.name)
 
     msg = Notification(title='Default bsl', description=f"BSL {default_bsl.name} set as default!", type_='INFO')
     response = SuccessfulRequest(notifications=[msg], payload=payload)

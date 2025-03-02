@@ -22,5 +22,5 @@ async def get_resource_logs_handler(resource_name: str, resource_type: str):
 
     data = logs_string_to_list('\n'.join(logs))
 
-    response = SuccessfulRequest(payload=data)
+    response = SuccessfulRequest(payload={'text': logs, 'table': data})
     return JSONResponse(content=response.model_dump(), status_code=200)
