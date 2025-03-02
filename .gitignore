@@ -7,4 +7,4 @@ src/tmp/
 tmp/
 download/
 **/dl/**/*.tar.gz
-db/
+/db/
