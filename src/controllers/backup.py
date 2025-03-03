@@ -38,44 +38,44 @@ async def get_backups_handler(schedule_name: str | None = None, latest_per_sched
 
 
 async def delete_backup_handler(backup_name: str):
-    response = await delete_backup_service(backup_name=backup_name)
+    payload = await delete_backup_service(backup_name=backup_name)
 
     msg = Notification(title='Delete backup',
                        description=f'Backup {backup_name} deleted request done!',
                        type_='INFO')
 
-    response = SuccessfulRequest(notifications=[msg], payload=response)
+    response = SuccessfulRequest(notifications=[msg], payload=payload)
     return JSONResponse(content=response.model_dump(), status_code=200)
 
 
 async def create_backup_handler(backup: CreateBackupRequestSchema):
-    await create_backup_service(backup_data=backup)
+    payload = await create_backup_service(backup_data=backup)
 
     msg = Notification(title='Create backup',
                        description=f"Backup {backup.name} created!",
                        type_='INFO')
-    response = SuccessfulRequest(notifications=[msg])
+    response = SuccessfulRequest(notifications=[msg], payload=payload)
     return JSONResponse(content=response.model_dump(), status_code=201)
 
 
 async def create_backup_from_schedule_handler(backup: CreateBackupFromScheduleRequestSchema):
-    await create_backup_from_schedule_service(schedule_name=backup.scheduleName)
+    payload = await create_backup_from_schedule_service(schedule_name=backup.scheduleName)
 
     msg = Notification(title='Create backup from schedule',
                        description=f"Backup created!",
                        type_='INFO')
-    response = SuccessfulRequest(notifications=[msg])
+    response = SuccessfulRequest(notifications=[msg], payload=payload)
     return JSONResponse(content=response.model_dump(), status_code=201)
 
 
 async def update_backup_expiration_handler(ttl: UpdateBackupExpirationRequestSchema):
-    await update_backup_expiration_service(backup_name=ttl.backupName,
+    payload = await update_backup_expiration_service(backup_name=ttl.backupName,
                                            expiration=ttl.expiration)
 
     msg = Notification(title='TTL Updated',
                        description=f"Backup {ttl.backupName} expiration updated!",
                        type_='INFO')
-    response = SuccessfulRequest(notifications=[msg])
+    response = SuccessfulRequest(notifications=[msg], payload=payload)
     return JSONResponse(content=response.model_dump(), status_code=201)
 
 

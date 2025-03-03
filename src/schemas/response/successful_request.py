@@ -27,7 +27,7 @@ class SuccessfulRequest(BaseModel, Generic[T]):
         """Automatically remove empty fields before serialization"""
         base_dict = super().model_dump(exclude_unset=exclude_unset, **kwargs)
 
-        # ✅ Rimuove i campi se vuoti
+        # Remove empty field
         # if not base_dict.get("data"):
         #     base_dict.pop("data", None)
         if not base_dict.get("notifications"):

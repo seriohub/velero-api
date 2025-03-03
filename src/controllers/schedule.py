@@ -1,3 +1,5 @@
+import json
+
 from fastapi.responses import JSONResponse
 
 from schemas.response.successful_request import SuccessfulRequest
@@ -27,7 +29,7 @@ async def pause_schedule_handler(schedule: str):
     msg = Notification(title='Pause schedule',
                        description=f"Schedule {schedule} pause request done!",
                        type_='INFO')
-    response = SuccessfulRequest(notifications=[msg], data=payload)
+    response = SuccessfulRequest(notifications=[msg], payload=payload)
     return JSONResponse(content=response.model_dump(), status_code=200)
 
 
@@ -47,7 +49,7 @@ async def create_schedule_handler(info: CreateScheduleRequestSchema):
     msg = Notification(title='Create schedule',
                        description=f"Schedule {info.name} created!",
                        type_='INFO')
-    response = SuccessfulRequest(notifications=[msg], data=payload)
+    response = SuccessfulRequest(notifications=[msg], payload=payload)
     return JSONResponse(content=response.model_dump(), status_code=200)
 
 
@@ -57,7 +59,7 @@ async def delete_schedule_handler(schedule_name: str):
     msg = Notification(title='Delete schedule',
                        description=f"Schedule {schedule_name} deleted request done!",
                        type_='INFO')
-    response = SuccessfulRequest(notifications=[msg], data=payload)
+    response = SuccessfulRequest(notifications=[msg], payload=payload)
     return JSONResponse(content=response.model_dump(), status_code=200)
 
 
@@ -67,5 +69,5 @@ async def update_schedule_handler(schedule: UpdateScheduleRequestSchema):
     msg = Notification(title='Schedule',
                        description=f"Schedule '{schedule.name}' successfully updated.",
                        type_='INFO')
-    response = SuccessfulRequest(notifications=[msg], data=payload)
+    response = SuccessfulRequest(notifications=[msg], payload=payload)
     return JSONResponse(content=response.model_dump(), status_code=200)

@@ -192,14 +192,14 @@ async def update_backup_expiration_service(backup_name: str, expiration: str):
     backup['status']['expiration'] = expiration
 
     # update ttl field
-    custom_objects.replace_namespaced_custom_object(
+    response = custom_objects.replace_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
         namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.BACKUP].plural, name=backup_name,
         body=backup)
 
-    return True
+    return response
 
 
 @trace_k8s_async_method(description="Get backup expiration")
