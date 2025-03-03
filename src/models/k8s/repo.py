@@ -33,9 +33,9 @@ class BackupRepositorySpec(BaseModel):
 
 class BackupRepositoryStatus(BaseModel):
     """Represents the status section of a BackupRepository."""
-    phase: Optional[str]
-    message: Optional[str]
-    lastMaintenanceTime: Optional[str]
+    phase: Optional[str] = None
+    message: Optional[str] = None
+    lastMaintenanceTime: Optional[str] = None
 
     class Config:
         extra = "allow"
