@@ -96,14 +96,29 @@ async def get_backup_details_service(backup_name: str) -> BackupResponseSchema:
 
 @trace_k8s_async_method(description="Delete backup")
 async def delete_backup_service(backup_name: str):
-    """Delete a Velero backup"""
-    response = custom_objects.delete_namespaced_custom_object(
+    """Delete a Velero backup using DeleteBackupRequest"""
+
+    # Create a DeleteBackupRequest
+    delete_request_body = {
+        "apiVersion": f"{VELERO['GROUP']}/{VELERO['VERSION']}",
+        "kind": RESOURCES[ResourcesNames.DELETE_BACKUP_REQUEST].kind,
+        "metadata": {
+            "name": f"{backup_name}-delete",
+            "namespace": config_app.k8s.velero_namespace
+        },
+        "spec": {
+            "backupName": backup_name
+        }
+    }
+
+    response = custom_objects.create_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
         namespace=config_app.k8s.velero_namespace,
-        plural=RESOURCES[ResourcesNames.BACKUP].plural,
-        name=backup_name
+        plural=RESOURCES[ResourcesNames.DELETE_BACKUP_REQUEST].plural,
+        body=delete_request_body
     )
+
     return response
 
 

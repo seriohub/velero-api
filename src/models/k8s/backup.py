@@ -15,6 +15,7 @@ class BackupPhase(str, Enum):
     COMPLETED = "Completed"
     PARTIALLY_FAILED = "PartiallyFailed"
     FAILED = "Failed"
+    DELETING = "Deleting"
 
 
 # BACKUP RESOURCE POLICY
