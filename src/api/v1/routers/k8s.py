@@ -156,7 +156,7 @@ route = '/k8s/manifest'
     response_model=SuccessfulRequest,
     responses=common_error_authenticated_response,
     status_code=status.HTTP_200_OK)
-#@handle_exceptions_endpoint
+@handle_exceptions_endpoint
 async def get_k8s_manifest(kind: str,
                            name: str,
                            namespace: str = None,
