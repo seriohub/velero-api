@@ -3,9 +3,8 @@ __pycache__/
 *.log
 .env
 *.sh
-*.db
 src/tmp/
 tmp/
 download/
 **/dl/**/*.tar.gz
-db/
+/db/

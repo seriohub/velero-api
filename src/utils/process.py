@@ -4,22 +4,17 @@ import json
 from fastapi import WebSocketDisconnect
 import os
 
-from core.config import ConfigHelper
-from core.context import current_user_var, cp_user
-from helpers.websocket_manager import manager
+from configs.config_boot import config_app
+from contexts.context import current_user_var, cp_user
+from ws.websocket_manager import manager
 
-from helpers.logger import ColoredLogger, LEVEL_MAPPING
-import logging
+from utils.logger_boot import logger
 
-config_app = ConfigHelper()
-
-if config_app.get_enable_nats():
-    from helpers.nats_manager import get_nats_manager_instance
-
-logger = ColoredLogger.get_logger(__name__, level=LEVEL_MAPPING.get(config_app.get_internal_log_level(), logging.INFO))
+if config_app.nats.enable:
+    from integrations.nats_manager import get_nats_manager_instance
 
 
-async def send_message(message):
+async def _send_message(message):
     try:
         logger.debug(message)
         # await manager.broadcast(message)
@@ -29,12 +24,12 @@ async def send_message(message):
         except Exception as Ex:
             logger.error(f"send message failed {str(Ex)}")
         finally:
-            if config_app.get_enable_nats() and user.is_nats:
+            if config_app.nats.enable and user.is_nats:
                 nats_manager = get_nats_manager_instance()
                 nc = await nats_manager.get_nats_connection()
                 control_plane_user = cp_user.get()
                 data = {"user": control_plane_user, "msg": message}
-                await nc.publish("socket." + config_app.cluster_id(), json.dumps(data).encode())
+                await nc.publish("socket." + config_app.k8s.cluster_id, json.dumps(data).encode())
                 pass
             elif user is not None:
                 response = {'type': 'process', 'message': message}
@@ -44,14 +39,11 @@ async def send_message(message):
         logger.error('send message error')
 
 
-async def run_process_check_output(cmd, publish_message=True, cwd='./', env=None):
+async def run_check_output_process(cmd, publish_message=True, cwd='./', env=None):
     output = ''
     try:
         if publish_message:
-            await send_message('check output: ' + ' '.join(cmd))
-        # sync
-        # output = subprocess.check_output(
-        #     cmd, stderr=subprocess.PIPE, cwd=cwd).decode('utf-8')
+            await _send_message('check output: ' + ' '.join(cmd))
 
         # Starts the secondary process asynchronously
         process = await asyncio.create_subprocess_exec(*cmd,
@@ -94,25 +86,23 @@ async def run_process_check_output(cmd, publish_message=True, cwd='./', env=None
         return error
 
 
-async def run_process_check_call(cmd, publish_message=True):
-    try:
-        if publish_message:
-            await send_message('check call: ' + ' '.join(cmd))
-        # sync
-        # subprocess.check_call(cmd)
-
-        # Starts the secondary process asynchronously
-        process = await asyncio.create_subprocess_exec(*cmd,
-                                                       stdout=asyncio.subprocess.PIPE,
-                                                       stderr=asyncio.subprocess.STDOUT, )
-
-        # Wait for the completion of the process
-        await process.wait()
-
-        return {'success': True}
-    except Exception as e:
-        error = {'success': False, 'error': {'title': 'Run Process Check Output Error',
-                                             'description': str(' '.join(cmd)) + '\n' + str(e)
-                                             }
-                 }
-        return error
+# async def run_check_call_process(cmd, publish_message=True):
+#     try:
+#         if publish_message:
+#             await _send_message('check call: ' + ' '.join(cmd))
+#
+#         # Starts the secondary process asynchronously
+#         process = await asyncio.create_subprocess_exec(*cmd,
+#                                                        stdout=asyncio.subprocess.PIPE,
+#                                                        stderr=asyncio.subprocess.STDOUT, )
+#
+#         # Wait for the completion of the process
+#         await process.wait()
+#
+#         return {'success': True}
+#     except Exception as e:
+#         error = {'success': False, 'error': {'title': 'Run Process Check Output Error',
+#                                              'description': str(' '.join(cmd)) + '\n' + str(e)
+#                                              }
+#                  }
+#         return error

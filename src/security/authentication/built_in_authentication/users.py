@@ -2,23 +2,19 @@ import re
 import uuid
 from fastapi import HTTPException
 # from security.schemas.schemas import UserOut, UserCreate
-from core.config import ConfigHelper #, get_configmap_parameter, get_secret_parameter
+from configs.config_boot import config_app  # , get_configmap_parameter, get_secret_parameter
 
 from typing import Optional
 from security.authentication.dependencies import pwd_context
-from helpers.database.database import SessionLocal
+from database.db_connection import SessionLocal
 # from security.authentication.built_in_authentication.database import Configs
-from security.models.user import User
+from models.db.user import User
 
-from helpers.logger import ColoredLogger, LEVEL_MAPPING
-import logging
+from utils.logger_boot import logger
 
-config_app = ConfigHelper()
-logger = ColoredLogger.get_logger(__name__, level=LEVEL_MAPPING.get(config_app.get_internal_log_level(), logging.INFO))
-
-disable_password_rate = config_app.get_security_disable_pwd_rate()
-secret_access_key = config_app.get_security_access_token_key()
-algorithm = config_app.get_security_algorithm()
+disable_password_rate = config_app.security.disable_pwd_rate
+secret_access_key = config_app.security.token_key
+algorithm = config_app.security.algorithm
 
 
 def hash_password(password: str) -> str:
@@ -136,11 +132,11 @@ def get_user_by_name(username: str, db: SessionLocal) -> Optional[User]:
 
 def create_default_user(db: SessionLocal):
     logger.info("create_default_user.check")
-    default_username = config_app.get_default_admin_username()
+    default_username = config_app.database.default_admin_user
     default_user = db.query(User).filter(User.username == default_username).first()
     if default_user is None:
         logger.info("create_default_user.forced")
-        default_password = config_app.get_default_admin_password()
+        default_password = config_app.database.default_admin_password
         hashed_default_password = hash_password(default_password)
         new_default_user = User(username=default_username,
                                 full_name='administrator',
@@ -177,10 +173,10 @@ def update_user(user_id: uuid.UUID, full_name: str, password: str, db: SessionLo
 
             db.commit()
             # data = {'title': 'Update Password', 'description': 'User updates successfully!'}
-            return {'success': True}
+            return True
         else:
             # raise HTTPException(status_code=404, detail='User not found')
-            return {'success': False}
+            return False
 
 
 def authenticate_user(db, username: str, password: str):
@@ -195,7 +191,6 @@ def authenticate_user(db, username: str, password: str):
         return False
     logger.info(f"Login in :{username}")
     return user
-
 
 # LS 2024.03.18 moved in tokens.py script
 # def create_access_token(data: dict, expires_delta: timedelta | None = None):

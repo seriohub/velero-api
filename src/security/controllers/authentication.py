@@ -1,15 +1,8 @@
-from security.service.authentication import AuthenticationService
-from utils.handle_exceptions import handle_exceptions_controller
-
-authenticationService = AuthenticationService()
+from security.service.authentication import login_service  # , refresh_token_service
 
 
-class Authentication:
+async def login_handler(username, password):
+    return login_service(username, password)
 
-    @handle_exceptions_controller
-    async def login(self, username, password):
-        return authenticationService.login(username, password)
-
-    @handle_exceptions_controller
-    async def refresh_login(self, refresh_token):
-        return authenticationService.refresh_token(refresh_token)
+# async def refresh_login_handler(refresh_token):
+#     return refresh_token_service(refresh_token)

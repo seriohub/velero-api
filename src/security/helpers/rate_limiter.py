@@ -1,14 +1,12 @@
 from datetime import datetime, timedelta
 from fastapi import HTTPException, Request
 
-from core.config import ConfigHelper, LimiterRequestConfig
-from security.helpers.ip_from_request import IpClient
 
-from helpers.logger import ColoredLogger, LEVEL_MAPPING
-import logging
+from configs.config_boot import config_app
+from security.helpers.ip_from_request import extract_ip_from_request
+from security.helpers.limiter_request_config import LimiterRequestConfig
 
-config_app = ConfigHelper()
-logger = ColoredLogger.get_logger(__name__, level=LEVEL_MAPPING.get(config_app.get_internal_log_level(), logging.INFO))
+from utils.logger_boot import logger
 
 
 class LimiterRequests:
@@ -16,7 +14,7 @@ class LimiterRequests:
         self.requests = {}
         self.tags = tags
         self.default_key = default_key
-        self.api_limiter = config_app.get_api_limiter(tags)
+        self.api_limiter = config_app.security.get_api_limiter(tags)
 
     def get_limiter_cust(self, key):
         bCustom_tags = False
@@ -63,8 +61,6 @@ class RateLimiter:
                  ):
         self.rate_limits = {}
 
-        self.ip_client = IpClient()
-
         self.interval_seconds = interval_seconds
         self.max_requests = max_requests
 
@@ -103,7 +99,7 @@ class RateLimiter:
     def _get_client_ip(self,
                        request):
         logger.debug(f"_get_client_ip")
-        return self.ip_client.extract_ip_from_request(request)
+        return extract_ip_from_request(request)
 
     def _clean_expired_time_slots(self, client_ip,
                                   current_time,

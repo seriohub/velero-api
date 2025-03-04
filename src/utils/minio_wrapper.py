@@ -1,15 +1,10 @@
 import re
 
 from minio import S3Error, Minio
-from core.config import ConfigHelper
-from service.backup_location_service import BackupLocationService
+from configs.config_boot import config_app
+from service.bsl import get_bsl_credentials_service
 
-from helpers.logger import ColoredLogger, LEVEL_MAPPING
-import logging
-
-config_app = ConfigHelper()
-logger = ColoredLogger.get_logger(__name__, level=LEVEL_MAPPING.get(config_app.get_internal_log_level(), logging.INFO))
-bsl = BackupLocationService()
+from utils.logger_boot import logger
 
 
 class MinioInterface:
@@ -73,13 +68,13 @@ class MinioInterface:
                     control_passed = True
 
         if control_passed:
-            aws_access_key, aws_secret_key = await bsl.credentials(backup_storage_location)
+            aws_access_key, aws_secret_key = await get_bsl_credentials_service(backup_storage_location)
             # aws_access_key = config.get_aws_key_id()
             # aws_secret_key = config.get_aws_access_key()
             if secure:
                 aws_secure_connection = secure
             else:
-                aws_secure_connection = config_app.get_aws_secure_connection()
+                aws_secure_connection = config_app.location.aws_ssl
 
             if len(aws_access_key) > 0 and len(aws_secret_key) > 0:
                 minio_client = MinioClientWrapper(
