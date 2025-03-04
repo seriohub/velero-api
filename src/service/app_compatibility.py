@@ -111,7 +111,7 @@ async def ui_compatibility_service(version: str):
         if version_regex.match(version):
             output = {}
             # is_comp = False
-            api_version = config_app.build_version
+            api_version = config_app.app.build_version
             # retrieve data from github
             data_ui, data_api, error = _retrieve_data_from_md_file(ui_version=version,
                                                                    api_version=api_version)
