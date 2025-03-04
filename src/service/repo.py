@@ -59,7 +59,7 @@ async def get_repo_backup_size_service(repository_url: str = None,
     match = re.search(r's3:http://[^/]+/([^/]+)/', repository_url)
     if match:
         bucket_name = match.group(1)
-        print(bucket_name)
+        # print(bucket_name)
     else:
         bucket_name = 'default'
         # TODO raise error

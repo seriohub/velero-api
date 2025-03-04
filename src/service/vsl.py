@@ -20,9 +20,7 @@ async def get_vsls_service():
         namespace=config_app.k8s.velero_namespace,
         plural=RESOURCES[ResourcesNames.VOLUME_SNAPSHOT_LOCATION].plural,
     )
-    print(vsl)
     vsl_list = [VolumeSnapshotLocationResponseSchema(**item) for item in vsl.get("items", [])]
-    print(vsl_list)
     return vsl_list
 
 

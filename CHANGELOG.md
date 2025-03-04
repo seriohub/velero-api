@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+## [v0.2.0] - 2025-03-04
+
+🚀 Major Updates
+- Refactored Architecture: The application no longer relies on the Velero CLI. All operations now leverage Velero's APIs directly, improving efficiency and maintainability.
+
+🆕 New Features
+- Backup Comparison Prototype: Introduced an experimental feature to compare backups against the current Kubernetes manifests, helping users track changes more effectively.
+
+🛠 Improvements
+- Enhanced Request/Response Typing: Improved type definitions for requests and responses, leading to better reliability and maintainability.
+- Improved Error Handling: Enhanced error management for better stability and debugging.
+
 ## [v0.1.23] - 2025-02-17
 
 🔒 Authentication Improvements

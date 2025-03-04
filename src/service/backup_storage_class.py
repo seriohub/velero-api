@@ -63,7 +63,7 @@ async def _extract_storage_classes_from_pvc_service(extracted_path: str) -> List
                     pvc_data = json.load(f)
 
                 if "spec" in pvc_data and "storageClassName" in pvc_data["spec"]:
-                    print(pvc_data)
+                    # print(pvc_data)
                     storage_classes.append(
                         {"name": pvc_data["metadata"]["name"], "storageClass": pvc_data["spec"]["storageClassName"]})
 
