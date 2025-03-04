@@ -3,7 +3,6 @@ from typing import Optional, Dict, List
 from configs.config_boot import config_app
 
 
-
 class CreateBackupRequestSchema(BaseModel):
     name: str
     namespace: Optional[str] = config_app.k8s.velero_namespace
@@ -32,3 +31,4 @@ class CreateBackupRequestSchema(BaseModel):
     # spec childs
     labelSelector: Optional[Dict[str, str]] = None  # "matchLabels": {"app": "velero", "component": "server"},
     parallelFilesUpload: Optional[int] = 10
+    resourcePolicy: Optional[str] = None

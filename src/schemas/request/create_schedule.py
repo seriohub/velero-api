@@ -36,3 +36,4 @@ class CreateScheduleRequestSchema(BaseModel):
     # spec childs
     labelSelector: Optional[Dict[str, str]] = None  # "matchLabels": {"app": "velero", "component": "server"},
     parallelFilesUpload: Optional[int] = 10
+    resourcePolicy: Optional[str] = None

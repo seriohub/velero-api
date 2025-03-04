@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from kubernetes import client
 from kubernetes.client import ApiException
 
+from configs.config_boot import config_app
 from utils.k8s_tracer import trace_k8s_async_method
 from utils.logger_boot import logger
 
@@ -169,3 +170,20 @@ async def create_configmap_service(namespace, configmap_name, data):
         else:
             print(f"Error while creating the ConfigMap: {e}")
             return None
+
+
+def list_configmaps_service(namespace: str = config_app.k8s.velero_namespace):
+    """
+    Returns the list of ConfigMaps in a given namespace.
+
+    :param namespace: Namespace of Kubernetes from which to retrieve the ConfigMaps.
+    :return: List of names of the ConfigMaps.
+    """
+
+    v1 = client.CoreV1Api()
+    try:
+        configmaps = v1.list_namespaced_config_map(namespace)
+        return [cm.metadata.name for cm in configmaps.items]
+    except client.exceptions.ApiException as e:
+        print(f"Errore nell'ottenere le ConfigMap: {e}")
+        return []

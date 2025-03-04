@@ -131,6 +131,7 @@ async def create_backup_service(backup_data: CreateBackupRequestSchema):
     spec.pop("labelSelector", None)
     spec.pop("orLabelSelectors", None)
     spec.pop("parallelFilesUpload", None)
+    spec.pop("resourcePolicy", None)
 
     backup_body = {
         "apiVersion": f"{VELERO['GROUP']}/{VELERO['VERSION']}",
@@ -148,6 +149,9 @@ async def create_backup_service(backup_data: CreateBackupRequestSchema):
     if backup_data.parallelFilesUpload:
         backup_body['spec']['uploaderConfig'] = {}
         backup_body['spec']['uploaderConfig']["parallelFilesUpload"] = backup_data.parallelFilesUpload
+
+    if backup_data.resourcePolicy:
+        backup_body['spec']["resourcePolicy"] = {'kind': 'configmap', 'name': backup_data.resourcePolicy}
 
     response = custom_objects.create_namespaced_custom_object(
         group=VELERO["GROUP"],

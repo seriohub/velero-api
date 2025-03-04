@@ -62,6 +62,7 @@ async def create_schedule_service(schedule_data: CreateScheduleRequestSchema):
     template.pop("labelSelector", None)
     template.pop("orLabelSelectors", None)
     template.pop("parallelFilesUpload", None)
+    template.pop("resourcePolicy", None)
 
     schedule_body = {
         "apiVersion": f"{VELERO['GROUP']}/{VELERO['VERSION']}",
@@ -84,6 +85,9 @@ async def create_schedule_service(schedule_data: CreateScheduleRequestSchema):
     if schedule_data.parallelFilesUpload:
         schedule_body['spec']['template']['uploaderConfig'] = {}
         schedule_body['spec']['template']['uploaderConfig']["parallelFilesUpload"] = schedule_data.parallelFilesUpload
+
+    if schedule_data.resourcePolicy:
+        schedule_body['spec']['template']["resourcePolicy"] = {'kind': 'configmap', 'name': schedule_data.resourcePolicy}
 
     response = custom_objects.create_namespaced_custom_object(
         group=VELERO["GROUP"],
