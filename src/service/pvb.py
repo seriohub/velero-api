@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 from kubernetes import client
+from configs.config_boot import config_app
 
 
 async def get_pod_volume_backups_service():
@@ -7,7 +8,7 @@ async def get_pod_volume_backups_service():
     api_instance = client.CustomObjectsApi()
 
     # Namespace in which Velero is operating
-    namespace = "velero"
+    namespace = config_app.k8s.velero_namespace
 
     # Get Velero's backup items
     group = "velero.io"
@@ -32,7 +33,7 @@ async def get_pod_volume_backup_details_service(backup_name=None):
     api_instance = client.CustomObjectsApi()
 
     # Namespace in which Velero is operating
-    namespace = "velero"
+    namespace = config_app.k8s.velero_namespace
 
     # Group, version and plural to access Velero backups
     group = "velero.io"
