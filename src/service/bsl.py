@@ -64,7 +64,7 @@ async def get_bsl_credentials_service(backup_storage_location: str):
 @trace_k8s_async_method(description="Create bsl")
 async def create_bsl_service(bsl_data: CreateBslRequestSchema):
     """
-    Create a Backup Storage Location (BSL) in Kubernetes using the Velero API..
+    Create a Backup Storage Location (BSL) in Kubernetes
     """
 
     # Creating the body of the request
@@ -217,7 +217,7 @@ async def update_bsl_service(bsl_data: UpdateBslRequestSchema):
 
     if hasattr(bsl_data, "prefix") and bsl_data.prefix and bsl_data.prefix.strip() != '':
         existing_bsl['spec']['objectStorage']['prefix'] = bsl_data.prefix.strip()
-    elif (hasattr(bsl_data, "prefix") and bsl_data.prefix and bsl_data.prefix.strip() == '' and
+    elif (hasattr(bsl_data, "prefix") and bsl_data.prefix is not None and bsl_data.prefix.strip() == '' and
           'objectStorage' in existing_bsl["spec"] and 'prefix' in existing_bsl['spec']['objectStorage']):
         existing_bsl['spec']['objectStorage'].pop("prefix")
 

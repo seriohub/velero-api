@@ -215,7 +215,8 @@ async def update_backup_expiration_service(backup_name: str, expiration: str):
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],
         namespace=config_app.k8s.velero_namespace,
-        plural=RESOURCES[ResourcesNames.BACKUP].plural, name=backup_name,
+        plural=RESOURCES[ResourcesNames.BACKUP].plural,
+        name=backup_name,
         body=backup)
 
     return response
