@@ -1,4 +1,4 @@
-from fastapi import HTTPException
+# from fastapi import HTTPException
 from kubernetes import client
 from kubernetes.client import ApiException
 

@@ -198,7 +198,7 @@ route = '/watchdog/user/configs'
     response_model=SuccessfulRequest,
     responses=common_error_authenticated_response,
     status_code=status.HTTP_200_OK)
-#@handle_exceptions_endpoint
+@handle_exceptions_endpoint
 async def get_user_watchdog_config():
     return await user_configs_handler()
 

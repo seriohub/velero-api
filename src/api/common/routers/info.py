@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from requests import Session
 
 from configs.config_boot import config_app
-from controllers.agent import watchdog_online_handler
+# from controllers.agent import watchdog_online_handler
 from database.db_connection import get_db
 from utils.swagger import route_description
 from utils.exceptions import handle_exceptions_endpoint

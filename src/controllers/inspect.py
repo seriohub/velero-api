@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from schemas.response.successful_request import SuccessfulRequest
 from configs.config_boot import config_app
 from service.inspect import (get_folders_list,
-                             get_directory_contents,
+                             # get_directory_contents,
                              read_json_file,
                              get_recursive_directory_contents)
 

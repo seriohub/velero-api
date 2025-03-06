@@ -5,7 +5,6 @@ from configs.config_boot import config_app
 from utils.logger_boot import logger
 
 
-
 # Load Kubernetes configuration
 try:
     config.load_incluster_config()
