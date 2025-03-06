@@ -25,11 +25,8 @@ async def create_vsl_handler(create_bsl: CreateVslRequestSchema):
 
 async def delete_vsl_handler(bsl_delete: str):
     payload = await delete_vsl_service(vsl_name=bsl_delete)
-
     msg = Notification(title='Delete bsl', description=f'Bsl {bsl_delete} deleted request done!', type_='INFO')
-
-    response = SuccessfulRequest(msg=[msg], payload=payload)
-
+    response = SuccessfulRequest(notifications=[msg], payload=payload)
     return JSONResponse(content=response.model_dump(), status_code=200)
 
 async def update_vsl_handler(vsl: UpdateVslRequestSchema):

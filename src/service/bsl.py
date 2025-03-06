@@ -217,7 +217,7 @@ async def update_bsl_service(bsl_data: UpdateBslRequestSchema):
 
     if hasattr(bsl_data, "prefix") and bsl_data.prefix and bsl_data.prefix.strip() != '':
         existing_bsl['spec']['objectStorage']['prefix'] = bsl_data.prefix.strip()
-    elif (hasattr(bsl_data, "prefix") and bsl_data.prefix.strip() == '' and
+    elif (hasattr(bsl_data, "prefix") and bsl_data.prefix and bsl_data.prefix.strip() == '' and
           'objectStorage' in existing_bsl["spec"] and 'prefix' in existing_bsl['spec']['objectStorage']):
         existing_bsl['spec']['objectStorage'].pop("prefix")
 
