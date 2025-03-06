@@ -20,12 +20,11 @@ from controllers.schedule import (get_schedules_handler,
                                   create_schedule_handler,
                                   unpause_schedule_handler,
                                   pause_schedule_handler,
-                                  delete_schedule_handler, update_schedule_handler)
+                                  delete_schedule_handler,
+                                  update_schedule_handler)
 
 router = APIRouter()
 rate_limiter = RateLimiter()
-
-
 
 tag_name = 'Schedules'
 endpoint_limiter = LimiterRequests(tags=tag_name,

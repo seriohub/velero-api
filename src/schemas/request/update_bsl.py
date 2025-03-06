@@ -3,7 +3,7 @@ from typing import Optional, Dict
 from configs.config_boot import config_app
 
 
-class CreateBslRequestSchema(BaseModel):
+class UpdateBslRequestSchema(BaseModel):
     name: str = Field(..., description="The name of the BSL.")
     namespace: Optional[str] = config_app.k8s.velero_namespace
 

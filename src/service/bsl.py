@@ -1,4 +1,5 @@
 from models.k8s.bsl import BackupStorageLocationResponseSchema
+from schemas.request.update_bsl import UpdateBslRequestSchema
 from service.location_credentials import get_credential_service, get_default_credential_service
 
 from schemas.request.create_bsl import CreateBslRequestSchema
@@ -91,7 +92,7 @@ async def create_bsl_service(bsl_data: CreateBslRequestSchema):
     if hasattr(bsl_data, "accessMode") and bsl_data.accessMode in ['ReadOnly', 'ReadWrite']:
         bsl_body["spec"]["accessMode"] = bsl_data.accessMode
 
-    if hasattr(bsl_data, "prefix") and bsl_data.prefix.strip() != '':
+    if hasattr(bsl_data, "prefix") and bsl_data.prefix and bsl_data.prefix.strip() != '':
         bsl_body["spec"]["objectStorage"]["prefix"] = bsl_data.prefix.strip()
 
     if hasattr(bsl_data, "config") and len(bsl_data.config) > 0:
@@ -99,8 +100,8 @@ async def create_bsl_service(bsl_data: CreateBslRequestSchema):
 
     if (hasattr(bsl_data, "credentialName") and
             hasattr(bsl_data, "credentialKey") and
-            bsl_data.credentialName != ''
-            and bsl_data.credentialKey != ''):
+            bsl_data.credentialName and bsl_data.credentialName != '' and
+            bsl_data.credentialKey and bsl_data.credentialKey != ''):
         bsl_body['spec']["credential"] = {
             "name": bsl_data.credentialName,
             "key": bsl_data.credentialKey
@@ -189,4 +190,73 @@ async def remove_default_bsl_service(bsl_name: str):
         name=bsl_name,
         body=patch_body
     )
+    return response
+
+
+@trace_k8s_async_method(description="Update a bsl")
+async def update_bsl_service(bsl_data: UpdateBslRequestSchema):
+    """
+    Update a Backup Storage Location (BSL) in Kubernetes
+    """
+
+    existing_bsl = custom_objects.get_namespaced_custom_object(
+        group=VELERO["GROUP"],
+        version=VELERO["VERSION"],
+        namespace=config_app.k8s.velero_namespace,
+        plural=RESOURCES[ResourcesNames.BACKUP_STORAGE_LOCATION].plural,
+        name=bsl_data.name
+    )
+
+    # Update the necessary fields
+
+    if hasattr(bsl_data, "provider") and bsl_data.provider != '':
+        existing_bsl["spec"]["provider"] = bsl_data.provider.strip()
+
+    if hasattr(bsl_data, "bucket") and bsl_data.bucket != '':
+        existing_bsl["spec"]["objectStorage"]["bucket"] = bsl_data.bucket.strip()
+
+    if hasattr(bsl_data, "prefix") and bsl_data.prefix and bsl_data.prefix.strip() != '':
+        existing_bsl['spec']['objectStorage']['prefix'] = bsl_data.prefix.strip()
+    elif (hasattr(bsl_data, "prefix") and bsl_data.prefix.strip() == '' and
+          'objectStorage' in existing_bsl["spec"] and 'prefix' in existing_bsl['spec']['objectStorage']):
+        existing_bsl['spec']['objectStorage'].pop("prefix")
+
+    if hasattr(bsl_data, "backupSyncPeriod") and bsl_data.backupSyncPeriod != '':
+        existing_bsl["spec"]["backupSyncPeriod"] = bsl_data.backupSyncPeriod
+
+    if hasattr(bsl_data, "validationFrequency") and bsl_data.validationFrequency != '':
+        existing_bsl["spec"]["validationFrequency"] = bsl_data.validationFrequency
+
+    if hasattr(bsl_data, "accessMode") and bsl_data.accessMode in ['ReadOnly', 'ReadWrite']:
+        existing_bsl["spec"]["accessMode"] = bsl_data.accessMode
+
+    if hasattr(bsl_data, "config") and len(bsl_data.config) > 0:
+        existing_bsl["spec"]["config"] = bsl_data.config
+    elif 'config' in existing_bsl["spec"]:
+        existing_bsl["spec"].pop('config')
+
+    if (hasattr(bsl_data, "credentialName") and
+            hasattr(bsl_data, "credentialKey") and
+            bsl_data.credentialName and bsl_data.credentialName != '' and
+            bsl_data.credentialKey and bsl_data.credentialKey != ''):
+        existing_bsl['spec']["credential"] = {
+            "name": bsl_data.credentialName,
+            "key": bsl_data.credentialKey
+        }
+    else:
+        if "spec" in existing_bsl and isinstance(existing_bsl["spec"], dict) and 'credential' in existing_bsl["spec"]:
+            existing_bsl['spec'].pop("credential")
+
+    response = custom_objects.replace_namespaced_custom_object(
+        group=VELERO["GROUP"],
+        version=VELERO["VERSION"],
+        namespace=config_app.k8s.velero_namespace,
+        plural=RESOURCES[ResourcesNames.BACKUP_STORAGE_LOCATION].plural,
+        name=bsl_data.name,
+        body=existing_bsl
+    )
+
+    if bsl_data.default:
+        await set_default_bsl_service(bsl_data.name)
+
     return response

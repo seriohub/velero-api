@@ -1,5 +1,4 @@
 from typing import Optional, Dict, List
-
 from pydantic import BaseModel
 from configs.config_boot import config_app
 

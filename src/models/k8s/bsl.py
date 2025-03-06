@@ -5,8 +5,11 @@ from typing import Optional, Dict
 class BSLObjectStorage(BaseModel):
     """Definisce la configurazione per l'Object Storage"""
     bucket: str
-    caCert: Optional[str] = None  # Alcuni provider potrebbero richiedere un certificato CA
+    prefix: Optional[str] = None
+    caCert: Optional[str] = None
 
+    class Config:
+        extra = "allow"
 
 class BSLCredential(BaseModel):
     """Definisce le credenziali del provider di storage"""
@@ -20,8 +23,8 @@ class BackupStorageLocationSpec(BaseModel):
     objectStorage: Optional[BSLObjectStorage] = None
     credential: Optional[BSLCredential] = None
     backupSyncPeriod: Optional[str] = "2m0s"
-    validationFrequency: Optional[str] = None  # Alcuni provider potrebbero usarlo
-    config: Optional[Dict[str, str]] = None  # Permette configurazioni extra
+    validationFrequency: Optional[str] = None
+    config: Optional[Dict[str, str]] = None
 
     class Config:
         extra = "allow"
