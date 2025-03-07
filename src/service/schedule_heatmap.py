@@ -51,26 +51,33 @@ def _get_cron_events(cron_string, days=7):
 def _cron_heatmap_data(schedules, backups):
     data = []
     for sc in schedules:
-        tmp = {'schedule_name': sc['metadata']['name'],
-               'cron': sc['spec']['schedule'],
-               'last': sc['status']['lastBackup'] if 'lastBackup' in sc['status'] and sc['status'][
-                   'lastBackup'] else ''}
+        tmp = {
+            'schedule_name': sc.get('metadata', {}).get('name', ''),
+            'cron': sc.get('spec', {}).get('schedule', ''),
+            'last': sc.get('status', {}).get('lastBackup', '')
+        }
 
         last_backup = _find_backup(backups, tmp['schedule_name'])
-        if (tmp['last'] != '' and last_backup is not None and 'startTimestamp' in last_backup['status']
-                and 'completionTimestamp' in last_backup['status']):
+        if (tmp['last'] and last_backup and
+                last_backup.get('status', {}).get('startTimestamp') and
+                last_backup.get('status', {}).get('completionTimestamp')):
+
             tmp['last_started'] = last_backup['status']['startTimestamp']
             tmp['last_finished'] = last_backup['status']['completionTimestamp']
+
             time1 = datetime.fromisoformat(tmp['last_started'].replace("Z", "+00:00"))
             time2 = datetime.fromisoformat(tmp['last_finished'].replace("Z", "+00:00"))
             time_difference = time2 - time1
             difference_in_minutes = time_difference.total_seconds() / 60
             tmp['duration'] = math.ceil(difference_in_minutes)
+
             events = _get_cron_events(tmp['cron'])
             for event in events:
                 event['duration'] = math.ceil(difference_in_minutes)
                 event['schedule_name'] = tmp['schedule_name']
+
             tmp['events'] = events
+
         data.append(tmp)
     return data
 
