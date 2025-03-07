@@ -20,7 +20,7 @@ class CreateRestoreRequestSchema(BaseModel):
     includeClusterResources: Optional[bool] = None
     restorePVs: Optional[bool] = True
     preserveNodePorts: Optional[bool] = True
-    #e xistingResourcePolicy: Optional[bool] = True
+    # existingResourcePolicy: Optional[bool] = True
 
     # spec child
     labelSelector: Optional[Dict[str, str]] = None

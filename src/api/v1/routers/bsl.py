@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, status
 from constants.response import common_error_authenticated_response
 
 from schemas.request.delete_resource import DeleteResourceRequestSchema
+from schemas.request.update_bsl import UpdateBslRequestSchema
 from schemas.response.successful_bsl import SuccessfulBslResponse
 from schemas.response.successful_request import SuccessfulRequest
 from schemas.request.create_bsl import CreateBslRequestSchema
@@ -17,7 +18,7 @@ from controllers.bsl import (get_bsls_handler,
                              create_bsl_handler,
                              set_default_bsl_handler,
                              set_remove_default_bsl_handler,
-                             delete_bsl_handler)
+                             delete_bsl_handler, update_bsl_handler)
 
 router = APIRouter()
 
@@ -74,13 +75,13 @@ route = '/bsl'
     response_model=SuccessfulRequest,
     responses=common_error_authenticated_response,
     status_code=status.HTTP_201_CREATED)
-#@handle_exceptions_endpoint
+@handle_exceptions_endpoint
 async def create_bsl(bsl: CreateBslRequestSchema):
     return await create_bsl_handler(bsl=bsl)
 
 
 # ------------------------------------------------------------------------------------------------
-#             SET DEFAULT BACKUP STORAGE
+#             SET DEFAULT BACKUP STORAGE LOCATION
 # ------------------------------------------------------------------------------------------------
 
 
@@ -133,3 +134,30 @@ route = '/bsl'
 @handle_exceptions_endpoint
 async def delete_bsl(bsl: DeleteResourceRequestSchema):
     return await delete_bsl_handler(bsl_name=bsl.name)
+
+
+# ------------------------------------------------------------------------------------------------
+#             UPDATE A BACKUP STORAGE LOCATION
+# ------------------------------------------------------------------------------------------------
+
+
+limiter_update = endpoint_limiter.get_limiter_cust('bsl')
+route = '/bsl'
+
+
+@router.put(
+    path=route,
+    tags=[tag_name],
+    summary='Update a bsl',
+    description=route_description(tag=tag_name,
+                                  route=route,
+                                  limiter_calls=limiter_update.max_request,
+                                  limiter_seconds=limiter_update.seconds),
+    dependencies=[Depends(RateLimiter(interval_seconds=limiter_update.seconds,
+                                      max_requests=limiter_update.max_request))],
+    response_model=SuccessfulRequest,
+    responses=common_error_authenticated_response,
+    status_code=status.HTTP_200_OK)
+@handle_exceptions_endpoint
+async def update_bsl(bsl: UpdateBslRequestSchema):
+    return await update_bsl_handler(bsl=bsl)

@@ -1,5 +1,6 @@
 from fastapi.responses import JSONResponse
 
+from schemas.request.update_bsl import UpdateBslRequestSchema
 from schemas.response.successful_request import SuccessfulRequest
 from schemas.notification import Notification
 from schemas.request.create_bsl import CreateBslRequestSchema
@@ -9,7 +10,8 @@ from service.bsl import (remove_default_bsl_service,
                          set_default_bsl_service,
                          create_bsl_service,
                          delete_bsl_service,
-                         get_bsls_service)
+                         get_bsls_service,
+                         update_bsl_service)
 
 
 async def get_bsls_handler():
@@ -28,7 +30,6 @@ async def create_bsl_handler(bsl: CreateBslRequestSchema):
 
 
 async def set_default_bsl_handler(default_bsl: DefaultBslRequestSchema):
-
     payload = await set_default_bsl_service(default_bsl.name)
 
     msg = Notification(title='Default bsl', description=f"BSL {default_bsl.name} set as default!", type_='INFO')
@@ -53,4 +54,15 @@ async def delete_bsl_handler(bsl_name: str):
 
     response = SuccessfulRequest(payload=payload)
     response.notifications = [msg]
+    return JSONResponse(content=response.model_dump(), status_code=200)
+
+
+async def update_bsl_handler(bsl: UpdateBslRequestSchema):
+    payload = await update_bsl_service(bsl_data=bsl)
+
+    msg = Notification(title='Bsl',
+                       description=f"Bsl '{bsl.name}' successfully updated.",
+                       type_='INFO')
+
+    response = SuccessfulRequest(payload=payload, notifications=[msg])
     return JSONResponse(content=response.model_dump(), status_code=200)

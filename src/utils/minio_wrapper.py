@@ -84,8 +84,7 @@ class MinioInterface:
                     secure=aws_secure_connection  # Use SSL/TLS
                 )
                 files, total_size_mb = await minio_client.get_total_size_mb(bucket_name=bucket_name,
-                                                                            prefix=repository_type + '/' +
-                                                                                   volume_namespace)
+                                                                            prefix=repository_type + '/' + volume_namespace)
                 data = {'files': files, 'total_size_mb': total_size_mb}
                 return {'success': True, 'data': data}
             else:

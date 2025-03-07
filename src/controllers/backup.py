@@ -70,7 +70,7 @@ async def create_backup_from_schedule_handler(backup: CreateBackupFromScheduleRe
 
 async def update_backup_expiration_handler(ttl: UpdateBackupExpirationRequestSchema):
     payload = await update_backup_expiration_service(backup_name=ttl.backupName,
-                                           expiration=ttl.expiration)
+                                                     expiration=ttl.expiration)
 
     msg = Notification(title='TTL Updated',
                        description=f"Backup {ttl.backupName} expiration updated!",

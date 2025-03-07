@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, status
 
 from constants.response import common_error_authenticated_response
+from schemas.request.update_vsl import UpdateVslRequestSchema
 
 from security.helpers.rate_limiter import RateLimiter, LimiterRequests
 
@@ -12,7 +13,7 @@ from schemas.request.delete_resource import DeleteResourceRequestSchema
 
 from controllers.vsl import (get_vsl_handler,
                              create_vsl_handler,
-                             delete_vsl_handler)
+                             delete_vsl_handler, update_vsl_handler)
 
 from schemas.request.create_vsl import CreateVslRequestSchema
 
@@ -103,3 +104,29 @@ route = '/vsl'
 @handle_exceptions_endpoint
 async def delete_vsl(vsl: DeleteResourceRequestSchema):
     return await delete_vsl_handler(bsl_delete=vsl.name)
+
+# ------------------------------------------------------------------------------------------------
+#             UPDATE A BACKUP STORAGE LOCATION
+# ------------------------------------------------------------------------------------------------
+
+
+limiter_update = endpoint_limiter.get_limiter_cust('vsl')
+route = '/vsl'
+
+
+@router.put(
+    path=route,
+    tags=[tag_name],
+    summary='Update a bsl',
+    description=route_description(tag=tag_name,
+                                  route=route,
+                                  limiter_calls=limiter_update.max_request,
+                                  limiter_seconds=limiter_update.seconds),
+    dependencies=[Depends(RateLimiter(interval_seconds=limiter_update.seconds,
+                                      max_requests=limiter_update.max_request))],
+    response_model=SuccessfulRequest,
+    responses=common_error_authenticated_response,
+    status_code=status.HTTP_200_OK)
+@handle_exceptions_endpoint
+async def update_bsl(vsl: UpdateVslRequestSchema):
+    return await update_vsl_handler(vsl=vsl)

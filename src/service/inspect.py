@@ -1,7 +1,7 @@
 import json
 import os
 
-from fastapi import HTTPException
+# from fastapi import HTTPException
 
 from utils.logger_boot import logger
 

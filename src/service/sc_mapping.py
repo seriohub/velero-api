@@ -121,8 +121,7 @@ async def delete_storages_classes_mapping_service(data_list=None):
         config_map = payload
         for item in config_map:
             item.pop('id', None)
-            if item['oldStorageClass'] == data_list['oldStorageClass'] and item['newStorageClass'] == data_list[
-                'newStorageClass']:
+            if item['oldStorageClass'] == data_list['oldStorageClass'] and item['newStorageClass'] == data_list['newStorageClass']:
                 config_map.remove(item)
 
         await __set_storages_classes_map(data_list=config_map)

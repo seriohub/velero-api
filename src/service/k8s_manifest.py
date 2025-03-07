@@ -25,7 +25,6 @@ async def get_k8s_resource_manifest_service(kind: str,
     :param namespace: Namespace of the resource (None for cluster-wide resources).
     :param api_version: API Version of the resource (ex: “apps/v1”, “batch/v1”, “velero.io/v1”).
     :param is_cluster_resource: True if the resource is cluster-wide (ex: Nodes, StorageClasses).
-    :param plural: Required for CRD (ex: “backups” for Velero).
     :param neat: If True, returns the manifest without superfluous metadata.
     :return: The manifest of the resource as a dictionary.
     """
@@ -102,7 +101,7 @@ async def get_k8s_resource_manifest_service(kind: str,
             # Check API core (`v1`)
             if api_version == "v1":
                 if kind in core_resources:
-                   response = core_resources[kind](name=name, namespace=namespace).to_dict()
+                    response = core_resources[kind](name=name, namespace=namespace).to_dict()
                 elif is_cluster_resource and kind in cluster_resources:
                     response = cluster_resources[kind](name=name).to_dict()
                 else:

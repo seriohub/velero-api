@@ -1,5 +1,4 @@
 from typing import Optional, Dict, List
-
 from pydantic import BaseModel
 from configs.config_boot import config_app
 
@@ -25,7 +24,7 @@ class CreateScheduleRequestSchema(BaseModel):
     includedClusterScopedResources: Optional[List[str]] = None
     excludedNamespaceScopedResources: Optional[List[str]] = None
     includedNamespaceScopedResources: Optional[List[str]] = None
-    snapshotVolumes: Optional[bool] = None
+    snapshotVolumes: Optional[bool | None] = None
     storageLocation: Optional[str] = None
     volumeSnapshotLocations: Optional[List[str]] = None
     ttl: Optional[str] = "24h"

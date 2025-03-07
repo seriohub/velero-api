@@ -15,12 +15,12 @@ class CreateBackupRequestSchema(BaseModel):
     includedResources: Optional[List[str]] = None
     excludedResources: Optional[List[str]] = None
     orderedResources: Optional[Dict[str, List[str]]] = None
-    includeClusterResources: Optional[bool] = None
+    includeClusterResources: Optional[bool | None] = None
     excludedClusterScopedResources: Optional[List[str]] = None
     includedClusterScopedResources: Optional[List[str]] = None
     excludedNamespaceScopedResources: Optional[List[str]] = None
     includedNamespaceScopedResources: Optional[List[str]] = None
-    snapshotVolumes: Optional[bool] = None
+    snapshotVolumes: Optional[bool | None] = None
     storageLocation: Optional[str] = None
     volumeSnapshotLocations: Optional[List[str]] = None
     ttl: Optional[str] = "24h"

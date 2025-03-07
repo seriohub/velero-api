@@ -16,7 +16,6 @@ from controllers.health import get_k8s_online_handler
 router = APIRouter()
 
 
-
 tag_name = 'Health'
 
 endpoint_limiter = LimiterRequests(tags=tag_name,

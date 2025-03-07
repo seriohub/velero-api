@@ -15,7 +15,7 @@ class SuccessfulRequest(BaseModel, Generic[T]):
     def __init__(self, payload: Union[T, List[T], Dict[str, Any], None] = None,
                  # metadata: Dict[str, Any] = None,
                  notifications: List[Union[Notification, Dict[str, Any]]] = None,
-                 messages: List[Union[Message, Dict[str, Any]]] = None, **data: Any):
+                 messages: List[Union[Message, Dict[str, Any]]] = None):
         formatted_data = payload
         super().__init__(
             data=formatted_data,
