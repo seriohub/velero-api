@@ -13,6 +13,12 @@ VELERO_LOG_TYPES = {
     "restore": "RestoreLog"
 }
 
+ACCEPTED_MIME_TYPES = [
+    "application/gzip",
+    "binary/octet-stream",
+    "application/octet-stream"
+]
+
 @trace_k8s_async_method(description="Get velero resource logs")
 async def get_velero_logs_service(resource_name: str, resource_type: str) -> VeleroLog:
     """Retrieve logs from a Velero resource (Backup, Restore, etc.) using DownloadRequest"""
@@ -46,9 +52,9 @@ async def _download_and_extract_logs(log_url: str) -> VeleroLog:
             raise HTTPException(status_code=400, detail=f"Download error: {response.status_code}")
 
         # Check the type of content
-        content_type = response.headers.get("Content-Type", "")
-        if "application/gzip" not in content_type and "binary/octet-stream" not in content_type:
-            raise HTTPException(status_code=400, detail=f"Invalid response: Content-Type {content_type}")
+        mime_type = response.headers.get("Content-Type", "").split(";")[0]
+        if mime_type not in ACCEPTED_MIME_TYPES:
+            raise HTTPException(status_code=400, detail=f"Invalid response: Unsupported mime type '{mime_type}'")
 
         with tempfile.NamedTemporaryFile(delete=True) as temp_file:
             temp_file.write(response.content)
