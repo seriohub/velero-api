@@ -5,11 +5,12 @@ from kubernetes.client import ApiException
 from datetime import datetime
 
 from configs.config_boot import config_app
+from constants.resources import RESOURCES, ResourcesNames
 from constants.velero import VELERO
 from utils.k8s_tracer import trace_k8s_async_method
 
 from utils.logger_boot import logger
-
+import re
 
 async def _get_node_list(only_problem=False):
     """
@@ -210,9 +211,11 @@ def _kubectl_neat(manifest):
 
     return clean_dict(manifest)
 
+def _to_snake_case(phrase):
+    return re.sub(r'(?<!^)(?=[A-Z])', '_', phrase).upper()
 
 @trace_k8s_async_method(description="Get resource manifest")
-async def get_resource_manifest_service(resource_type: str, resource_name: str, neat=False):
+async def get_velero_resource_manifest_service(resource_type: str, resource_name: str, neat=False):
     # Create an instance of the API client
     api_instance = client.CustomObjectsApi()
 
@@ -221,7 +224,7 @@ async def get_resource_manifest_service(resource_type: str, resource_name: str, 
     # Group, version and plural to access Velero backups
     group = VELERO['GROUP']
     version = VELERO['VERSION']
-    plural = resource_type
+    plural = RESOURCES[ResourcesNames[_to_snake_case(resource_type)]].plural
 
     try:
         # API call to get backups

@@ -31,7 +31,7 @@ async def get_velero_logs_service(resource_name: str, resource_type: str) -> Vel
         logs = await _download_and_extract_logs(log_url)
 
         # DownloadRequest cleanup to avoid buildup
-        cleanup_download_request(resource_name)
+        # cleanup_download_request(resource_name)
         return logs
 
     except Exception as e:

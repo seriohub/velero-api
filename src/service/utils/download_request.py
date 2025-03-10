@@ -140,7 +140,8 @@ def cleanup_download_request(resource_name: str):
     :param resource_name: Name of the resource associated with the DownloadRequest.
     """
     logger.info(f"Cleanup download request {resource_name}")
-    download_request_name = f"download-{resource_name}"
+    # download_request_name = f"download-{resource_name}"
+    download_request_name = f"{resource_name}"
     try:
         custom_objects.delete_namespaced_custom_object(
             group=VELERO["GROUP"],
