@@ -178,14 +178,17 @@ class WebSocketManager:
     async def watch_velero_resource(self, plural, namespace=config_app.k8s.velero_namespace):
         """Monitor a single Velero resource and send WebSocket notifications without blocking the loop"""
         # Load Kubernetes configuration
+        print("debug: watch velero resource", plural)
         try:
+            print("debug: try incluster mode")
             await config.load_incluster_config()
             # logger.info("Kubernetes in cluster mode....")
         except config.ConfigException:
+            print("debug: except mode")
             # Use local kubeconfig file if running locally
             await config.load_kube_config(config_file=config_app.k8s.kube_config)
             # logger.info("Kubernetes load local kube config...")
-
+        print("debug")
         crd_api = client.CustomObjectsApi()
         w = watch.Watch()
 
