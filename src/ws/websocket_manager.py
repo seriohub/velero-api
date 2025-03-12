@@ -127,11 +127,11 @@ class WebSocketManager:
                     if "action" in data:
                         if data["action"] == "ping":
                             await websocket.send_text(json.dumps({"type": "pong"}))
-                        if data["action"] == "watch" and isinstance(data.get("plural"), str):
+                        if data["action"] == "watch" and "plural" in data.keys() and isinstance(data.get("plural"), str):
                             try:
                                 await self.watch_user_resource(user_id=user_id, plural=data["plural"], namespace=config_app.k8s.velero_namespace)
                             except Exception as e:
-                                print(f"Error in watch_user_resource: {e}, user_id={user_id}, plural={data["plural"]}, namespace={config_app.k8s.velero_namespace}")
+                                print(f"Error in watch_user_resource: {e}, user_id={user_id}, plural={data['plural']}, namespace={config_app.k8s.velero_namespace}")
                                 if hasattr(self, 'watch_user_resource'):
                                     print("watch_user_resource exists")
                                 else:
