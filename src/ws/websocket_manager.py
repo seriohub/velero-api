@@ -127,7 +127,7 @@ class WebSocketManager:
                     if "action" in data:
                         if data["action"] == "ping":
                             await websocket.send_text(json.dumps({"type": "pong"}))
-                        if data["action"] == "watch" and 'plural' in data:
+                        if data["action"] == "watch" and 'plural' in data.keys():
                             await self.watch_user_resource(user_id=user_id,
                                                            plural=data["plural"])
                         if data["action"] == "watch:clear":
@@ -175,7 +175,7 @@ class WebSocketManager:
                 task.cancel()
             self.watch_tasks.clear()
 
-    async def watch_velero_resource(self, plural, namespace=config_app.k8s.velero_namespace ):
+    async def watch_velero_resource(self, plural, namespace=config_app.k8s.velero_namespace):
         """Monitor a single Velero resource and send WebSocket notifications without blocking the loop"""
         # Load Kubernetes configuration
         try:
