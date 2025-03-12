@@ -189,7 +189,7 @@ class WebSocketManager:
         """Monitor a single Velero resource and send WebSocket notifications without blocking the loop"""
         # Load Kubernetes configuration
         try:
-            await config.load_incluster_config()
+            config.load_incluster_config()
             # logger.info("Kubernetes in cluster mode....")
         except config.ConfigException:
             # Use local kubeconfig file if running locally
@@ -268,39 +268,43 @@ class WebSocketManager:
             print(f"ℹ️ [{user_id}] No active watches to clear.")
 
     async def watch_user_resource(self, user_id, plural, namespace):
-        print(f"🔍 Avvio watch_user_resource per user_id={user_id}, plural={plural}, namespace={namespace}")
+        """
+        Allows a user to watch multiple resources (plurals) simultaneously.
 
+        📌 Each `plural` is watched separately, and a user can have multiple active watches.
+        📌 If a user is already watching the requested resource type, the existing watch is not interrupted.
+        """
+
+        # 📌 Ensure that `plural` is provided
         if not plural:
-            print(f"⚠️ [{user_id}] Errore: `plural` è richiesto per avviare il watch.")
+            print(f"⚠️ [{user_id}] Error: `plural` parameter is required to start a watch.")
             return
 
+        # Initialize user watch dictionary if it doesn't exist
         if user_id not in self.user_watch_tasks:
             self.user_watch_tasks[user_id] = {}
 
+        # If the user is already watching this `plural`, do nothing
         if plural in self.user_watch_tasks[user_id]:
-            print(f"ℹ️ [{user_id}] Già in ascolto di {plural}, nessuna azione richiesta.")
+            print(f"ℹ️ [{user_id}] Already watching {plural}. No action taken.")
             return
 
+        # 📌 Load Kubernetes configuration
         try:
-            await config.load_incluster_config()
-            print("✅ Configurazione Kubernetes caricata correttamente in cluster.")
+            config.load_incluster_config()
+            # logger.info("Kubernetes in cluster mode....")
         except config.ConfigException:
-            try:
-                await config.load_kube_config(config_file=config_app.k8s.kube_config)
-                print("✅ Configurazione Kubernetes locale caricata.")
-            except Exception as e:
-                print(f"❌ Errore nel caricamento della configurazione Kubernetes: {e}")
-                return
+            # Use local kubeconfig file if running locally
+            await config.load_kube_config(config_file=config_app.k8s.kube_config)
+            # logger.info("Kubernetes load local kube config...")
 
-        try:
-            crd_api = client.CustomObjectsApi()
-            print("✅ Client Kubernetes CustomObjectsApi inizializzato")
-        except Exception as e:
-            print(f"❌ Errore nell'inizializzazione di CustomObjectsApi: {e}")
-            return
-
+        crd_api = client.CustomObjectsApi()
+        w = watch.Watch()
         last_resource_version = None
+        watch_target = f"all resources of type {plural}"
+
         try:
+            # 📌 Get the latest resourceVersion to avoid duplicate events
             response = await crd_api.list_namespaced_custom_object(
                 group="velero.io",
                 version="v1",
@@ -308,21 +312,23 @@ class WebSocketManager:
                 plural=plural
             )
             last_resource_version = response.get("metadata", {}).get("resourceVersion")
-            print(f"✅ [{user_id}] ResourceVersion: {last_resource_version}")
+
+            print(f"📌 [{user_id}] Starting watch for {watch_target} from resourceVersion: {last_resource_version}")
+
         except client.exceptions.ApiException as e:
-            print(f"⚠️ [{user_id}] API Exception: {e}")
+            print(f"⚠️ [{user_id}] Error fetching resourceVersion for {watch_target}: {e}")
             return
         except Exception as e:
-            print(f"⚠️ [{user_id}] Errore inatteso durante la richiesta API: {e}")
+            print(f"⚠️ [{user_id}] Unexpected error while fetching resourceVersion: {e}")
             return
 
         async def user_watch():
+            """Watches the selected resource type and sends updates to the user via WebSocket."""
             nonlocal last_resource_version
-            print(f"👀 [{user_id}] Inizio watch su {plural}")
 
             while user_id in self.active_connections:
                 try:
-                    async for event in watch.Watch().stream(
+                    async for event in w.stream(
                             crd_api.list_namespaced_custom_object,
                             group="velero.io",
                             version="v1",
@@ -331,34 +337,38 @@ class WebSocketManager:
                             resource_version=last_resource_version,
                             timeout_seconds=60
                     ):
-                        last_resource_version = event["object"]["metadata"]["resourceVersion"]
+                        event_type = event["type"]
+                        event_resource = event["object"]
+
+                        # 🔄 Update resourceVersion to avoid processing old events
+                        last_resource_version = event_resource["metadata"]["resourceVersion"]
+
                         message = json.dumps({
                             "type": "user_watch",
                             "resources": plural,
-                            "event_type": event["type"],
-                            "resource": event["object"]
+                            "event_type": event_type,
+                            "resource": event_resource
                         })
-                        print(f"📢 [{user_id}] Nuovo evento ricevuto.")
+
+                        print(f"📢 [{user_id}] New event: {message}")
                         await self.send_personal_message(user_id, message)
 
                 except client.exceptions.ApiException as e:
-                    if e.status == 410:
-                        print(f"⚠️ [{user_id}] ResourceVersion scaduto, riavvio watch...")
+                    if e.status == 410:  # ResourceVersion too old, reset the watch
+                        print(f"⚠️ [{user_id}] ResourceVersion expired for {watch_target}, restarting watch...")
                         return await self.watch_user_resource(user_id, plural=plural, namespace=namespace)
                     else:
-                        print(f"❌ [{user_id}] API Error: {e}")
+                        print(f"❌ [{user_id}] API Error in watch for {watch_target}: {e}")
                 except Exception as e:
-                    print(f"⚠️ [{user_id}] Errore generale nel watch: {e}")
+                    print(f"⚠️ [{user_id}] General error in watch for {watch_target}: {e}")
                 finally:
-                    print(f"🔄 [{user_id}] Riconnessione a {plural} tra 5 secondi...")
+                    print(f"🔄 [{user_id}] Reconnecting to {watch_target} in 5 seconds...")
                     await asyncio.sleep(5)
 
-        try:
-            task = asyncio.create_task(user_watch())
-            print(f"✅ [{user_id}] Watch task creato: {task}")
-            self.user_watch_tasks[user_id][plural] = task
-        except Exception as e:
-            print(f"❌ Errore nella creazione del task per watch_user_resource: {e}")
+        # 📌 Start the watch as a separate async task and store it in the user's watch list
+        self.user_watch_tasks[user_id][plural] = asyncio.create_task(user_watch())
+
+        print(f"✅ [{user_id}] Now watching {plural}.")
 
 
 manager = WebSocketManager()
