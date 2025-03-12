@@ -129,9 +129,9 @@ class WebSocketManager:
                             await websocket.send_text(json.dumps({"type": "pong"}))
                         if data["action"] == "watch" and isinstance(data.get("plural"), str):
                             try:
-                                await self.watch_user_resource(user_id=user_id, plural=data["plural"])
+                                await self.watch_user_resource(user_id=user_id, plural=data["plural"], namespace=config_app.k8s.velero_namespace)
                             except Exception as e:
-                                print(f"Error in watch_user_resource: {e}")
+                                print(f"Error in watch_user_resource: {e}, namespace={config_app.k8s.velero_namespace}")
                         if data["action"] == "watch:clear":
                             try:
                                 await self.clear_watch_user_resource(user_id)
@@ -169,7 +169,7 @@ class WebSocketManager:
             resources = ["backups", "restores", "serverstatusrequests", "downloadrequests", "deletebackuprequests"]
 
             # Start a task for each resource and keep them in the list
-            self.watch_tasks = [asyncio.create_task(self.watch_velero_resource(resource)) for resource in resources]
+            self.watch_tasks = [asyncio.create_task(self.watch_velero_resource(resource, config_app.k8s.velero_namespace)) for resource in resources]
 
     async def stop_global_watch_tasks(self):
         """Stop all Global Watch."""
@@ -180,7 +180,7 @@ class WebSocketManager:
                 task.cancel()
             self.watch_tasks.clear()
 
-    async def watch_velero_resource(self, plural, namespace=config_app.k8s.velero_namespace):
+    async def watch_velero_resource(self, plural, namespace):
         """Monitor a single Velero resource and send WebSocket notifications without blocking the loop"""
         # Load Kubernetes configuration
         try:
@@ -262,7 +262,7 @@ class WebSocketManager:
         else:
             print(f"ℹ️ [{user_id}] No active watches to clear.")
 
-    async def watch_user_resource(self, user_id, plural, namespace=config_app.k8s.velero_namespace):
+    async def watch_user_resource(self, user_id, plural, namespace):
         """
         Allows a user to watch multiple resources (plurals) simultaneously.
 
