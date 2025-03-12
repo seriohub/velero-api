@@ -127,11 +127,16 @@ class WebSocketManager:
                     if "action" in data:
                         if data["action"] == "ping":
                             await websocket.send_text(json.dumps({"type": "pong"}))
-                        if data["action"] == "watch" and 'plural' in data.keys():
-                            await self.watch_user_resource(user_id=user_id,
-                                                           plural=data["plural"])
+                        if data["action"] == "watch" and isinstance(data.get("plural"), str):
+                            try:
+                                await self.watch_user_resource(user_id=user_id, plural=data["plural"])
+                            except Exception as e:
+                                print(f"Error in watch_user_resource: {e}")
                         if data["action"] == "watch:clear":
-                            await self.clear_watch_user_resource(user_id)
+                            try:
+                                await self.clear_watch_user_resource(user_id)
+                            except Exception as e:
+                                print(f"Error in clear_watch_user_resource: {e}")
 
                         # elif data["action"] == "broadcast":
                         #     await self.broadcast(json.dumps({"message": data.get("message", "")}))
@@ -178,17 +183,14 @@ class WebSocketManager:
     async def watch_velero_resource(self, plural, namespace=config_app.k8s.velero_namespace):
         """Monitor a single Velero resource and send WebSocket notifications without blocking the loop"""
         # Load Kubernetes configuration
-        print("debug: watch velero resource", plural)
         try:
-            print("debug: try incluster mode")
             await config.load_incluster_config()
             # logger.info("Kubernetes in cluster mode....")
         except config.ConfigException:
-            print("debug: except mode")
             # Use local kubeconfig file if running locally
             await config.load_kube_config(config_file=config_app.k8s.kube_config)
             # logger.info("Kubernetes load local kube config...")
-        print("debug")
+
         crd_api = client.CustomObjectsApi()
         w = watch.Watch()
 
