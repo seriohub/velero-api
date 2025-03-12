@@ -244,4 +244,4 @@ async def get_velero_resource_manifest_service(resource_type: str, resource_name
         return manifest
     except Exception as e:
         logger.error(f"Error: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"{str(e)}")
+        raise HTTPException(status_code=404, detail=f"{str(e)}")

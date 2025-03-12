@@ -16,7 +16,10 @@ class BackupPhase(str, Enum):
     PARTIALLY_FAILED = "PartiallyFailed"
     FAILED = "Failed"
     DELETING = "Deleting"
+    FINALIZING = "Finalizing"
 
+    class Config:
+        extra = "allow"
 
 # BACKUP RESOURCE POLICY
 class ResourcePolicy(BaseModel):

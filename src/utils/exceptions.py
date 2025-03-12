@@ -20,6 +20,8 @@ def handle_exceptions_endpoint(fn):
     async def wrapper(*args, **kw):
         try:
             return await fn(*args, **kw)
+        except HTTPException as http_ex:
+            raise http_ex
         except Exception as Ex:
             _, _, exc_tb = sys.exc_info()
             tb_last = traceback.extract_tb(exc_tb)[-1]

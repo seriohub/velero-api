@@ -76,7 +76,6 @@ async def create_restore_service(restore_data: CreateRestoreRequestSchema):
     spec.pop("namespace", None)
     spec.pop("labelSelector", None)
     spec.pop("orLabelSelectors", None)
-    spec.pop("parallelFilesUpload", None)
     spec.pop("writeSparseFiles", None)
 
     restore_body = {
@@ -94,7 +93,6 @@ async def create_restore_service(restore_data: CreateRestoreRequestSchema):
 
     restore_body['spec']['uploaderConfig'] = {
         'writeSparseFiles': restore_data.writeSparseFiles,
-        'parallelFilesUpload': restore_data.parallelFilesUpload,
     }
 
     response = custom_objects.create_namespaced_custom_object(
