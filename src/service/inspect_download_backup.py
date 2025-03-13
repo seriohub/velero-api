@@ -29,7 +29,7 @@ async def inspect_download_backup_service(backup_name: str) -> bool:
         await _download_and_extract_contents(backup_name, backup_url)
 
         # DownloadRequest cleanup to avoid buildup
-        cleanup_download_request(backup_name)
+        # cleanup_download_request(backup_name)
         return True
 
     except Exception as e:

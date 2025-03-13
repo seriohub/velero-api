@@ -16,6 +16,7 @@ from constants.resources import RESOURCES, ResourcesNames
 from schemas.request.create_backup import CreateBackupRequestSchema
 
 from models.k8s.backup import BackupResponseSchema
+from utils.logger_boot import logger
 
 custom_objects = client.CustomObjectsApi()
 
@@ -164,28 +165,77 @@ async def create_backup_service(backup_data: CreateBackupRequestSchema):
     return response
 
 
+async def _get_schedule(schedule_name: str):
+    """Retrieve Velero scheduling details"""
+
+    return custom_objects.get_namespaced_custom_object(
+        group=VELERO["GROUP"],
+        version=VELERO["VERSION"],
+        namespace=config_app.k8s.velero_namespace,
+        plural=RESOURCES[ResourcesNames.SCHEDULE].plural,
+        name=schedule_name
+    )
+
 @trace_k8s_async_method(description="Create backup from schedule name")
 async def create_backup_from_schedule_service(schedule_name: str):
     """Create a backup based on a Velero schedule"""
     namespace = config_app.k8s.velero_namespace
 
-    #  Generate a name for the backup
+    # Retrieve scheduling details
+    schedule = await _get_schedule(schedule_name)
+
+    # Generate a name for the backup
     timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
     backup_name = f"{schedule_name}-{timestamp}"
 
-    # Defining the payload for creating the backup
+    # Determines the correct labels
+    labels = schedule.get("metadata", {}).get("labels", {}).copy()
+    template_labels = schedule.get("spec", {}).get("template", {}).get("metadata", {}).get("labels")
+
+    if template_labels:
+        logger.info(f"Using the labels defined in the schedule template for backup: {template_labels}")
+        labels = template_labels
+    else:
+        logger.info(f"Using scheduling labels for backup: {labels}")
+
+    if labels is None:
+        labels = {}
+
+    labels["velero.io/schedule-name"] = schedule_name
+
+    # Determines annotations
+    annotations = schedule.get("metadata", {}).get("annotations", {})
+
+    # Builds the backup body
     backup_body = {
         "apiVersion": f"{VELERO['GROUP']}/{VELERO['VERSION']}",
         "kind": RESOURCES[ResourcesNames.BACKUP].name,
         "metadata": {
             "name": backup_name,
             "namespace": namespace,
-            "labels": {
-                "velero.io/schedule-name": schedule_name
-            }
-        }
+            "labels": labels,
+            "annotations": annotations
+        },
+        "spec": schedule.get("spec", {}).get("template", {})
     }
 
+    # Adds Owner References if required
+    use_owner_references = schedule.get("spec", {}).get("useOwnerReferencesInBackup", False)
+    if use_owner_references:
+        backup_body["metadata"]["ownerReferences"] = [{
+            "apiVersion": f"{VELERO['GROUP']}/{VELERO['VERSION']}",
+            "kind": RESOURCES[ResourcesNames.SCHEDULE].name,
+            "name": schedule_name,
+            "uid": schedule.get("metadata", {}).get("uid"),
+            "controller": True
+        }]
+
+    # Adds policies on resources, if any
+    resource_policy = schedule.get("spec", {}).get("template", {}).get("resourcePolicy")
+    if resource_policy:
+        backup_body["spec"]["resourcePolicy"] = {"name": resource_policy.get("name")}
+
+    # Create the backup using the Kubernetes API
     response = custom_objects.create_namespaced_custom_object(
         group=VELERO["GROUP"],
         version=VELERO["VERSION"],

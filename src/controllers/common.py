@@ -18,9 +18,9 @@ async def get_resource_describe_handler(resource_name: str, resource_type: str):
 async def get_resource_logs_handler(resource_name: str, resource_type: str):
     payload = await get_velero_logs_service(resource_name, resource_type)
 
-    logs = payload.logs
+    # logs = payload.logs
 
-    data = logs_string_to_list('\n'.join(logs))
+    # data = logs_string_to_list('\n'.join(logs))
 
-    response = SuccessfulRequest(payload={'text': logs, 'table': data})
+    response = SuccessfulRequest(payload=payload)
     return JSONResponse(content=response.model_dump(), status_code=200)

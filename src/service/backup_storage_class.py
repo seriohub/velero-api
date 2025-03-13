@@ -32,7 +32,7 @@ async def get_backup_storage_classes_service(backup_name: str) -> VeleroStorageC
     storage_classes = await _extract_storage_classes_from_pvc_service(extracted_path)
 
     # Cleaning the DownloadRequest after use
-    cleanup_download_request(backup_name)
+    # cleanup_download_request(backup_name)
 
     if storage_classes:
         return VeleroStorageClass(storage_classes=storage_classes)

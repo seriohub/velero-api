@@ -24,8 +24,8 @@ async def create_download_request(resource_name: str, resource_kind: str) -> Opt
     :param resource_kind: Type of the resource (BackupLog, BackupContents, etc.).
     :return: URL for download or None if it fails
     """
-    logger.info(f"Create download request download-{resource_name}")
-    download_request_name = f"download-{resource_name}"
+    logger.info(f"Create download request download-{resource_name}-{resource_kind.lower()}")
+    download_request_name = f"download-{resource_name}-{resource_kind.lower()}"
 
     try:
         # Check if a DownloadRequest already exists
@@ -140,7 +140,8 @@ def cleanup_download_request(resource_name: str):
     :param resource_name: Name of the resource associated with the DownloadRequest.
     """
     logger.info(f"Cleanup download request {resource_name}")
-    download_request_name = f"download-{resource_name}"
+    # download_request_name = f"download-{resource_name}"
+    download_request_name = f"{resource_name}"
     try:
         custom_objects.delete_namespaced_custom_object(
             group=VELERO["GROUP"],

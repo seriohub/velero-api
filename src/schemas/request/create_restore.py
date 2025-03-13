@@ -25,4 +25,3 @@ class CreateRestoreRequestSchema(BaseModel):
     # spec child
     labelSelector: Optional[Dict[str, str]] = None
     writeSparseFiles: Optional[bool] = True
-    parallelFilesUpload: Optional[int] = 10

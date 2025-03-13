@@ -13,7 +13,8 @@ from api.v1.routers import (sc_mapping,
                             watchdog,
                             pvb,
                             location,
-                            inspect)
+                            inspect,
+                            requests)
 from security.routers import authentication, user
 from security.authentication.auth_service import get_current_active_user
 
@@ -56,6 +57,8 @@ if config_app.app.auth_enabled:
                       dependencies=[Depends(get_current_active_user)])
     v1.include_router(inspect.router,
                       dependencies=[Depends(get_current_active_user)])
+    v1.include_router(requests.router,
+                      dependencies=[Depends(get_current_active_user)])
 
 else:
     v1.include_router(backup.router)
@@ -72,3 +75,4 @@ else:
     v1.include_router(watchdog.router)
     v1.include_router(location.router)
     v1.include_router(inspect.router)
+    v1.include_router(requests.router)
