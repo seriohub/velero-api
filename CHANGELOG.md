@@ -7,11 +7,11 @@ All notable changes to this project will be documented in this file.
 [v0.2.2] - 2025-03-13
 
 🆕 New Features
-- Implemented event-driven UI management via socket communication.
+- Implemented event-driven UI management via socket communication
 
 - 🛠️ Fixes
 - Fixed logs download
-- Fixed backup creation from schedule.
+- Fixed backup creation from schedule
 
 ## [v0.2.1] - 2025-03-07
 
