@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+[v0.2.2] - 2025-03-13
+
+🆕 New Features
+- Implemented event-driven UI management via socket communication.
+
+- 🛠️ Fixes
+Fixed backup creation from schedule.
+
 ## [v0.2.1] - 2025-03-07
 
 🆕 New Features
@@ -191,6 +199,10 @@ Improvements
 ***
 
 ## Tags
+
+[v0.2.2] : [https://github.com/seriohub/velero-api/releases/tag/v0.2.2](https://github.com/seriohub/velero-api/releases/tag/v0.2.2)
+
+[v0.2.1] : [https://github.com/seriohub/velero-api/releases/tag/v0.2.1](https://github.com/seriohub/velero-api/releases/tag/v0.2.1)
 
 [v0.2.0] : [https://github.com/seriohub/velero-api/releases/tag/v0.2.0](https://github.com/seriohub/velero-api/releases/tag/v0.2.0)
 
