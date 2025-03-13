@@ -10,7 +10,8 @@ All notable changes to this project will be documented in this file.
 - Implemented event-driven UI management via socket communication.
 
 - 🛠️ Fixes
-Fixed backup creation from schedule.
+- Fixed logs download
+- Fixed backup creation from schedule.
 
 ## [v0.2.1] - 2025-03-07
 
@@ -18,9 +19,9 @@ Fixed backup creation from schedule.
 - Added BSL update feature
 - Added VSL update feature
 
-Fixed
-- Fix namespace error in podvolumebackups
-- Other minor fix
+🛠️ Fixes
+- Fixed logs download
+- Fixed backup creation from schedule
 
 ## [v0.2.0] - 2025-03-04
 
