@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ***
 
-[v0.2.2] - 2025-03-13
+## [v0.2.2] - 2025-03-13
 
 🆕 New Features
 - Implemented event-driven UI management via socket communication
