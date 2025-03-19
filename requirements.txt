@@ -29,7 +29,7 @@ nats-py==2.8.0
 oauthlib==3.2.2
 passlib==1.7.4
 propcache==0.2.1
-pyasn1==0.6.1
+pyasn1==0.4.6
 pyasn1_modules==0.4.1
 pycparser==2.22
 pycryptodome==3.21.0
