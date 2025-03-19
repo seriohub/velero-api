@@ -36,26 +36,31 @@ def _parse_version_output(output):
 @trace_k8s_async_method(description="Get velero Version")
 async def get_velero_version_service():
     namespace = config_app.k8s.velero_namespace
-    label_selector = "app.kubernetes.io/name=velero"
+    label_selectors = [
+        "name=velero",
+        "app.kubernetes.io/name=velero",
+        "component=velero",
+        "k8s-app=velero"
+    ]
 
     try:
-        pods = coreV1.list_namespaced_pod(namespace=namespace, label_selector=label_selector)
+        for label_selector in label_selectors:
+            pods = coreV1.list_namespaced_pod(namespace=namespace, label_selector=label_selector)
 
-        if not pods.items:
-            print("No pods found with the specified label.")
-            return None
+            if pods.items:
+                pod = pods.items[0]
+                container_image = pod.spec.containers[0].image
 
-        pod = pods.items[0]
+                if ':' in container_image:
+                    _, version = container_image.split(':')
+                    return version
+                else:
+                    print("Unable to determine version from container image.")
+                    return None
 
-        container_image = pod.spec.containers[0].image
-
-        if ':' in container_image:
-            _, version = container_image.split(':')
-            return version
-        else:
-            print("Unable to determine version from container image.")
-            return None
+        print("No pods found with any of the specified labels.")
+        return None
 
     except ApiException as e:
-        print(f"Errore durante l'accesso ai pod: {e}")
+        print(f"Error while accessing pods: {e}")
         return None

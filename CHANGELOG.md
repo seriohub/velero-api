@@ -4,12 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+## [v0.2.3] - 2025-03-19
+
+🛠️ ️Fixes
+- Fixed retrieval of Velero version
+
 ## [v0.2.2] - 2025-03-13
 
 🆕 New Features
 - Implemented event-driven UI management via socket communication
 
-- 🛠️ Fixes
+🛠️ Fixes
 - Fixed logs download
 - Fixed backup creation from schedule
 

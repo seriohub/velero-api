@@ -200,7 +200,7 @@ def _kubectl_neat(manifest):
     """
     Removes non-essential information from the Kubernetes manifest
     """
-    keys_to_remove = ['status', 'managedFields', 'creationTimestamp', 'uid', 'resourceVersion']
+    keys_to_remove = ['managedFields', 'creationTimestamp', 'uid', 'resourceVersion']
 
     def clean_dict(d):
         if isinstance(d, dict):
