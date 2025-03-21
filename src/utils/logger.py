@@ -1,8 +1,12 @@
 import logging
 
+WATCH_LEVEL = 25
+logging.addLevelName(WATCH_LEVEL, "WATCH")
+
 LEVEL_MAPPING = {
     'debug': logging.DEBUG,
     'info': logging.INFO,
+    'watch': logging.INFO,
     'warning': logging.WARNING,
     'error': logging.ERROR,
     'critical': logging.CRITICAL
@@ -12,27 +16,55 @@ LEVEL_MAPPING = {
 COLORS = {
     'DEBUG': '\033[94m',  # Blue
     'INFO': '\033[92m',  # Green
+    'WATCH': '\033[96m',  # Cyan
     'WARNING': '\033[93m',  # Yellow
     'ERROR': '\033[91m',  # Red
     'CRITICAL': '\033[95m',  # Purple
 }
+
 RESET = '\033[0m'
+
+# Icons for levels
+LEVEL_ICONS = {
+    'DEBUG': '🐞',
+    'INFO': 'ℹ️',
+    'WATCH': '👀',
+    'WARNING': '⚠️',
+    'ERROR': '❌',
+    'CRITICAL': '🔥'
+}
+
+# class ColoredFormatter(logging.Formatter):
+#     """
+#     Custom formatter that adds color to messages based on level.
+#     """
+#
+#     def format(self, record):
+#         # Retrieve the level and apply the corresponding color
+#         level_name = record.levelname
+#         if level_name in COLORS:
+#             colored_levelname = f"{COLORS[level_name]}{level_name}{RESET}"
+#             record.levelname = colored_levelname
+#             record.msg = f"{COLORS[level_name]}{record.msg}{RESET}"
+#         return super().format(record)
 
 
 class ColoredFormatter(logging.Formatter):
     """
-    Custom formatter that adds color to messages based on level.
+    Custom formatter that adds color and icons to messages based on level.
     """
 
     def format(self, record):
-        # Retrieve the level and apply the corresponding color
+        # Retrieve the level and apply the corresponding color and icon
         levelname = record.levelname
+        icon = LEVEL_ICONS.get(levelname, '')
+
         if levelname in COLORS:
-            colored_levelname = f"{COLORS[levelname]}{levelname}{RESET}"
+            colored_levelname = f"{COLORS[levelname]}{icon} APP {levelname}{RESET}"
             record.levelname = colored_levelname
             record.msg = f"{COLORS[levelname]}{record.msg}{RESET}"
-        return super().format(record)
 
+        return super().format(record)
 
 class ColoredLogger:
     """
@@ -55,8 +87,15 @@ class ColoredLogger:
         if not logger.handlers:
             handler = logging.StreamHandler()
             formatter = ColoredFormatter(
-                '%(asctime)s - %(filename)s[%(lineno)d]->%(funcName)s - %(levelname)s %(message)s')
+                '%(asctime)s %(levelname)s - %(filename)s[%(lineno)d]->%(funcName)s - %(message)s'
+            )
             handler.setFormatter(formatter)
             logger.addHandler(handler)
+
+        def watch(self, message, *args, **kwargs):
+            if self.isEnabledFor(WATCH_LEVEL):
+                self._log(WATCH_LEVEL, message, args, **kwargs)
+
+        setattr(logger, 'watch', watch.__get__(logger))
 
         return logger

@@ -189,7 +189,7 @@ def authenticate_user(db, username: str, password: str):
     if not res:
         logger.warning(f"Access failed for :{username}")
         return False
-    logger.info(f"Login in :{username}")
+    logger.info(f"Login in: {username}")
     return user
 
 # LS 2024.03.18 moved in tokens.py script

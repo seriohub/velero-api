@@ -14,10 +14,13 @@ def trace_k8s_async_method(description):
             message = f"k8s {description}"
             # await manager.broadcast(message)
             try:
-                user = current_user_var.get()
-                logger.debug(f"user:{user}, message:{message}")
-                response = {'type': 'k8s_tracker', 'message': message}
-                await manager.send_personal_message(str(user.id), json.dumps(response))
+                user = current_user_var.get(None)
+                if user is None:
+                    logger.warning(f"No user found in context, message: {message}")
+                else:
+                    logger.debug(f"user:{user}, message:{message}")
+                    response = {'type': 'k8s_tracker', 'message': message}
+                    await manager.send_personal_message(str(user.id), json.dumps(response))
             except Exception as Ex:
                 logger.warning(f"{str(Ex)}, message:{message}")
                 pass
