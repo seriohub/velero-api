@@ -52,15 +52,19 @@ class WebSocketManager:
 
                 elif isinstance(data, str):
                     # Treats the message as a JWT token
-                    # user = await get_user_from_token(data)
                     user = await get_user_entity_from_token(data)
+
+                    #
+                    # uncomment to enable session with cookies (no 3/3)
+                    #
+                    # user = await get_user_entity_from_token(token=websocket.cookies.get("auth_token"))
 
                 if user:
                     self.active_connections[str(user.id)] = websocket
                     response = {'response_type': 'notification', 'message': 'Connection READY!'}
                     await self.send_personal_message(str(user.id), json.dumps(response))
 
-                    # Se il watch globale non è attivo, avvialo
+                    # If global watch is not active, start it
                     await self.start_global_watch_tasks()
                     # await self.watch_user_resource(str(user.id), "backups")
 
@@ -72,7 +76,7 @@ class WebSocketManager:
             try:
                 while True:
                     message = await asyncio.wait_for(websocket.receive_text(),
-                                                     timeout=30)  # Solo pings permessi
+                                                     timeout=30)  # only pings allowed
                     data = json.loads(message) if message.startswith('{') else message
                     if isinstance(data, dict) and "action" in data and data["action"] == "ping":
                         await websocket.send_text(json.dumps({"type": "pong"}))

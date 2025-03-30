@@ -6,7 +6,7 @@ from configs.config_boot import config_app
 from schemas.response.successful_request import SuccessfulRequest
 
 from service.k8s_configmap import get_config_map_service
-from service.velero import get_velero_version_service
+from service.velero import get_velero_version_service, get_pods_service
 
 
 async def get_env_handler():
@@ -23,6 +23,30 @@ async def get_env_handler():
 
 async def get_velero_version_handler():
     payload = await get_velero_version_service()
+
+    response = SuccessfulRequest(payload=payload)
+    return JSONResponse(content=response.model_dump(), status_code=200)
+
+
+async def get_velero_pods_handler():
+    label_selectors_by_type = {
+        "velero": "name=velero",
+        "node-agent": "name=node-agent"
+    }
+    payload = await get_pods_service(label_selectors_by_type=label_selectors_by_type,
+                                     namespace=config_app.k8s.velero_namespace)
+
+    response = SuccessfulRequest(payload=payload)
+    return JSONResponse(content=response.model_dump(), status_code=200)
+
+
+async def get_vui_pods_handler():
+    label_selectors_by_type = {
+        "API": "layer=api",
+        "UI": "layer=webserver",
+        "WATCHDOG": "app=velero-watchdog",
+    }
+    payload = await get_pods_service(label_selectors_by_type, namespace=config_app.k8s.vui_namespace)
 
     response = SuccessfulRequest(payload=payload)
     return JSONResponse(content=response.model_dump(), status_code=200)

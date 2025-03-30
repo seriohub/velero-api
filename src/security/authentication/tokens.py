@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 from jose import jwt, JWTError
 from requests import Session
 from starlette import status
@@ -150,13 +150,19 @@ def create_token(username, userid, auth_type='BUILT-IN', db: Session = None, onl
 
         return {"access_token": access_token,
                 "token_type": "bearer",
-                "refresh_token": refresh_token}
+                "refresh_token": refresh_token,
+                "expires_in": str(access_token_expires.seconds)}
     else:
         return {"access_token": access_token,
-                "token_type": "bearer"}
+                "token_type": "bearer",
+                "expires_in": str(access_token_expires.seconds)}
 
 
-# async def get_user_entity(request: Request, token: str = Depends(oauth2_scheme)) -> UserEntity:
+#
+# uncomment to enable session with cookies (no 2/3)
+#
+# async def get_user_entity_from_token(token = None , request: Request = None) -> UserSession:
+#     token = token or request.cookies.get("auth_token")  # ⬅️ Read from cookie
 async def get_user_entity_from_token(token: str = Depends(oauth2_scheme)) -> UserSession:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
