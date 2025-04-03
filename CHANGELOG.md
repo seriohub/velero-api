@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+## [v0.2.4] - 2025-04-03
+
+🆕 New Features
+- Added pod logs feature
+
+🔧 Improvements
+- Improved visual log output
+
 ## [v0.2.3] - 2025-03-19
 
 🛠️ ️Fixes
