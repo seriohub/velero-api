@@ -12,6 +12,7 @@ from service.k8s_manifest import get_k8s_resource_manifest_service
 from service.k8s_secret import get_velero_secret_service, get_secret_keys_service
 from service.location_credentials import (get_credential_service, get_default_credential_service,
                                           create_cloud_credentials_secret_service)
+from service.velero import get_pod_logs_service
 
 
 async def get_ns_handler():
@@ -49,10 +50,11 @@ async def get_k8s_storage_classes_handler():
     return JSONResponse(content=response.model_dump(), status_code=200)
 
 
-async def get_logs_handler(lines=100, follow=False):
-    payload = await get_logs_handler(lines=lines, follow=follow)
+async def get_pod_logs_handler(pod, target='velero', lines=100):
+    namespace = config_app.k8s.velero_namespace if target == 'velero' else config_app.k8s.vui_namespace
+    payload = await get_pod_logs_service(namespace=namespace, pod=pod, lines=lines)
 
-    response = SuccessfulRequest(payload=payload)
+    response = SuccessfulRequest(payload={'logs': payload})
     return JSONResponse(content=response.model_dump(), status_code=200)
 
 

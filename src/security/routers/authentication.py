@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response, Request
 from security.schemas.request.OAuth2_request import OAuth2PasswordAndRefreshRequestForm
 from typing import Union
 from security.controllers.authentication import (login_handler,
@@ -37,12 +37,12 @@ route = '/token'
     dependencies=[Depends(RateLimiter(interval_seconds=limiter.seconds,
                                       max_requests=limiter.max_request))],
     response_model=Union[Token, TokenRefresh])
-async def login_for_access_token(form_data: Annotated[OAuth2PasswordAndRefreshRequestForm, Depends()]):
+async def login_for_access_token(form_data: Annotated[OAuth2PasswordAndRefreshRequestForm, Depends()],  request: Request, response: Response):
     if form_data.grant_type == "refresh_token":
         # return await refresh_login_handler(form_data.refresh_token)
         pass
     else:
-        return await login_handler(form_data.username, form_data.password)
+        return await login_handler(form_data.username, form_data.password, request, response)
 
 # ------------------------------------------------------------------------------------------------
 #             REFRESH TOKEN

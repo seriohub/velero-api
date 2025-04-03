@@ -68,7 +68,8 @@ if __name__ == '__main__':
                     reload=config_app.app.uvicorn_reload,
                     log_level=config_app.logger.debug_level,
                     workers=2,
-                    limit_concurrency=config_app.security.limit_concurrency
+                    limit_concurrency=config_app.security.limit_concurrency,
+                    log_config=None
                     )
 
 
