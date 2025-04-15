@@ -6,12 +6,14 @@ import os
 
 from configs.config_boot import config_app
 from contexts.context import current_user_var, cp_user
-from ws.websocket_manager import manager
+# from ws.websocket_manager import manager
+from integrations import nats_manager_proxy
+from ws import ws_manager_proxy
 
 from utils.logger_boot import logger
 
-if config_app.nats.enable:
-    from integrations.nats_manager import get_nats_manager_instance
+# if config_app.nats.enable:
+#     from integrations.nats_manager import get_nats_manager_instance
 
 
 async def _send_message(message):
@@ -25,15 +27,15 @@ async def _send_message(message):
             logger.error(f"send message failed {str(Ex)}")
         finally:
             if config_app.nats.enable and user.is_nats:
-                nats_manager = get_nats_manager_instance()
-                nc = await nats_manager.get_nats_connection()
+                nats_manager = nats_manager_proxy.nat_manager
+                nc = await nats_manager.connect()
                 control_plane_user = cp_user.get()
                 data = {"user": control_plane_user, "msg": message}
                 await nc.publish("socket." + config_app.k8s.cluster_id, json.dumps(data).encode())
                 pass
             elif user is not None:
                 response = {'type': 'process', 'message': message}
-                await manager.send_personal_message(str(user.id), json.dumps(response))
+                await ws_manager_proxy.ws_manager.send_personal_message(str(user.id), json.dumps(response))
 
     except WebSocketDisconnect:
         logger.error('send message error')

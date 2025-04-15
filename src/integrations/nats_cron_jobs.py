@@ -46,6 +46,14 @@ class NatsCronJobs:
                      credential=True,
                      interval=config_app.nats.cron_storage_classes_mapping_update)
 
+        self.add_job(endpoint="/v1/pod-volume-backups",
+                     credential=True,
+                     interval=config_app.nats.cron_storage_classes_mapping_update)
+
+        self.add_job(endpoint="/v1/pod-volume-restores",
+                     credential=True,
+                     interval=config_app.nats.cron_storage_classes_mapping_update)
+
     def add_job(self, endpoint: str, credential: bool, interval: int):
         if len(endpoint) and interval > 0:
             jobs = NatsCronJob(endpoint=endpoint,

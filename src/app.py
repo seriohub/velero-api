@@ -4,7 +4,8 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from ws.websocket_manager import WebSocket, manager
+from ws.websocket_manager import WebSocket
+from ws import ws_manager_proxy
 
 from contexts.context import called_endpoint_var
 
@@ -14,8 +15,9 @@ from api.common.app_info import appInfo
 from api.common.app_health import appHealth
 
 from api.v1.api_v1 import v1
-
 from app_data import __version__, __app_name__, __app_description__, __app_summary__
+
+from startup_watchers import init_watchers
 from configs.config_boot import config_app
 
 load_dotenv()
@@ -28,6 +30,11 @@ if not enabled_docs:
     docs_url = None
     re_docs_url = None
 
+async def app_lifespan(app: FastAPI):
+    init_watchers(app)
+    yield
+
+
 app = FastAPI(root_path="/api",  # if not config.get_developer_mode() else '/',
               title=__app_name__,
               description=__app_description__,
@@ -36,7 +43,7 @@ app = FastAPI(root_path="/api",  # if not config.get_developer_mode() else '/',
               license_info={'name': 'Apache 2.0', 'identifier': 'Apache-2.0', },
               docs_url=docs_url,
               redoc_url=re_docs_url,
-
+              lifespan=app_lifespan
               )
 
 origins = config_app.security.get_origins()
@@ -63,7 +70,6 @@ async def set_called_endpoint(request: Request, call_next):
     finally:
         called_endpoint_var.reset(ce)
 
-
 @app.get('/online')
 @app.get('/')
 async def online():
@@ -77,7 +83,7 @@ async def online():
 # Can't use jwt in socket header request
 @app.websocket('/ws/auth')
 async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
+    await ws_manager_proxy.ws_manager.connect(websocket)
 
 
 @app.websocket('/ws/online')

@@ -77,9 +77,9 @@ if __name__ == '__main__':
     server_process.start()
     time.sleep(2)
 
-    from integrations.nats_manager import boot_nats_start_manager
-
-    if config_app.nats.enable:
-        from app import app
-
-        asyncio.run(boot_nats_start_manager(app))
+    # from integrations.nats_manager import boot_nats_start_manager
+    #
+    # if config_app.nats.enable:
+    #     from app import app
+    #
+    #     asyncio.run(boot_nats_start_manager(app))

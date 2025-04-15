@@ -1,3 +1,6 @@
+from http.client import HTTPException
+from utils.logger_boot import logger
+import aiohttp
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 
@@ -56,9 +59,14 @@ route = '/app'
                                               max_requests=limiter_app.max_request))],
             response_model=SuccessfulRequest,
             status_code=status.HTTP_200_OK)
-@handle_exceptions_endpoint
+# @handle_exceptions_endpoint
 async def get_app_info():
-    watchdog_release = await get_watchdog_version_service()
+    watchdog_release = None
+    try:
+        watchdog_release = await get_watchdog_version_service()
+    except RuntimeError as e:
+        logger.warning("Watchdog non available")
+
     res = {'app_name': __app_name__,
            'app_description': __app_description__,
            'admin_email': __admin_email__,

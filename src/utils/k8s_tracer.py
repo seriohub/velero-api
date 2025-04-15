@@ -2,7 +2,8 @@ from functools import wraps
 import json
 
 from contexts.context import current_user_var
-from ws.websocket_manager import manager
+# from ws.websocket_manager import manager
+from ws import ws_manager_proxy
 
 from utils.logger_boot import logger
 
@@ -20,7 +21,7 @@ def trace_k8s_async_method(description):
                 else:
                     logger.debug(f"user:{user}, message:{message}")
                     response = {'type': 'k8s_tracker', 'message': message}
-                    await manager.send_personal_message(str(user.id), json.dumps(response))
+                    await ws_manager_proxy.ws_manager.send_personal_message(str(user.id), json.dumps(response))
             except Exception as Ex:
                 logger.warning(f"{str(Ex)}, message:{message}")
                 pass

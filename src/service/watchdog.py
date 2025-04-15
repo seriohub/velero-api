@@ -33,7 +33,8 @@ async def __do_api_call(url):
 
     except aiohttp.ClientError as e:
         logger.error(f"[{url}] Error during async request: {e}")
-        raise HTTPException(status_code=400, detail=f'Check URL and watchdog running')
+        # raise HTTPException(status_code=400, detail=f'Check URL and watchdog running')
+        raise RuntimeError("Http Error")
 
 
 async def __do_api_call_post(url, payload):
