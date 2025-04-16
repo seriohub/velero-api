@@ -476,11 +476,10 @@ class NatsManager:
             if command:
                 command = json.loads(command)
                 logger.debug(f"force registration and subscription")
-                # if command['command'] == 'restart':
-                #     # logger.debug(f"run.registration")
-                #     # await self.__agent_registration()
-                #     logger.debug(f"run.subscription")
-                #     await self.__subscribe_to_nats()
+                if command['command'] == 'restart':
+                    await self.__agent_registration()
+                    await self.__subscribe_to_nats()
+                    await self.__create_bucket_store(key_value=self.kv_bucket_name)
 
         except Exception as e:
             logger.warning(f"__server_cmd_handler ({str(e)})")
