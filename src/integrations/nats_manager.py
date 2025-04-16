@@ -491,7 +491,7 @@ class NatsManager:
     async def __publish_kv_pair(self, key, value):
         try:
             logger.debug(f"__publish_kv_pair.key {key}")
-            if self.nc is None or not self.nc.is_connected:
+            if self.nc is not None:
                 js = self.nc.jetstream()
                 kv = await js.key_value(self.kv_bucket_name)
 
@@ -594,6 +594,6 @@ class NatsManager:
 
         # Create a task to publish messages at intervals
         publish_status = asyncio.create_task(self.__send_client_alive())
-
+        await asyncio.sleep(15)
         # Create a task to publish status to kv value at intervals
         publish_kv_status = asyncio.create_task(self.__publish_data_to_kv())
