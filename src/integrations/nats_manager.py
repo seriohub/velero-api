@@ -75,8 +75,9 @@ class NatsManager:
 
     async def __reconnected_cb(self):
         logger.info(f"_nats_reconnect reconnect at {self.nc.connected_url.netloc}")
-        logger.debug(f"run.registration")
         await self.__agent_registration()
+        await self.__create_bucket_store(key_value=self.kv_bucket_name)
+        await self.__subscribe_to_nats()
 
     async def __disconnected_cb(self):
         logger.info(f"_nats_disconnected_cb disconnect from server")
@@ -198,7 +199,7 @@ class NatsManager:
                 logger.debug(f"command.Received reply: {key_to_res}")
 
                 if "registered" in key_to_res:
-                    logger.debug(f"client ready to receive message ")
+                    logger.debug(f"client ready to receive message")
                     connected = True
                 else:
                     logger.warning(f"try to register to nats server")
@@ -475,11 +476,11 @@ class NatsManager:
             if command:
                 command = json.loads(command)
                 logger.debug(f"force registration and subscription")
-                if command['command'] == 'restart':
-                    logger.debug(f"run.registration")
-                    await self.__agent_registration()
-                    logger.debug(f"run.subscription")
-                    await self.__subscribe_to_nats()
+                # if command['command'] == 'restart':
+                #     # logger.debug(f"run.registration")
+                #     # await self.__agent_registration()
+                #     logger.debug(f"run.subscription")
+                #     await self.__subscribe_to_nats()
 
         except Exception as e:
             logger.warning(f"__server_cmd_handler ({str(e)})")
@@ -594,6 +595,6 @@ class NatsManager:
 
         # Create a task to publish messages at intervals
         publish_status = asyncio.create_task(self.__send_client_alive())
-        await asyncio.sleep(15)
+        await asyncio.sleep(5)
         # Create a task to publish status to kv value at intervals
         publish_kv_status = asyncio.create_task(self.__publish_data_to_kv())

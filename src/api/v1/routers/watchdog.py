@@ -58,7 +58,7 @@ route = '/watchdog/info'
     responses=common_error_authenticated_response,
     status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def watchdog_config():
+async def watchdog_verision():
     return await version_handler()
 
 
