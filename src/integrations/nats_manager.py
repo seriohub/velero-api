@@ -1,5 +1,6 @@
 from datetime import datetime
-
+import socket
+import os
 from fastapi import FastAPI, Request
 from fastapi.routing import APIRoute, Mount
 from fastapi.responses import JSONResponse
@@ -103,8 +104,9 @@ class NatsManager:
                     reconnect_sec = 10
                 logger.info(f"Connect to server: {nats_server}- timeout reconnect: {reconnect_sec} sec")
 
+                worker_id = f"{socket.gethostname()}-{os.getpid()}"
                 options = {
-                    "name": "Agent." + config_app.k8s.cluster_id,
+                    "name": f"Agent.{config_app.k8s.cluster_id}.{worker_id}",
                     "servers": [nats_server],
                     "error_cb": self.__error_cb,
                     "closed_cb": self.__closed_cb,
