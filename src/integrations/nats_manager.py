@@ -93,7 +93,10 @@ class NatsManager:
     async def __init_nats_connection(self):
         try:
             logger.info(f"__init_nats_connection")
-            if self.nc is None:
+            if self.nc is not None and self.nc.is_connected:
+                logger.info("[NATS] Already connected.")
+                return
+            else:
                 nats_server = f"{config_app.nats.nats_client_url}"
                 reconnect_sec = config_app.nats.retry_connection
                 if reconnect_sec < 10:
@@ -305,10 +308,24 @@ class NatsManager:
             logger.warning(f"__get_data_from_api ({str(e)})")
             return None
 
+    # def __query_string_to_dict(self, query_string: str) -> dict:
+    #     from urllib.parse import parse_qs
+    #     query_dict = parse_qs(query_string)
+    #     return {k: v[0] for k, v in query_dict.items()}
     def __query_string_to_dict(self, query_string: str) -> dict:
         from urllib.parse import parse_qs
+
+        def convert(value: str):
+            lowered = value.lower()
+            if lowered in ["true", "false"]:
+                return lowered == "true"
+            try:
+                return json.loads(value)
+            except Exception:
+                return value
+
         query_dict = parse_qs(query_string)
-        return {k: v[0] for k, v in query_dict.items()}
+        return {k: convert(v[0]) for k, v in query_dict.items()}
 
     # ------------------------------------------------------------------------------------------------
     #             SUBSCRIBE AND CALLBACK

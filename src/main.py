@@ -11,10 +11,10 @@ from security.authentication.built_in_authentication.users import create_default
 from utils.logger_boot import logger
 
 # kubernetes boot
-from kubernetes_boot import config
+from kubernetes_boot import config # noqa
 
 # logger filter
-from uvicorn_filter import uvicorn_logger
+from uvicorn_filter import uvicorn_logger # noqa
 from configs.config_boot import config_app
 
 # import sentry_sdk

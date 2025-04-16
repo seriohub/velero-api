@@ -179,7 +179,7 @@ class K8sWatchManager:
             """Watches the selected resource type and sends updates to the user via WebSocket."""
             nonlocal last_resource_version
 
-            #n while user_id in self.active_connections:
+            # while user_id in self.active_connections:
             while True:
                 try:
                     async for event in w.stream(
