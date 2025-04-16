@@ -74,7 +74,7 @@ class NatsManager:
         logger.info(f"_nats_closed_cb")
 
     async def __reconnected_cb(self):
-        logger.info(f"_nats_reconnect reconnect at {self.nc.connected_url.netloc}")
+        logger.info(f"_nats_reconnect reconnect at {self.nc.connected_url.netloc}###############################################################################")
         await self.__agent_registration()
         await self.__create_bucket_store(key_value=self.kv_bucket_name)
         await self.__subscribe_to_nats()
@@ -87,6 +87,7 @@ class NatsManager:
     # ------------------------------------------------------------------------------------------------
 
     async def __start_manager(self):
+        print("ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo")
         await self.__init_nats_connection()
         await self.__agent_registration()
         await self.__create_bucket_store(key_value=self.kv_bucket_name)
@@ -94,6 +95,8 @@ class NatsManager:
 
     async def __init_nats_connection(self):
         try:
+            print(
+                "?????????????????????????????????????????????????????????????????????????????????????????????????????????????")
             logger.info(f"__init_nats_connection")
             if self.nc is not None and self.nc.is_connected:
                 logger.info("[NATS] Already connected.")
@@ -477,6 +480,8 @@ class NatsManager:
                 command = json.loads(command)
                 logger.debug(f"force registration and subscription")
                 if command['command'] == 'restart':
+                    print(
+                        "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK")
                     await self.__agent_registration()
                     await self.__subscribe_to_nats()
                     await self.__create_bucket_store(key_value=self.kv_bucket_name)
