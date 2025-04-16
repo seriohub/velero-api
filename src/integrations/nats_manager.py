@@ -489,15 +489,18 @@ class NatsManager:
     async def __publish_kv_pair(self, key, value):
         try:
             logger.debug(f"__publish_kv_pair.key {key}")
-            js = self.nc.jetstream()
-            kv = await js.key_value(self.kv_bucket_name)
+            if self.nc is None or not self.nc.is_connected:
+                js = self.nc.jetstream()
+                kv = await js.key_value(self.kv_bucket_name)
 
-            data = self.__ensure_encoded(value)
+                data = self.__ensure_encoded(value)
 
-            # await kv.put(key, json.dumps(value).encode())
-            await kv.put(key, data)
-            logger.debug(f"__publish_kv_pair.published {key}")
-            return True
+                # await kv.put(key, json.dumps(value).encode())
+                await kv.put(key, data)
+                logger.debug(f"__publish_kv_pair.published {key}")
+                return True
+            else:
+                logger.warning("nats connections is not ready")
 
         except ErrTimeout:
             logger.warning("__publish_kv_pair No reply received from server (timeout)")
