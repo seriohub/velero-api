@@ -67,7 +67,7 @@ if __name__ == '__main__':
                     port=config_app.api.endpoint_port,
                     reload=config_app.app.uvicorn_reload,
                     log_level=config_app.logger.debug_level,
-                    workers=2,
+                    workers=1,  # multi nats connections in control plane if multi worker used
                     limit_concurrency=config_app.security.limit_concurrency,
                     log_config=None
                     )
