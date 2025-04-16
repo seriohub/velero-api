@@ -95,8 +95,6 @@ class NatsManager:
 
     async def __init_nats_connection(self):
         try:
-            print(
-                "?????????????????????????????????????????????????????????????????????????????????????????????????????????????")
             logger.info(f"__init_nats_connection")
             if self.nc is not None and self.nc.is_connected:
                 logger.info("[NATS] Already connected.")
@@ -183,7 +181,7 @@ class NatsManager:
     #         return None
 
     async def __agent_registration(self):
-        logger.info(f"__init_client_register")
+        logger.info(f"__agent_registration")
         connected = False
         in_error = False
         attempt = 0
@@ -201,8 +199,8 @@ class NatsManager:
                 key_to_res = response.data.decode()
                 logger.debug(f"command.Received reply: {key_to_res}")
 
-                if "registered" in key_to_res:
-                    logger.debug(f"client ready to receive message")
+                if "registered" in json.loads(key_to_res):
+                    logger.info(f"client ready to receive message")
                     connected = True
                 else:
                     logger.warning(f"try to register to nats server")
@@ -480,8 +478,6 @@ class NatsManager:
                 command = json.loads(command)
                 logger.debug(f"force registration and subscription")
                 if command['command'] == 'restart':
-                    print(
-                        "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK")
                     await self.__agent_registration()
                     await self.__subscribe_to_nats()
                     await self.__create_bucket_store(key_value=self.kv_bucket_name)
