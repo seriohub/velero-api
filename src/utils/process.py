@@ -28,10 +28,9 @@ async def _send_message(message):
         finally:
             if config_app.nats.enable and user.is_nats:
                 nats_manager = nats_manager_proxy.nat_manager
-                nc = await nats_manager.connect()
                 control_plane_user = cp_user.get()
                 data = {"user": control_plane_user, "msg": message}
-                await nc.publish("socket." + config_app.k8s.cluster_id, json.dumps(data).encode())
+                await nats_manager.publish("socket." + config_app.k8s.cluster_id, json.dumps(data).encode())
                 pass
             elif user is not None:
                 response = {'type': 'process', 'message': message}

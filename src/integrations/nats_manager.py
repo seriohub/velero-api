@@ -162,19 +162,19 @@ class NatsManager:
     #             NATS CONNECTIONS
     # ------------------------------------------------------------------------------------------------
 
-    async def connect(self):
-        try:
-            logger.info(f"get_nats_connection")
-            if self.nc is None:
-                await self.__init_nats_connection()
-            logger.info(f"Nast connection: Status: {self.nc.is_connected} - client id {self.nc.client_id}")
-
-            return self.nc
-
-        except Exception as e:
-            logger.warning(f"get_nats_connection ({str(e)})")
-            self.nc = None
-            return None
+    # async def connect(self):
+    #     try:
+    #         logger.info(f"get_nats_connection")
+    #         if self.nc is None:
+    #             await self.__init_nats_connection()
+    #         logger.info(f"Nast connection: Status: {self.nc.is_connected} - client id {self.nc.client_id}")
+    #
+    #         return self.nc
+    #
+    #     except Exception as e:
+    #         logger.warning(f"get_nats_connection ({str(e)})")
+    #         self.nc = None
+    #         return None
 
     async def __agent_registration(self):
         logger.info(f"__init_client_register")
@@ -553,8 +553,8 @@ class NatsManager:
         Pubblica un evento globale (ad es. da K8sWatchManager) su un canale NATS pubblico.
         """
         try:
-            if self.nc is None or not self.nc.is_connected:
-                await self.connect()
+            # if self.nc is None or not self.nc.is_connected:
+            #     await self.connect()
 
             subject = f"event.global.{self.channel_id}"
             payload = self.__ensure_encoded(message)
@@ -569,8 +569,8 @@ class NatsManager:
         Pubblica un evento globale (ad es. da K8sWatchManager) su un canale NATS pubblico.
         """
         try:
-            if self.nc is None or not self.nc.is_connected:
-                await self.connect()
+            # if self.nc is None or not self.nc.is_connected:
+            #    await self.connect()
 
             subject = f"event.global.{self.channel_id}"
             payload = self.__ensure_encoded(message)
