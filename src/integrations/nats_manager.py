@@ -181,7 +181,7 @@ class NatsManager:
     #         return None
 
     async def __agent_registration(self):
-        logger.info(f"__agent_registration")
+        logger.info(f"__agent_registration: name={config_app.k8s.cluster_id} client_id={self.nc.client_id}")
         connected = False
         in_error = False
         attempt = 0
@@ -204,7 +204,7 @@ class NatsManager:
                     connected = True
                 else:
                     logger.warning(f"try to register to nats server")
-
+                await response.ack()
             except ErrTimeout as e:
                 logger.warning(f"No reply received (timeout)-{str(e)}")
             except ErrNoServers as e:
@@ -337,12 +337,12 @@ class NatsManager:
 
     async def __subscribe_to_nats(self):
         logger.debug(f"initialize nats subscriptions")
-        # await self.nc.subscribe(f"agent.{config_app.k8s.cluster_id}.request", cb=self.__message_handler_cb)
-        # await self.nc.subscribe(f"server.cmd", cb=self.__server_cmd_cb)
-        # await self.nc.subscribe(f"event.user.watch.{self.channel_id}", cb=self.__k8s_user_wacth_cb)
-        await self.js.subscribe("server.cmd", durable="agent_cmd", cb=self.__server_cmd_cb, deliver_policy="new")
-        await self.js.subscribe(f"agent.{config_app.k8s.cluster_id}.request", durable="agent_request", cb=self.__message_handler_cb, deliver_policy="new")
-        await self.js.subscribe(f"event.user.watch.{self.channel_id}", durable="agent_watch", cb=self.__k8s_user_wacth_cb, deliver_policy="new")
+        await self.nc.subscribe(f"agent.{config_app.k8s.cluster_id}.request", cb=self.__message_handler_cb)
+        await self.nc.subscribe(f"server.cmd", cb=self.__server_cmd_cb)
+        await self.nc.subscribe(f"event.user.watch.{self.channel_id}", cb=self.__k8s_user_wacth_cb)
+        # await self.nc.subscribe("server.cmd", cb=self.__server_cmd_cb)
+        # await self.js.subscribe(f"agent.{config_app.k8s.cluster_id}.request", durable="agent_request", cb=self.__message_handler_cb, deliver_policy="new")
+        # await self.js.subscribe(f"event.user.watch.{self.channel_id}", durable="agent_watch", cb=self.__k8s_user_wacth_cb, deliver_policy="new")
 
     async def __message_handler_cb(self, msg):
         logger.info(f"message_handler")
