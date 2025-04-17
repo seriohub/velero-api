@@ -87,7 +87,6 @@ class NatsManager:
     # ------------------------------------------------------------------------------------------------
 
     async def __start_manager(self):
-        print("ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo")
         await self.__init_nats_connection()
         await self.__agent_registration()
         await self.__create_bucket_store(key_value=self.kv_bucket_name)
@@ -452,6 +451,7 @@ class NatsManager:
             logger.warning(f"message_handler:{content}")
 
         await self.nc.publish(msg.reply, self.__ensure_encoded(content))
+        await msg.ack()
 
     async def __k8s_user_wacth_cb(self, msg):
         logger.info(f"k8s_user_wacth")
@@ -467,6 +467,7 @@ class NatsManager:
                 await k8s_watcher_proxy.k8s_watcher_manager.clear_watch_user_resource(-1)
             else:
                 print("is none")
+        await msg.ack()
 
     async def __server_cmd_cb(self, msg):
         try:
@@ -482,6 +483,7 @@ class NatsManager:
                     await self.__subscribe_to_nats()
                     await self.__create_bucket_store(key_value=self.kv_bucket_name)
 
+            await msg.ack()
         except Exception as e:
             logger.warning(f"__server_cmd_handler ({str(e)})")
 
