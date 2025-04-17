@@ -180,41 +180,108 @@ class NatsManager:
     #         self.nc = None
     #         return None
 
+    # async def __agent_registration(self):
+    #     logger.info(f"__agent_registration: name={config_app.k8s.cluster_id} client_id={self.nc.client_id}")
+    #     connected = False
+    #     attempt = 0
+    #     interval = self.retry_registration_sec  # seconds to wait
+    #
+    #     while not connected:
+    #         try:
+    #             if not self.nc.is_connected:
+    #                 logger.warning("⛔ NATS not connected, retrying...")
+    #                 await asyncio.sleep(interval)
+    #                 continue
+    #
+    #             try:
+    #                 print("@@")
+    #                 subject = f"register.client2.{self.nc.client_id}"
+    #                 responders = await self.nc.responder_count(subject)
+    #
+    #                 print("------------------------------------------------------------------------------", responders )
+    #                 if responders == 0:
+    #                     logger.debug("No responders yet, skipping request.")
+    #                     await asyncio.sleep(interval)
+    #                     continue
+    #             except Exception as e:
+    #                 logger.debug(f"responder_count check failed: {e}")
+    #
+    #             attempt += 1
+    #             data = {'client': self.nc.client_id, 'name': config_app.k8s.cluster_id}
+    #             # Convert the dictionary to a JSON string
+    #             message = json.dumps(data)
+    #             # Request-reply pattern
+    #             logger.info(f"registration.sent attempt={attempt}")
+    #             response = await self.nc.request(f"register.client.{self.nc.client_id}",
+    #                                              message.encode('utf-8'), timeout=2)
+    #             key_to_res = response.data.decode()
+    #             logger.debug(f"command.Received reply: {key_to_res}")
+    #
+    #             res = json.loads(key_to_res)
+    #             if res.get("registered") in ("ok!", True):
+    #                 connected = True
+    #             else:
+    #                 logger.warning(f"Unexpected registration response: {res}")
+    #
+    #         except ErrTimeout as e:
+    #             logger.warning(f"No reply received (timeout)-{str(e)}")
+    #         except ErrNoServers as e:
+    #             logger.warning(f"No reply received (no-server)-{str(e)}")
+    #         except NoRespondersError as e:
+    #             logger.warning(f"No responders available for request-{str(e)}")
+    #         except Exception as e:
+    #             logger.warning(f"No reply received ({str(e)})")
+    #
+    #         if not connected:
+    #             await asyncio.sleep(interval)
+    #
+    #     return connected
+
     async def __agent_registration(self):
         logger.info(f"__agent_registration: name={config_app.k8s.cluster_id} client_id={self.nc.client_id}")
+
         connected = False
-        in_error = False
         attempt = 0
         interval = self.retry_registration_sec  # seconds to wait
-        while not connected and not in_error:
-            try:
-                attempt += 1
-                data = {'client': self.nc.client_id, 'name': config_app.k8s.cluster_id}
-                # Convert the dictionary to a JSON string
-                message = json.dumps(data)
-                # Request-reply pattern
-                logger.info(f"registration.sent attempt={attempt}")
-                response = await self.nc.request(f"register.client.{self.nc.client_id}",
-                                                 message.encode('utf-8'), timeout=2)
-                key_to_res = response.data.decode()
-                logger.debug(f"command.Received reply: {key_to_res}")
 
-                if "registered" in json.loads(key_to_res):
-                    logger.info(f"client ready to receive message")
+        while not connected:
+            try:
+                if not self.nc.is_connected:
+                    logger.warning("⛔ NATS not connected, retrying...")
+                    await asyncio.sleep(interval)
+                    continue
+
+                data = {
+                    'client': self.nc.client_id,
+                    'name': config_app.k8s.cluster_id
+                }
+                message = json.dumps(data)
+
+                subject = f"register.client.{self.nc.client_id}"
+                attempt += 1
+                logger.info(f"📤 registration.sent attempt={attempt} → {subject}")
+
+                # Request/Reply
+                response = await self.nc.request(subject, message.encode(), timeout=2)
+
+                key_to_res = response.data.decode()
+                logger.debug(f"📥 command.Received reply: {key_to_res}")
+
+                res = json.loads(key_to_res)
+                if res.get("registered") in ("ok!", True):
+                    logger.info("✅ Registration successful!")
                     connected = True
                 else:
-                    logger.warning(f"try to register to nats server")
-                await response.ack()
-            except ErrTimeout as e:
-                logger.warning(f"No reply received (timeout)-{str(e)}")
-            except ErrNoServers as e:
-                logger.warning(f"No reply received (no-server)-{str(e)}")
-                in_error = True
-            except NoRespondersError as e:
-                logger.warning(f"No responders available for request-{str(e)}")
+                    logger.warning(f"⚠️ Unexpected registration response: {res}")
+
+            except NoRespondersError:
+                logger.warning("⚠️ No responders available. Will retry...")
+            except ErrTimeout:
+                logger.warning("⏳ Timeout waiting for reply. Retrying...")
+            except ErrNoServers:
+                logger.warning("🚫 No NATS server available.")
             except Exception as e:
-                in_error = True
-                logger.warning(f"No reply received ({str(e)})")
+                logger.warning(f"❌ Unknown error during registration: {e}")
 
             if not connected:
                 await asyncio.sleep(interval)
@@ -455,7 +522,6 @@ class NatsManager:
             logger.warning(f"message_handler:{content}")
 
         await self.nc.publish(msg.reply, self.__ensure_encoded(content))
-        await msg.ack()
 
     async def __k8s_user_wacth_cb(self, msg):
         logger.info(f"k8s_user_wacth")
@@ -471,7 +537,6 @@ class NatsManager:
                 await k8s_watcher_proxy.k8s_watcher_manager.clear_watch_user_resource(-1)
             else:
                 print("is none")
-        await msg.ack()
 
     async def __server_cmd_cb(self, msg):
         try:
@@ -487,7 +552,6 @@ class NatsManager:
                     await self.__subscribe_to_nats()
                     await self.__create_bucket_store(key_value=self.kv_bucket_name)
 
-            await msg.ack()
         except Exception as e:
             logger.warning(f"__server_cmd_handler ({str(e)})")
 
