@@ -74,7 +74,7 @@ class NatsManager:
         logger.info(f"_nats_closed_cb")
 
     async def __reconnected_cb(self):
-        logger.info(f"_nats_reconnect reconnect at {self.nc.connected_url.netloc}###############################################################################")
+        logger.info(f"_nats_reconnect reconnect at {self.nc.connected_url.netloc}")
         await self.__agent_registration()
         await self.__create_bucket_store(key_value=self.kv_bucket_name)
         await self.__subscribe_to_nats()
@@ -263,7 +263,7 @@ class NatsManager:
 
                 # Request/Reply
                 response = await self.nc.request(subject, message.encode(), timeout=2)
-
+                print("response", response)
                 key_to_res = response.data.decode()
                 logger.debug(f"📥 command.Received reply: {key_to_res}")
 
@@ -549,8 +549,8 @@ class NatsManager:
                 logger.debug(f"force registration and subscription")
                 if command['command'] == 'restart':
                     await self.__agent_registration()
-                    await self.__subscribe_to_nats()
-                    await self.__create_bucket_store(key_value=self.kv_bucket_name)
+                    #await self.__subscribe_to_nats()
+                    #await self.__create_bucket_store(key_value=self.kv_bucket_name)
 
         except Exception as e:
             logger.warning(f"__server_cmd_handler ({str(e)})")
