@@ -404,12 +404,19 @@ class NatsManager:
 
     async def __subscribe_to_nats(self):
         logger.debug(f"initialize nats subscriptions")
+        await self.nc.subscribe(f"agent.{config_app.k8s.cluster_id}.online", cb=self.__online_handler_cb)
         await self.nc.subscribe(f"agent.{config_app.k8s.cluster_id}.request", cb=self.__message_handler_cb)
         await self.nc.subscribe(f"server.cmd", cb=self.__server_cmd_cb)
         await self.nc.subscribe(f"event.user.watch.{self.channel_id}", cb=self.__k8s_user_wacth_cb)
         # await self.nc.subscribe("server.cmd", cb=self.__server_cmd_cb)
         # await self.js.subscribe(f"agent.{config_app.k8s.cluster_id}.request", durable="agent_request", cb=self.__message_handler_cb, deliver_policy="new")
         # await self.js.subscribe(f"event.user.watch.{self.channel_id}", durable="agent_watch", cb=self.__k8s_user_wacth_cb, deliver_policy="new")
+
+    async def __online_handler_cb(self, msg):
+        logger.debug(f"reply to online check request")
+        data = {'online': True}
+        content = json.dumps(data)
+        await self.nc.publish(msg.reply, self.__ensure_encoded(content))
 
     async def __message_handler_cb(self, msg):
         logger.info(f"message_handler")
