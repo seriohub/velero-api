@@ -13,7 +13,7 @@ class NATSConfig:
 
         self.retry_connection = int(os.getenv('NATS_RETRY_CONN_SEC', '20'))
         self.retry_registration = int(os.getenv('NATS_RETRY_REG_SEC', '30'))
-        self.send_alive = int(os.getenv('NATS_ALIVE_SEC', '60'))
+        self.send_alive = int(os.getenv('NATS_ALIVE_SEC', '30'))
         self.timeout_request = int(os.getenv('NATS_REQUEST_TIMEOUT_SEC', '2'))
 
         self.cron_k8s_health_update = int(os.getenv('NATS_CRON_UPDATE_K8S_HEALTH', '300'))
