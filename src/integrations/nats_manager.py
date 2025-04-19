@@ -529,15 +529,15 @@ class NatsManager:
         await self.nc.publish(msg.reply, self.__ensure_encoded(content))
 
     async def __k8s_user_wacth_cb(self, msg):
-        logger.info(f"k8s_user_wacth")
+        logger.info(f"k8s_user_wacth {msg}")
         command = msg.data.decode()
         command = json.loads(command)
-        if command.get('action') == "watch":
+        if command.get('type') == "watch":
             if k8s_watcher_proxy.k8s_watcher_manager is not None:
-                await k8s_watcher_proxy.k8s_watcher_manager.watch_user_resource(command['agent_name'], command['plural'], namespace=config_app.k8s.velero_namespace)
+                await k8s_watcher_proxy.k8s_watcher_manager.watch_user_resource(command.get("payload").get('agent_name'), command.get("payload").get('plural'), namespace=config_app.k8s.velero_namespace)
             else:
                 print("is none")
-        if command.get('action') == "watch:clear":
+        if command.get('type') == "watch:clear":
             if k8s_watcher_proxy.k8s_watcher_manager is not None:
                 await k8s_watcher_proxy.k8s_watcher_manager.clear_watch_user_resource(-1)
             else:
