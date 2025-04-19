@@ -194,11 +194,9 @@ class NatsManager:
     #                 continue
     #
     #             try:
-    #                 print("@@")
     #                 subject = f"register.client2.{self.nc.client_id}"
     #                 responders = await self.nc.responder_count(subject)
     #
-    #                 print("------------------------------------------------------------------------------", responders )
     #                 if responders == 0:
     #                     logger.debug("No responders yet, skipping request.")
     #                     await asyncio.sleep(interval)
