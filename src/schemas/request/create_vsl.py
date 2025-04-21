@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional, Dict
-from configs.config_boot import config_app
+from vui_common.configs.config_proxy import config_app
 
 
 class CreateVslRequestSchema(BaseModel):

@@ -4,7 +4,7 @@
 # import json
 # import traceback
 # # from kubernetes_asyncio import client, config, watch
-from configs.config_boot import config_app
+from vui_common.configs.config_proxy import config_app
 # # from security.authentication.tokens import get_user_from_token
 # from security.authentication.tokens import get_user_entity_from_token
 # from utils.logger_boot import logger
@@ -214,36 +214,20 @@ class WebSocketManager(BaseWebSocketManager):
     # 🔁 Hook: override
     async def handle_custom_action(self, user_id: str, data: WebSocketMessage, websocket: WebSocket):
         try:
-            print(data)
-            nat_manager = nats_manager_proxy.nat_manager
-            logger.info(f"Received message from user {user_id}: request: {data}")
+            logger.info(f"Received message from user {user_id}: request: {data} {data.kind} {data.type}")
 
-            if data.kind == 'request' and data.type == 'agent_alive':
-                alive = await nat_manager.is_agent_alive(data.payload.get('agent_name'))
-
-                # response = {'response_type': 'agent_alive', 'agent_name': data['agent_name'], 'is_alive': alive}
-                response = build_message(
-                    type_="agent_alive",
-                    kind="response",
-                    payload={"is_alive": alive, "agent_name": data.payload.get('agent_name')}
-                )
-
-                logger.debug(f"Response: {json.dumps(response)}")
-                await websocket.send_text(json.dumps(response))
-            elif data.payload.get('agent_name'):
-                logger.info("---")
-                await nat_manager.publish_user_watcher_event(data.payload.get('agent_name'), data.model_dump())
-
-            if data.kind == 'request' and data.type == "watch":
+            if data.kind == 'command' and data.type == "watch":
                 if k8s_watcher_proxy.k8s_watcher_manager is not None:
-                    await k8s_watcher_proxy.k8s_watcher_manager.watch_user_resource(
-                        data.payload.get('agent_name'), data.payload.get('plural'),
-                        namespace=config_app.k8s.velero_namespace)
+                    # await k8s_watcher_proxy.k8s_watcher_manager.watch_user_resource(data.payload.get('agent_name'), data.payload.get('plural'),namespace=config_app.k8s.velero_namespace)
+                    await k8s_watcher_proxy.k8s_watcher_manager.watch_user_resource(user_id=user_id,
+                                                                                    plural=data.payload.get("plural"),
+                                                                                    namespace=config_app.k8s.velero_namespace)
                 else:
                     print("is none")
-            if data.kind=='request' and data.type == "watch:clear":
+
+            elif data.kind == 'command' and data.type == "watch_clear":
                 if k8s_watcher_proxy.k8s_watcher_manager is not None:
-                    await k8s_watcher_proxy.k8s_watcher_manager.clear_watch_user_resource(-1)
+                    await k8s_watcher_proxy.k8s_watcher_manager.clear_watch_user_resource(user_id)
                 else:
                     print("is none")
 

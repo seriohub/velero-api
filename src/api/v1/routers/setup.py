@@ -3,12 +3,12 @@ from fastapi import APIRouter, status, Depends
 from constants.response import common_error_authenticated_response
 from controllers.k8s import get_pod_logs_handler
 
-from security.helpers.rate_limiter import RateLimiter, LimiterRequests
+from vui_common.security.helpers.rate_limiter import RateLimiter, LimiterRequests
 
-from utils.swagger import route_description
-from utils.exceptions import handle_exceptions_endpoint
+from vui_common.utils.swagger import route_description
+from vui_common.utils.exceptions import handle_exceptions_endpoint
 
-from schemas.response.successful_request import SuccessfulRequest
+from vui_common.schemas.response.successful_request import SuccessfulRequest
 
 from controllers.setup import (get_env_handler,
                                get_velero_version_handler,

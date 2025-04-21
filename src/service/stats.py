@@ -5,7 +5,7 @@ from collections import Counter
 from service.k8s import get_namespaces_service
 
 from service.schedule import get_schedules_service
-from utils.k8s_tracer import trace_k8s_async_method
+from vui_common.utils.k8s_tracer import trace_k8s_async_method
 
 
 def _build_data(phase, counter, total_count):

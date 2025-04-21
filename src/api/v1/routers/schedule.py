@@ -3,16 +3,16 @@ from fastapi import APIRouter, status, Depends
 from constants.response import common_error_authenticated_response
 from schemas.request.pause_schedule import PauseScheduleRequestSchema
 
-from security.helpers.rate_limiter import RateLimiter, LimiterRequests
+from vui_common.security.helpers.rate_limiter import RateLimiter, LimiterRequests
 
 from schemas.request.delete_resource import DeleteResourceRequestSchema
 from schemas.response.successful_schedules import SuccessfulScheduleResponse
 from schemas.request.create_schedule import CreateScheduleRequestSchema
 from schemas.request.update_schedule import UpdateScheduleRequestSchema
-from schemas.response.successful_request import SuccessfulRequest
+from vui_common.schemas.response.successful_request import SuccessfulRequest
 
-from utils.swagger import route_description
-from utils.exceptions import handle_exceptions_endpoint
+from vui_common.utils.swagger import route_description
+from vui_common.utils.exceptions import handle_exceptions_endpoint
 
 from controllers.backup import get_creation_settings_handler
 from controllers.common import get_resource_describe_handler

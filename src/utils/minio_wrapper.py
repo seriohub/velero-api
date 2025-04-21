@@ -1,10 +1,10 @@
 import re
 
 from minio import S3Error, Minio
-from configs.config_boot import config_app
+from vui_common.configs.config_proxy import config_app
 from service.bsl import get_bsl_credentials_service
 
-from utils.logger_boot import logger
+from vui_common.logger.logger_proxy import logger
 
 
 class MinioInterface:

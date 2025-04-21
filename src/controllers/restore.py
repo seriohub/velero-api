@@ -1,9 +1,9 @@
 from fastapi.responses import JSONResponse
 
 from schemas.request.create_restore import CreateRestoreRequestSchema
-from schemas.response.successful_request import SuccessfulRequest
+from vui_common.schemas.response.successful_request import SuccessfulRequest
 from schemas.response.successful_restores import SuccessfulRestoreResponse
-from schemas.notification import Notification
+from vui_common.schemas.notification import Notification
 
 from service.restore import get_restores_service, create_restore_service, delete_restore_service
 

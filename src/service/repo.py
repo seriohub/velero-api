@@ -3,14 +3,14 @@ import re
 from fastapi import HTTPException
 
 from models.k8s.repo import BackupRepositoryResponseSchema
-from utils.k8s_tracer import trace_k8s_async_method
+from vui_common.utils.k8s_tracer import trace_k8s_async_method
 
 from utils.minio_wrapper import MinioInterface
 from utils.process import run_check_output_process
 
 from kubernetes import client
 
-from configs.config_boot import config_app
+from vui_common.configs.config_proxy import config_app
 from constants.velero import VELERO
 from constants.resources import RESOURCES, ResourcesNames
 

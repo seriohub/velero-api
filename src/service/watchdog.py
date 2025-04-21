@@ -1,7 +1,7 @@
 import aiohttp
 from fastapi import HTTPException
 from kubernetes import client
-from configs.config_boot import config_app
+from vui_common.configs.config_proxy import config_app
 from datetime import datetime
 from service.k8s_secret import get_secret_service, add_or_update_key_in_secret_service
 from service.k8s_configmap import (get_config_map_service,
@@ -9,9 +9,9 @@ from service.k8s_configmap import (get_config_map_service,
                                    remove_key_from_configmap_service)
 
 from schemas.request.update_user_config import UpdateUserConfigRequestSchema
-from utils.k8s_tracer import trace_k8s_async_method
+from vui_common.utils.k8s_tracer import trace_k8s_async_method
 
-from utils.logger_boot import logger
+from vui_common.logger.logger_proxy import logger
 from constants.watchdog import ENVIRONMENT
 
 

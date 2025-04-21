@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional, Dict, List
-from configs.config_boot import config_app
+from vui_common.configs.config_proxy import config_app
 
 
 class CreateRestoreRequestSchema(BaseModel):

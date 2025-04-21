@@ -3,8 +3,8 @@ import json
 from datetime import datetime
 
 from kubernetes_asyncio import client, config, watch
-from utils.logger_boot import logger
-from configs.config_boot import config_app
+from vui_common.logger.logger_proxy import logger
+from vui_common.configs.config_proxy import config_app
 
 
 class K8sWatchManager:

@@ -1,8 +1,8 @@
 from fastapi.responses import JSONResponse
 
-from schemas.response.successful_request import SuccessfulRequest
+from vui_common.schemas.response.successful_request import SuccessfulRequest
 
-from utils.commons import logs_string_to_list
+# from utils.commons import logs_string_to_list
 
 from service.logs import get_velero_logs_service
 from service.describe import get_velero_resource_details_service

@@ -1,9 +1,9 @@
 import os
 from fastapi.responses import JSONResponse
 
-from configs.config_boot import config_app
+from vui_common.configs.config_proxy import config_app
 
-from schemas.response.successful_request import SuccessfulRequest
+from vui_common.schemas.response.successful_request import SuccessfulRequest
 
 from service.k8s_configmap import get_config_map_service
 from service.velero import get_velero_version_service, get_pods_service

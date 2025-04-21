@@ -1,7 +1,7 @@
 from fastapi.responses import JSONResponse
 
 from schemas.request.delete_resource import DeleteResourceRequestSchema
-from schemas.response.successful_request import SuccessfulRequest
+from vui_common.schemas.response.successful_request import SuccessfulRequest
 from schemas.response.successful_restores import SuccessfulRestoreResponse
 from service.requests import (get_server_status_requests_service,
                               get_download_requests_service,

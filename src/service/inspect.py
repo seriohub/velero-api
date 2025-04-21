@@ -3,7 +3,7 @@ import os
 
 # from fastapi import HTTPException
 
-from utils.logger_boot import logger
+from vui_common.logger.logger_proxy import logger
 
 
 async def get_folders_list(directory: str):

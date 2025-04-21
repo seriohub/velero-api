@@ -49,7 +49,7 @@ VOLUME /app/data
 WORKDIR /app/
 
 RUN echo "Ready!"
-CMD ["python3", "-u" , "main.py"]
+CMD ["python3", "-u" , "__main__.py"]
 
 # #####################################################################################################
 

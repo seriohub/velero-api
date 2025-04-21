@@ -7,7 +7,7 @@ from kubernetes.client import ApiException
 
 from constants.k8s import K8S_PLURALS
 from service.k8s import _kubectl_neat
-from utils.k8s_tracer import trace_k8s_async_method
+from vui_common.utils.k8s_tracer import trace_k8s_async_method
 
 
 @trace_k8s_async_method(description="Get resource manifest")

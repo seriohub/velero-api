@@ -2,7 +2,7 @@ from service.bsl import get_bsls_service
 from service.k8s import get_namespaces_service, get_resources_service
 from service.k8s_configmap import list_configmaps_service
 from service.vsl import get_vsls_service
-from utils.k8s_tracer import trace_k8s_async_method
+from vui_common.utils.k8s_tracer import trace_k8s_async_method
 
 
 @trace_k8s_async_method(description="Get backup/schedule creation settings")

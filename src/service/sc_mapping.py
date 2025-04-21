@@ -4,10 +4,8 @@ from fastapi import HTTPException
 from kubernetes import client
 from kubernetes.client.exceptions import ApiException
 
-from configs.config_boot import config_app
-
-from utils.k8s_tracer import trace_k8s_async_method
-from utils.logger_boot import logger
+from vui_common.utils.k8s_tracer import trace_k8s_async_method
+from vui_common.logger.logger_proxy import logger
 
 core_v1 = client.CoreV1Api()
 custom_object = client.CustomObjectsApi()

@@ -1,6 +1,7 @@
 import asyncio
-from ws.websocket_manager import WebSocketManager
-from ws import ws_manager_proxy
+from ws.ws_manager import WebSocketManager
+# from ws import ws_manager_proxy
+from vui_common.ws import ws_manager_proxy
 
 from integrations.nats_manager import NatsManager
 from integrations import nats_manager_proxy

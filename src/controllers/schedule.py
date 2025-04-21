@@ -2,8 +2,8 @@
 
 from fastapi.responses import JSONResponse
 
-from schemas.response.successful_request import SuccessfulRequest
-from schemas.notification import Notification
+from vui_common.schemas.response.successful_request import SuccessfulRequest
+from vui_common.schemas.notification import Notification
 from schemas.request.create_schedule import CreateScheduleRequestSchema
 from schemas.request.update_schedule import UpdateScheduleRequestSchema
 from schemas.response.successful_schedules import SuccessfulScheduleResponse
@@ -13,7 +13,7 @@ from service.schedule import (get_schedules_service,
                               create_schedule_service,
                               pause_schedule_service,
                               update_schedule_service)
-from utils.logger_boot import logger
+from vui_common.logger.logger_proxy import logger
 
 
 async def get_schedules_handler():

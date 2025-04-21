@@ -1,9 +1,9 @@
 from fastapi.responses import JSONResponse
 
-from configs.config_boot import config_app
+from vui_common.configs.config_proxy import config_app
 
-from schemas.response.successful_request import SuccessfulRequest
-from schemas.notification import Notification
+from vui_common.schemas.response.successful_request import SuccessfulRequest
+from vui_common.schemas.notification import Notification
 from schemas.request.apprise_test_service import AppriseTestServiceRequestSchema
 from schemas.request.create_user_service import CreateUserServiceRequestSchema
 from schemas.request.update_user_config import UpdateUserConfigRequestSchema
