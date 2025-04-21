@@ -4,9 +4,9 @@ from fastapi.responses import JSONResponse
 from schemas.request.create_backup import CreateBackupRequestSchema
 from schemas.request.create_backup_from_schedule import CreateBackupFromScheduleRequestSchema
 from schemas.request.update_backup_expiration import UpdateBackupExpirationRequestSchema
-from schemas.response.successful_request import SuccessfulRequest
+from vui_common.schemas.response.successful_request import SuccessfulRequest
 from schemas.response.successful_backups import SuccessfulBackupResponse
-from schemas.notification import Notification
+from vui_common.schemas.notification import Notification
 
 from service.backup_storage_class import get_backup_storage_classes_service
 from service.resource import get_resource_creation_settings_service

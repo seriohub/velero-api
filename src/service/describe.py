@@ -3,8 +3,8 @@ from kubernetes import client
 from schemas.velero_describe import VeleroDescribe
 from constants.velero import VELERO
 from constants.resources import RESOURCES, ResourcesNames
-from configs.config_boot import config_app
-from utils.k8s_tracer import trace_k8s_async_method
+from vui_common.configs.config_proxy import config_app
+from vui_common.utils.k8s_tracer import trace_k8s_async_method
 
 custom_objects = client.CustomObjectsApi()
 

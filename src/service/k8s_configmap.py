@@ -2,9 +2,9 @@
 from kubernetes import client
 from kubernetes.client import ApiException
 
-from configs.config_boot import config_app
-from utils.k8s_tracer import trace_k8s_async_method
-from utils.logger_boot import logger
+from vui_common.configs.config_proxy import config_app
+from vui_common.utils.k8s_tracer import trace_k8s_async_method
+from vui_common.logger.logger_proxy import logger
 
 
 @trace_k8s_async_method(description="Get configmap")

@@ -1,8 +1,10 @@
 import asyncio
 import json
+from datetime import datetime
+
 from kubernetes_asyncio import client, config, watch
-from utils.logger_boot import logger
-from configs.config_boot import config_app
+from vui_common.logger.logger_proxy import logger
+from vui_common.configs.config_proxy import config_app
 
 
 class K8sWatchManager:
@@ -80,9 +82,12 @@ class K8sWatchManager:
 
                         message = json.dumps({
                             "type": "global_watch",
-                            "resources": plural,
-                            "event_type": event_type,
-                            "resource": event["object"]
+                            "kind": "event",
+                            "payload": {
+                                "resources": plural,
+                                "resource": event["object"]
+                            },
+                            'timestamp': datetime.utcnow().isoformat()
                         })
 
                         logger.watch(f"📢 Event on {plural}: {message}")
@@ -199,9 +204,13 @@ class K8sWatchManager:
 
                         message = json.dumps({
                             "type": "user_watch",
-                            "resources": plural,
-                            "event_type": event_type,
-                            "resource": event_resource
+                            "kind": "event",
+                            "payload": {
+                                "resources": plural,
+                                "event_type": event_type,
+                                "resource": event_resource
+                            },
+                            'timestamp': datetime.utcnow().isoformat()
                         })
 
                         logger.watch(f"📢 [{user_id}] New event: {message}")

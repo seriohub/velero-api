@@ -1,8 +1,8 @@
 from fastapi.responses import JSONResponse
 
 from schemas.request.update_vsl import UpdateVslRequestSchema
-from schemas.response.successful_request import SuccessfulRequest
-from schemas.notification import Notification
+from vui_common.schemas.response.successful_request import SuccessfulRequest
+from vui_common.schemas.notification import Notification
 from schemas.request.create_vsl import CreateVslRequestSchema
 
 from service.vsl import get_vsls_service, create_vsl_service, delete_vsl_service, update_vsl_service

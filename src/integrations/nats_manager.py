@@ -16,12 +16,12 @@ from nats.aio.errors import ErrTimeout, ErrNoServers
 from nats.errors import NoRespondersError
 
 from integrations.nats_cron_jobs import NatsCronJobs
-from models.db.user import User
+from vui_common.models.db.user import User
 
-from contexts.context import current_user_var, cp_user
-from configs.config_boot import config_app
+from vui_common.contexts.context import current_user_var, cp_user
+from vui_common.configs.config_proxy import config_app
 
-from utils.logger_boot import logger
+from vui_common.logger.logger_proxy import logger
 
 from k8s import k8s_watcher_proxy
 
@@ -403,12 +403,9 @@ class NatsManager:
     async def __subscribe_to_nats(self):
         logger.debug(f"initialize nats subscriptions")
         await self.nc.subscribe(f"agent.{config_app.k8s.cluster_id}.online", cb=self.__online_handler_cb)
-        await self.nc.subscribe(f"agent.{config_app.k8s.cluster_id}.request", cb=self.__message_handler_cb)
+        await self.nc.subscribe(f"agent.{config_app.k8s.cluster_id}.request", cb=self.__api_handler_cb)
         await self.nc.subscribe(f"server.cmd", cb=self.__server_cmd_cb)
         await self.nc.subscribe(f"event.user.watch.{self.channel_id}", cb=self.__k8s_user_wacth_cb)
-        # await self.nc.subscribe("server.cmd", cb=self.__server_cmd_cb)
-        # await self.js.subscribe(f"agent.{config_app.k8s.cluster_id}.request", durable="agent_request", cb=self.__message_handler_cb, deliver_policy="new")
-        # await self.js.subscribe(f"event.user.watch.{self.channel_id}", durable="agent_watch", cb=self.__k8s_user_wacth_cb, deliver_policy="new")
 
     async def __online_handler_cb(self, msg):
         logger.debug(f"reply to online check request")
@@ -416,7 +413,7 @@ class NatsManager:
         content = json.dumps(data)
         await self.nc.publish(msg.reply, self.__ensure_encoded(content))
 
-    async def __message_handler_cb(self, msg):
+    async def __api_handler_cb(self, msg):
         logger.info(f"message_handler")
         command = msg.data.decode()
 
@@ -529,15 +526,15 @@ class NatsManager:
         await self.nc.publish(msg.reply, self.__ensure_encoded(content))
 
     async def __k8s_user_wacth_cb(self, msg):
-        logger.info(f"k8s_user_wacth")
         command = msg.data.decode()
         command = json.loads(command)
-        if command.get('action') == "watch":
+        logger.info(f"k8s_user_watch {msg} {command.get('type')}")
+        if command.get('type') == "watch":
             if k8s_watcher_proxy.k8s_watcher_manager is not None:
-                await k8s_watcher_proxy.k8s_watcher_manager.watch_user_resource(command['agent_name'], command['plural'], namespace=config_app.k8s.velero_namespace)
+                await k8s_watcher_proxy.k8s_watcher_manager.watch_user_resource(-1, command.get("payload").get('plural'), namespace=config_app.k8s.velero_namespace)
             else:
                 print("is none")
-        if command.get('action') == "watch:clear":
+        if command.get('type') == "watch_clear":
             if k8s_watcher_proxy.k8s_watcher_manager is not None:
                 await k8s_watcher_proxy.k8s_watcher_manager.clear_watch_user_resource(-1)
             else:
@@ -554,8 +551,6 @@ class NatsManager:
                 logger.debug(f"force registration and subscription")
                 if command['command'] == 'restart':
                     await self.__agent_registration()
-                    #await self.__subscribe_to_nats()
-                    #await self.__create_bucket_store(key_value=self.kv_bucket_name)
 
         except Exception as e:
             logger.warning(f"__server_cmd_handler ({str(e)})")

@@ -4,13 +4,13 @@ import json
 from fastapi import WebSocketDisconnect
 import os
 
-from configs.config_boot import config_app
-from contexts.context import current_user_var, cp_user
+from vui_common.configs.config_proxy import config_app
+from vui_common.contexts.context import current_user_var, cp_user
 # from ws.websocket_manager import manager
 from integrations import nats_manager_proxy
-from ws import ws_manager_proxy
+from vui_common.ws import ws_manager_proxy
 
-from utils.logger_boot import logger
+from vui_common.logger.logger_proxy import logger
 
 # if config_app.nats.enable:
 #     from integrations.nats_manager import get_nats_manager_instance

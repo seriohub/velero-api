@@ -1,9 +1,9 @@
 import os
 from fastapi.responses import JSONResponse
 
-from schemas.response.successful_request import SuccessfulRequest
-from schemas.notification import Notification
-from schemas.message import Message
+from vui_common.schemas.response.successful_request import SuccessfulRequest
+from vui_common.schemas.notification import Notification
+from vui_common.schemas.message import Message
 from schemas.request.unlock_restic_repo import UnlockResticRepoRequestSchema
 
 from service.bsl import get_bsl_credentials_service

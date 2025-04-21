@@ -1,7 +1,7 @@
 from fastapi.responses import JSONResponse
 
-from schemas.response.successful_request import SuccessfulRequest
-from schemas.notification import Notification
+from vui_common.schemas.response.successful_request import SuccessfulRequest
+from vui_common.schemas.notification import Notification
 from schemas.request.storage_class_map import StorageClassMapRequestSchema
 
 from service.sc_mapping import (get_storages_classes_map_service,

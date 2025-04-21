@@ -1,6 +1,6 @@
 from kubernetes import client
 
-from configs.config_boot import config_app
+from vui_common.configs.config_proxy import config_app
 from constants.velero import VELERO
 from constants.resources import RESOURCES, ResourcesNames
 from schemas.request.delete_resource import DeleteResourceRequestSchema

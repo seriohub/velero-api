@@ -5,11 +5,11 @@ from controllers.requests import (get_server_status_requests_handler,
                                   get_download_requests_handler,
                                   get_delete_backup_handler, delete_download_request_handler)
 from schemas.request.delete_resource import DeleteResourceRequestSchema
-from schemas.response.successful_request import SuccessfulRequest
-from security.helpers.rate_limiter import RateLimiter, LimiterRequests
+from vui_common.schemas.response.successful_request import SuccessfulRequest
+from vui_common.security.helpers.rate_limiter import RateLimiter, LimiterRequests
 
-from utils.swagger import route_description
-from utils.exceptions import handle_exceptions_endpoint
+from vui_common.utils.swagger import route_description
+from vui_common.utils.exceptions import handle_exceptions_endpoint
 
 router = APIRouter()
 

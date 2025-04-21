@@ -1,8 +1,8 @@
 from fastapi.responses import JSONResponse
 
-from configs.config_boot import config_app
+from vui_common.configs.config_proxy import config_app
 
-from schemas.response.successful_request import SuccessfulRequest
+from vui_common.schemas.response.successful_request import SuccessfulRequest
 from schemas.request.create_cloud_credentials import CreateCloudCredentialsRequestSchema
 
 from service.k8s import (get_namespaces_service,

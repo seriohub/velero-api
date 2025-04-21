@@ -9,8 +9,8 @@ from typing import Optional
 
 from constants.velero import VELERO
 from constants.resources import RESOURCES, ResourcesNames
-from configs.config_boot import config_app
-from utils.logger_boot import logger
+from vui_common.configs.config_proxy import config_app
+from vui_common.logger.logger_proxy import logger
 
 custom_objects = client.CustomObjectsApi()
 

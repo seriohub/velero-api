@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from kubernetes import client
-from configs.config_boot import config_app
+from vui_common.configs.config_proxy import config_app
 
 
 async def get_pod_volume_backups_service():

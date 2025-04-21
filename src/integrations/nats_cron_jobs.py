@@ -1,6 +1,6 @@
-from configs.config_boot import config_app
+from vui_common.configs.config_proxy import config_app
 from integrations.nats_cron_job import NatsCronJob
-from utils.logger_boot import logger
+from vui_common.logger.logger_proxy import logger
 
 
 class NatsCronJobs:
