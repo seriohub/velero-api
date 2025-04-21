@@ -5,6 +5,7 @@ LABEL maintainer="DS"
 RUN apt-get update && apt-get install --no-install-recommends -y \
 	curl \
 	python3-pip \
+	git \
 	restic \
  && rm -rf /var/lib/apt/lists/*
 
