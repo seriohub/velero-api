@@ -138,7 +138,7 @@ async def get_watchdog_user_configs_service():
     if not user_config:
         user_config = {'data': {}}
     default_cm = await get_config_map_service(namespace=config_app.k8s.vui_namespace,
-                                              configmap_name='velero-watchdog-config')
+                                              configmap_name='vui-watchdog-config')
 
     cm = default_cm
     cm.update(user_config)
@@ -148,7 +148,7 @@ async def get_watchdog_user_configs_service():
 
 async def update_watchdog_user_configs_service(user_configs: UpdateUserConfigRequestSchema):
     default_cm = await get_config_map_service(namespace=config_app.k8s.vui_namespace,
-                                              configmap_name='velero-watchdog-config')
+                                              configmap_name='vui-watchdog-config')
 
     async def synckey(key: str, value):
         if value.lower() != default_cm[key].lower():
@@ -209,7 +209,7 @@ async def send_watchdog_test_notification_service(provider_config: str):
 
 async def get_apprise_services():
     default_secret_content = await get_secret_service(namespace=config_app.k8s.vui_namespace,
-                                                      secret_name='velero-watchdog-config')
+                                                      secret_name='vui-watchdog-config')
     user_secret_content = await get_secret_service(namespace=config_app.k8s.vui_namespace,
                                                    secret_name='velero-watchdog-user-config')
 
@@ -226,7 +226,7 @@ async def get_apprise_services():
 async def create_apparise_services(config):
     try:
         default_secret_content = await get_secret_service(namespace=config_app.k8s.vui_namespace,
-                                                          secret_name='velero-watchdog-config')
+                                                          secret_name='vui-watchdog-config')
         user_secret_content = await get_secret_service(namespace=config_app.k8s.vui_namespace,
                                                        secret_name='velero-watchdog-user-config')
         if not user_secret_content:
@@ -250,7 +250,7 @@ async def delete_apprise_services(config):
     try:
 
         default_secret_content = await get_secret_service(namespace=config_app.k8s.vui_namespace,
-                                                          secret_name='velero-watchdog-config')
+                                                          secret_name='vui-watchdog-config')
         user_secret_content = await get_secret_service(namespace=config_app.k8s.vui_namespace,
                                                        secret_name='velero-watchdog-user-config')
 
