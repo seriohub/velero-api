@@ -4,34 +4,34 @@ from kubernetes.client import ApiException
 
 from vui_common.configs.config_proxy import config_app
 from vui_common.utils.k8s_tracer import trace_k8s_async_method
-from vui_common.logger.logger_proxy import logger
+# from vui_common.logger.logger_proxy import logger
 
 
-@trace_k8s_async_method(description="Get configmap")
-async def get_config_map_service(namespace, configmap_name):
-    # Kubernetes API client
-    core_api = client.CoreV1Api()
-
-    try:
-        # Retrieve the ConfigMap
-        configmap = core_api.read_namespaced_config_map(name=configmap_name, namespace=namespace)
-        # Access the data in the ConfigMap
-        data = configmap.data
-        if not data:
-            return None
-        kv = {}
-        # Print out the data
-        for key, value in data.items():
-            if (key.startswith('SECURITY_TOKEN_KEY') or key.startswith('EMAIL_PASSWORD') or
-                    key.startswith('TELEGRAM_TOKEN')):
-                value = value[0].ljust(len(value) - 1, '*')
-            kv[key] = value
-        return kv
-    except client.exceptions.ApiException as e:
-        logger.warning(f"Exception when calling CoreV1Api->read_namespaced_config_map: {e}")
-        # raise HTTPException(status_code=400, detail=f"Exception when calling "
-        #                                             f"CoreV1Api->read_namespaced_config_map: {e}")
-        return None
+# @trace_k8s_async_method(description="Get configmap")
+# async def get_config_map_service(namespace, configmap_name):
+#     # Kubernetes API client
+#     core_api = client.CoreV1Api()
+#
+#     try:
+#         # Retrieve the ConfigMap
+#         configmap = core_api.read_namespaced_config_map(name=configmap_name, namespace=namespace)
+#         # Access the data in the ConfigMap
+#         data = configmap.data
+#         if not data:
+#             return None
+#         kv = {}
+#         # Print out the data
+#         for key, value in data.items():
+#             if (key.startswith('SECURITY_TOKEN_KEY') or key.startswith('EMAIL_PASSWORD') or
+#                     key.startswith('TELEGRAM_TOKEN')):
+#                 value = value[0].ljust(len(value) - 1, '*')
+#             kv[key] = value
+#         return kv
+#     except client.exceptions.ApiException as e:
+#         logger.warning(f"Exception when calling CoreV1Api->read_namespaced_config_map: {e}")
+#         # raise HTTPException(status_code=400, detail=f"Exception when calling "
+#         #                                             f"CoreV1Api->read_namespaced_config_map: {e}")
+#         return None
 
 
 @trace_k8s_async_method(description="Create or update a configmap")
