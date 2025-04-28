@@ -87,7 +87,8 @@ class K8sWatchManager:
                                 "resources": plural,
                                 "resource": event["object"]
                             },
-                            'timestamp': datetime.utcnow().isoformat()
+                            'timestamp': datetime.utcnow().isoformat(),
+                            'agent_name': config_app.k8s.cluster_id
                         })
 
                         logger.watch(f"📢 Event on {plural}: {message}")
@@ -210,7 +211,8 @@ class K8sWatchManager:
                                 "event_type": event_type,
                                 "resource": event_resource
                             },
-                            'timestamp': datetime.utcnow().isoformat()
+                            'timestamp': datetime.utcnow().isoformat(),
+                            'agent_name': config_app.k8s.cluster_id
                         })
 
                         logger.watch(f"📢 [{user_id}] New event: {message}")
