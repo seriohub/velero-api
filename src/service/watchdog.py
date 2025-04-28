@@ -211,7 +211,7 @@ async def get_apprise_services():
     default_secret_content = await get_secret_service(namespace=config_app.k8s.vui_namespace,
                                                       secret_name='vui-watchdog-secret')
     user_secret_content = await get_secret_service(namespace=config_app.k8s.vui_namespace,
-                                                   secret_name='velero-watchdog-user-secret')
+                                                   secret_name='vui-watchdog-user-secret')
 
     if user_secret_content:
         apprise_config = user_secret_content['APPRISE'].split(";")
@@ -228,16 +228,16 @@ async def create_apparise_services(config):
         default_secret_content = await get_secret_service(namespace=config_app.k8s.vui_namespace,
                                                           secret_name='vui-watchdog-secret')
         user_secret_content = await get_secret_service(namespace=config_app.k8s.vui_namespace,
-                                                       secret_name='velero-watchdog-user-secret')
+                                                       secret_name='vui-watchdog-user-secret')
         if not user_secret_content:
             await add_or_update_key_in_secret_service(namespace=config_app.k8s.vui_namespace,
-                                                      secret_name='velero-watchdog-user-secret',
+                                                      secret_name='vui-watchdog-user-secret',
                                                       key='APPRISE',
                                                       value=default_secret_content[
                                                                 'APPRISE'] + ';' + config)
         else:
             await add_or_update_key_in_secret_service(namespace=config_app.k8s.vui_namespace,
-                                                      secret_name='velero-watchdog-user-secret',
+                                                      secret_name='vui-watchdog-user-secret',
                                                       key='APPRISE',
                                                       value=user_secret_content[
                                                                 'APPRISE'] + ';' + config)
@@ -252,7 +252,7 @@ async def delete_apprise_services(config):
         default_secret_content = await get_secret_service(namespace=config_app.k8s.vui_namespace,
                                                           secret_name='vui-watchdog-secret')
         user_secret_content = await get_secret_service(namespace=config_app.k8s.vui_namespace,
-                                                       secret_name='velero-watchdog-user-secret')
+                                                       secret_name='vui-watchdog-user-secret')
 
         if user_secret_content:
             secrets = user_secret_content['APPRISE'].split(";")
@@ -262,7 +262,7 @@ async def delete_apprise_services(config):
 
         secrets.remove(config)
         await add_or_update_key_in_secret_service(namespace=config_app.k8s.vui_namespace,
-                                                  secret_name='velero-watchdog-user-secret',
+                                                  secret_name='vui-watchdog-user-secret',
                                                   key='APPRISE',
                                                   value=";".join(secrets))
         return True
