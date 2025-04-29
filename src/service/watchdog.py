@@ -187,7 +187,8 @@ async def send_watchdog_report():
     url = protocol + config_app.watchdog.url + '/send-report'
     logger.debug(f'Watchdog URL {url}')
 
-    return await __do_api_call_post(url, {})
+    result = await __do_api_call_post(url, {})
+    return result if result is not None else {}
 
 
 @trace_k8s_async_method(description="Test watchdog notification service")
