@@ -476,33 +476,38 @@ class NatsManager:
 
                     # get function signature
                     sig = signature(endpoint_function)
-                    first_param = next(iter(sig.parameters.values()))
 
-                    # get first param of endpoint
-                    if first_param.annotation == Request:
-                        # Create fake Request Object
-                        request_scope = {
-                            "type": "http",
-                            "method": command['method'],
-                            "path": command["path"],
-                            "headers": {},
-                        }
-                        request = Request(request_scope)
-                        request._json = command['params']
+                    params = list(sig.parameters.values())
 
-                        # call endpoint with Request object
-                        response = await endpoint_function(request)
-                    elif issubclass(first_param.annotation, BaseModel):
-                        # Create Pydantic schemas
-                        model_instance = first_param.annotation(**command['params'])
-                        # call endpoint with Pydantic object
-                        response = await endpoint_function(model_instance)
-                    # else:
-                    #     raise HTTPException(status_code=400, detail="Unsupported parameter type")
+                    if not params:
+                        response = await endpoint_function()
+                    else:
+                        first_param = next(iter(sig.parameters.values()))
+                        # get first param of endpoint
+                        if first_param.annotation == Request:
+                            # Create fake Request Object
+                            request_scope = {
+                                "type": "http",
+                                "method": command['method'],
+                                "path": command["path"],
+                                "headers": {},
+                            }
+                            request = Request(request_scope)
+                            request._json = command['params']
 
-                    # If the response is a JSONResponse object, get content
-                    if isinstance(response, JSONResponse):
-                        response = json.loads(response.body.decode())
+                            # call endpoint with Request object
+                            response = await endpoint_function(request)
+                        elif issubclass(first_param.annotation, BaseModel):
+                            # Create Pydantic schemas
+                            model_instance = first_param.annotation(**command['params'])
+                            # call endpoint with Pydantic object
+                            response = await endpoint_function(model_instance)
+                        # else:
+                        #     raise HTTPException(status_code=400, detail="Unsupported parameter type")
+
+                        # If the response is a JSONResponse object, get content
+                        if isinstance(response, JSONResponse):
+                            response = json.loads(response.body.decode())
 
                 content = json.dumps(response)
 
