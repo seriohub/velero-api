@@ -227,7 +227,7 @@ async def get_apprise_services():
 async def create_apparise_services(config):
     try:
         default_secret_content = await get_secret_service(namespace=config_app.k8s.vui_namespace,
-                                                          secret_name=f"{config_app.helm.release_name}-watchdog-user-secret")
+                                                          secret_name=f"{config_app.helm.release_name}-watchdog-secret")
         user_secret_content = await get_secret_service(namespace=config_app.k8s.vui_namespace,
                                                        secret_name=f"{config_app.helm.release_name}-watchdog-user-secret")
         if not user_secret_content:
