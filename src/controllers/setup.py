@@ -42,11 +42,11 @@ async def get_velero_pods_handler():
 
 async def get_vui_pods_handler():
     label_selectors_by_type = {
-        "CORE": "app=vui-core",
-        "API": "app=vui-api",
-        "NATS": "app=vui-nats",
-        "UI": "app=vui-ui",
-        "WATCHDOG": "app=vui-watchdog",
+        "CORE": "component=core",
+        "API": "component=api",
+        "BROKER": "component=broker",
+        "UI": "component=ui",
+        "WATCHDOG": "component=watchdog",
     }
     payload = await get_pods_service(label_selectors_by_type, namespace=config_app.k8s.vui_namespace)
 

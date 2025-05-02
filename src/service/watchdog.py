@@ -102,7 +102,7 @@ async def get_watchdog_report_cron_service(job_name=f"{config_app.helm.release_n
 async def restart_watchdog_service():
     try:
         namespace = config_app.k8s.vui_namespace
-        deployment_name = "vui-watchdog"
+        deployment_name = f"{config_app.helm.release_name}-watchdog"
 
         api_instance = client.AppsV1Api()
 
