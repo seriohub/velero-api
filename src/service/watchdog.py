@@ -84,7 +84,7 @@ async def get_watchdog_env_services():
 
 
 @trace_k8s_async_method(description="Get watchdog cron")
-async def get_watchdog_report_cron_service(job_name='vui-report'):
+async def get_watchdog_report_cron_service(job_name=f"{config_app.helm.release_name}-vui-report-cronjob"):
     try:
         api_instance = client.BatchV1Api()
         logger.debug(f"namespace {config_app.k8s.velero_namespace} job_name {job_name}")
@@ -133,12 +133,12 @@ async def restart_watchdog_service():
 # ------------------------------------------------------------------------------------------------
 async def get_watchdog_user_configs_service():
     user_config = await get_config_map_service(namespace=config_app.k8s.vui_namespace,
-                                               configmap_name='vui-watchdog-user-config')
+                                               configmap_name=f"{config_app.helm.release_name}-watchdog-user-config")
 
     if not user_config:
         user_config = {'data': {}}
     default_cm = await get_config_map_service(namespace=config_app.k8s.vui_namespace,
-                                              configmap_name='vui-watchdog-config')
+                                              configmap_name=f"{config_app.helm.release_name}-watchdog-config")
 
     cm = default_cm
     cm.update(user_config)
@@ -148,17 +148,17 @@ async def get_watchdog_user_configs_service():
 
 async def update_watchdog_user_configs_service(user_configs: UpdateUserConfigRequestSchema):
     default_cm = await get_config_map_service(namespace=config_app.k8s.vui_namespace,
-                                              configmap_name='vui-watchdog-config')
+                                              configmap_name=f"{config_app.helm.release_name}-watchdog-config")
 
     async def synckey(key: str, value):
         if value.lower() != default_cm[key].lower():
             await create_or_update_configmap_service(config_app.k8s.vui_namespace,
-                                                     'vui-watchdog-user-config',
+                                                     f"{config_app.helm.release_name}-watchdog-user-config",
                                                      key,
                                                      value)
         else:
             await remove_key_from_configmap_service(config_app.k8s.vui_namespace,
-                                                    'vui-watchdog-user-config',
+                                                    f"{config_app.helm.release_name}-watchdog-user-config",
                                                     key)
 
     await synckey('BACKUP_ENABLED', 'True' if user_configs.backupEnabled else 'False')
@@ -210,9 +210,9 @@ async def send_watchdog_test_notification_service(provider_config: str):
 
 async def get_apprise_services():
     default_secret_content = await get_secret_service(namespace=config_app.k8s.vui_namespace,
-                                                      secret_name='vui-watchdog-secret')
+                                                      secret_name=f"{config_app.helm.release_name}-watchdog-secret")
     user_secret_content = await get_secret_service(namespace=config_app.k8s.vui_namespace,
-                                                   secret_name='vui-watchdog-user-secret')
+                                                   secret_name=f"{config_app.helm.release_name}-watchdog-user-secret")
 
     if user_secret_content:
         apprise_config = user_secret_content['APPRISE'].split(";")
@@ -227,18 +227,18 @@ async def get_apprise_services():
 async def create_apparise_services(config):
     try:
         default_secret_content = await get_secret_service(namespace=config_app.k8s.vui_namespace,
-                                                          secret_name='vui-watchdog-secret')
+                                                          secret_name=f"{config_app.helm.release_name}-watchdog-user-secret")
         user_secret_content = await get_secret_service(namespace=config_app.k8s.vui_namespace,
-                                                       secret_name='vui-watchdog-user-secret')
+                                                       secret_name=f"{config_app.helm.release_name}-watchdog-user-secret")
         if not user_secret_content:
             await add_or_update_key_in_secret_service(namespace=config_app.k8s.vui_namespace,
-                                                      secret_name='vui-watchdog-user-secret',
+                                                      secret_name=f"{config_app.helm.release_name}-watchdog-user-secret",
                                                       key='APPRISE',
                                                       value=default_secret_content[
                                                                 'APPRISE'] + ';' + config)
         else:
             await add_or_update_key_in_secret_service(namespace=config_app.k8s.vui_namespace,
-                                                      secret_name='vui-watchdog-user-secret',
+                                                      secret_name=f"{config_app.helm.release_name}-watchdog-user-secret",
                                                       key='APPRISE',
                                                       value=user_secret_content[
                                                                 'APPRISE'] + ';' + config)
@@ -251,9 +251,9 @@ async def delete_apprise_services(config):
     try:
 
         default_secret_content = await get_secret_service(namespace=config_app.k8s.vui_namespace,
-                                                          secret_name='vui-watchdog-secret')
+                                                          secret_name=f"{config_app.helm.release_name}-watchdog-secret")
         user_secret_content = await get_secret_service(namespace=config_app.k8s.vui_namespace,
-                                                       secret_name='vui-watchdog-user-secret')
+                                                       secret_name=f"{config_app.helm.release_name}-watchdog-user-secret")
 
         if user_secret_content:
             secrets = user_secret_content['APPRISE'].split(";")
@@ -263,7 +263,7 @@ async def delete_apprise_services(config):
 
         secrets.remove(config)
         await add_or_update_key_in_secret_service(namespace=config_app.k8s.vui_namespace,
-                                                  secret_name='vui-watchdog-user-secret',
+                                                  secret_name=f"{config_app.helm.release_name}-watchdog-user-secret",
                                                   key='APPRISE',
                                                   value=";".join(secrets))
         return True

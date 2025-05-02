@@ -12,7 +12,7 @@ from service.velero import get_velero_version_service, get_pods_service
 async def get_env_handler():
     if os.getenv('K8S_IN_CLUSTER_MODE').lower() == 'true':
         env_data = await get_config_map_service(namespace=config_app.k8s.vui_namespace,
-                                                configmap_name='vui-api-config')
+                                                configmap_name=f"{config_app.helm.release_name}-api-config")
 
     else:
         env_data = config_app.get_env_variables()
