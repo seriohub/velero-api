@@ -84,7 +84,7 @@ async def get_watchdog_env_services():
 
 
 @trace_k8s_async_method(description="Get watchdog cron")
-async def get_watchdog_report_cron_service(job_name=f"{config_app.helm.release_name}-vui-report-cronjob"):
+async def get_watchdog_report_cron_service(job_name=f"{config_app.helm.release_name}-report-cronjob"):
     try:
         api_instance = client.BatchV1Api()
         logger.debug(f"namespace {config_app.k8s.velero_namespace} job_name {job_name}")
@@ -102,7 +102,7 @@ async def get_watchdog_report_cron_service(job_name=f"{config_app.helm.release_n
 async def restart_watchdog_service():
     try:
         namespace = config_app.k8s.vui_namespace
-        deployment_name = f"{config_app.helm.release_name}-watchdog"
+        deployment_name = f"{config_app.helm.release_name}-watchdog-deploy"
 
         api_instance = client.AppsV1Api()
 
