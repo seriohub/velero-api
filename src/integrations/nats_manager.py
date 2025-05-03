@@ -75,9 +75,11 @@ class NatsManager:
 
     async def __reconnected_cb(self):
         logger.info(f"_nats_reconnect reconnect at {self.nc.connected_url.netloc}")
-        await self.__agent_registration()
-        await self.__create_bucket_store(key_value=self.kv_bucket_name)
-        await self.__subscribe_to_nats()
+        await self.__start_manager()
+        #await self.__init_nats_connection()
+        #await self.__agent_registration()
+        #await self.__create_bucket_store(key_value=self.kv_bucket_name)
+        #await self.__subscribe_to_nats()
 
     async def __disconnected_cb(self):
         logger.info(f"_nats_disconnected_cb disconnect from server")
@@ -247,7 +249,7 @@ class NatsManager:
                 if not self.nc.is_connected:
                     logger.warning("⛔ NATS not connected, retrying...")
                     await asyncio.sleep(interval)
-                    continue
+                    break
 
                 data = {
                     'client': self.nc.client_id,
