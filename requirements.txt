@@ -25,7 +25,7 @@ idna==3.10
 kubernetes==32.0.0
 minio==7.2.15
 multidict==6.1.0
-nats-py==2.8.0
+nats-py==2.10.0
 oauthlib==3.2.2
 passlib==1.7.4
 propcache==0.2.1
@@ -56,3 +56,4 @@ wsproto==1.2.0
 yarl==1.18.3
 ldap3~=2.9.1
 kubernetes_asyncio==32.0.0
+git+https://github.com/seriohub/vui-common.git@v0.1.0#egg=vui_common

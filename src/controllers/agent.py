@@ -1,6 +1,6 @@
 from fastapi.responses import JSONResponse
 
-from schemas.response.successful_request import SuccessfulRequest
+from vui_common.schemas.response.successful_request import SuccessfulRequest
 
 from service.watchdog import check_watchdog_online_service
 

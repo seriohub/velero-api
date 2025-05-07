@@ -1,8 +1,8 @@
 import os
 from fastapi.responses import JSONResponse
 
-from schemas.response.successful_request import SuccessfulRequest
-from configs.config_boot import config_app
+from vui_common.schemas.response.successful_request import SuccessfulRequest
+from vui_common.configs.config_proxy import config_app
 from service.inspect import (get_folders_list,
                              # get_directory_contents,
                              read_json_file,

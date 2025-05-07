@@ -57,7 +57,7 @@ while True:
                 print(f"error")
 
     sleep(10)
-    print(f"*****")
+
     c = session.get(backend_url + "api/v1/utils/health/")
     response4 = json.loads(c.content.decode('utf-8'))
     print(f"[{nLoop}] {datetime.now()} {response4} {c}")

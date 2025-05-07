@@ -5,7 +5,7 @@ from croniter import croniter
 
 from service.backup import get_backups_service
 from service.schedule import get_schedules_service
-from utils.k8s_tracer import trace_k8s_async_method
+from vui_common.utils.k8s_tracer import trace_k8s_async_method
 
 
 def _find_backup(backups, backup_name):

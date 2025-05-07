@@ -1,10 +1,12 @@
 FROM python:3.10-slim as velero-api-base
+ARG CACHEBUST=1
 LABEL maintainer="DS"
 
 # Update packages and install basics
 RUN apt-get update && apt-get install --no-install-recommends -y \
 	curl \
 	python3-pip \
+	git \
 	restic \
  && rm -rf /var/lib/apt/lists/*
 
@@ -12,7 +14,8 @@ RUN pip install --upgrade pip
 
 COPY requirements.txt requirements.txt
 
-RUN pip3 install --no-cache-dir -r requirements.txt
+#RUN pip3 install --no-cache-dir -r requirements.txt
+RUN echo $CACHEBUST && pip3 install --no-cache-dir -r requirements.txt
 
 # prepare dir
 RUN mkdir /app \
@@ -49,7 +52,7 @@ VOLUME /app/data
 WORKDIR /app/
 
 RUN echo "Ready!"
-CMD ["python3", "-u" , "main.py"]
+CMD ["python3", "-u" , "__main__.py"]
 
 # #####################################################################################################
 

@@ -3,12 +3,12 @@ from fastapi import APIRouter, Depends, status
 from constants.response import common_error_authenticated_response
 from schemas.request.update_vsl import UpdateVslRequestSchema
 
-from security.helpers.rate_limiter import RateLimiter, LimiterRequests
+from vui_common.security.helpers.rate_limiter import RateLimiter, LimiterRequests
 
-from utils.swagger import route_description
-from utils.exceptions import handle_exceptions_endpoint
+from vui_common.utils.swagger import route_description
+from vui_common.utils.exceptions import handle_exceptions_endpoint
 
-from schemas.response.successful_request import SuccessfulRequest
+from vui_common.schemas.response.successful_request import SuccessfulRequest
 from schemas.request.delete_resource import DeleteResourceRequestSchema
 
 from controllers.vsl import (get_vsl_handler,

@@ -4,13 +4,13 @@ from constants.response import common_error_authenticated_response
 
 from controllers.watchdog import get_env_handler
 
-from security.helpers.rate_limiter import RateLimiter, LimiterRequests
+from vui_common.security.helpers.rate_limiter import RateLimiter, LimiterRequests
 
-from utils.swagger import route_description
-from utils.exceptions import handle_exceptions_endpoint
+from vui_common.utils.swagger import route_description
+from vui_common.utils.exceptions import handle_exceptions_endpoint
 
 from schemas.request.delete_resource import DeleteResourceRequestSchema
-from schemas.response.successful_request import SuccessfulRequest
+from vui_common.schemas.response.successful_request import SuccessfulRequest
 from schemas.request.apprise_test_service import AppriseTestServiceRequestSchema
 from schemas.request.create_user_service import CreateUserServiceRequestSchema
 from schemas.request.update_user_config import UpdateUserConfigRequestSchema
@@ -58,7 +58,7 @@ route = '/watchdog/info'
     responses=common_error_authenticated_response,
     status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
-async def watchdog_config():
+async def watchdog_verision():
     return await version_handler()
 
 

@@ -1,6 +1,6 @@
-from configs.config_boot import config_app
+from vui_common.configs.config_proxy import config_app
 from integrations.nats_cron_job import NatsCronJob
-from utils.logger_boot import logger
+from vui_common.logger.logger_proxy import logger
 
 
 class NatsCronJobs:
@@ -43,6 +43,14 @@ class NatsCronJobs:
                      interval=config_app.nats.cron_repository_update)
 
         self.add_job(endpoint="/v1/sc-mapping",
+                     credential=True,
+                     interval=config_app.nats.cron_storage_classes_mapping_update)
+
+        self.add_job(endpoint="/v1/pod-volume-backups",
+                     credential=True,
+                     interval=config_app.nats.cron_storage_classes_mapping_update)
+
+        self.add_job(endpoint="/v1/pod-volume-restores",
                      credential=True,
                      interval=config_app.nats.cron_storage_classes_mapping_update)
 

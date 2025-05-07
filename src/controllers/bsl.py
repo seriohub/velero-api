@@ -1,8 +1,8 @@
 from fastapi.responses import JSONResponse
 
 from schemas.request.update_bsl import UpdateBslRequestSchema
-from schemas.response.successful_request import SuccessfulRequest
-from schemas.notification import Notification
+from vui_common.schemas.response.successful_request import SuccessfulRequest
+from vui_common.schemas.notification import Notification
 from schemas.request.create_bsl import CreateBslRequestSchema
 from schemas.request.default_bsl import DefaultBslRequestSchema
 

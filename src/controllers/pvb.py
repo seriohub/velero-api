@@ -1,6 +1,6 @@
 from fastapi.responses import JSONResponse
 
-from schemas.response.successful_request import SuccessfulRequest
+from vui_common.schemas.response.successful_request import SuccessfulRequest
 
 from service.pvb import (get_pod_volume_backups_service,
                          get_pod_volume_backup_details_service,

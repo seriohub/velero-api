@@ -1,6 +1,6 @@
 from fastapi.responses import JSONResponse
 
-from schemas.response.successful_request import SuccessfulRequest
+from vui_common.schemas.response.successful_request import SuccessfulRequest
 
 from service.backup import get_backups_service
 from service.restore import get_restores_service

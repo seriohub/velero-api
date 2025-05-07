@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+## [v0.2.5] - 2025-05-07
+
+🧱 Maintenance
+- Renamed repository from velero-api to vui-api to improve project organization
+ 
+🔧 Improvements
+- Updated Kubernetes object names to align with the release name
+- Improved integration with vui-core
+
 ## [v0.2.4] - 2025-04-03
 
 🆕 New Features

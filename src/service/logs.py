@@ -6,7 +6,7 @@ import tempfile
 
 from schemas.velero_log import VeleroLog
 from service.utils.download_request import create_download_request, cleanup_download_request
-from utils.k8s_tracer import trace_k8s_async_method
+from vui_common.utils.k8s_tracer import trace_k8s_async_method
 
 VELERO_LOG_TYPES = {
     "backup": "BackupLog",
