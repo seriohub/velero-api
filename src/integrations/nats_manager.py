@@ -262,7 +262,7 @@ class NatsManager:
                 logger.info(f"📤 registration.sent attempt={attempt} → {subject}")
 
                 # Request/Reply
-                response = await self.nc.request(subject, message.encode(), timeout=2)
+                response = await self.nc.request(subject, message.encode(), timeout=5)
                 print("response", response)
                 key_to_res = response.data.decode()
                 logger.debug(f"📥 command.Received reply: {key_to_res}")
