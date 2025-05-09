@@ -57,4 +57,5 @@ yarl==1.18.3
 ldap3~=2.9.1
 kubernetes_asyncio==32.0.0
 aiofiles~=24.1.0
-git+https://github.com/seriohub/vui-common.git@v0.1.0#egg=vui_common
+#git+https://github.com/seriohub/vui-common.git@v0.1.0#egg=vui_common
+git+https://github.com/seriohub/vui-common.git@dev#egg=vui_common
