@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+## [v0.2.6] - 2025-05-10
+
+- Updated requirements
+
 ## [v0.2.5] - 2025-05-07
 
 🧱 Maintenance
@@ -222,6 +226,12 @@ Improvements
 ***
 
 ## Tags
+
+[v0.2.6] : [https://github.com/seriohub/vui-api/releases/tag/v0.2.6](https://github.com/seriohub/vui-api/releases/tag/v0.2.6)
+
+[v0.2.4] : [https://github.com/seriohub/velero-api/releases/tag/v0.2.4](https://github.com/seriohub/velero-api/releases/tag/v0.2.4)
+
+[v0.2.3] : [https://github.com/seriohub/velero-api/releases/tag/v0.2.3](https://github.com/seriohub/velero-api/releases/tag/v0.2.3)
 
 [v0.2.2] : [https://github.com/seriohub/velero-api/releases/tag/v0.2.2](https://github.com/seriohub/velero-api/releases/tag/v0.2.2)
 
