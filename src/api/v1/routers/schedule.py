@@ -54,6 +54,7 @@ route = '/schedules'
     status_code=status.HTTP_200_OK)
 @handle_exceptions_endpoint
 async def get_schedule():
+    print("test")
     return await get_schedules_handler()
 
 

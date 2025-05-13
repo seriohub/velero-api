@@ -17,6 +17,7 @@ from vui_common.logger.logger_proxy import logger
 
 
 async def get_schedules_handler():
+    print("30")
     payload = await get_schedules_service()
 
     response = SuccessfulScheduleResponse(payload=payload)
