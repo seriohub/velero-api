@@ -8,3 +8,6 @@ tmp/
 download/
 **/dl/**/*.tar.gz
 /db/
+yarn.lock
+package.json
+node_modules/
