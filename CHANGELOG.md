@@ -4,9 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ***
 
+## [v0.2.7] - 2025-05-20
+
+- Updated Python dependencies in requirements.txt
+
 ## [v0.2.6] - 2025-05-10
 
-- Updated requirements
+- Updated Python dependencies in requirements.txt
 
 ## [v0.2.5] - 2025-05-07
 
@@ -222,10 +226,11 @@ Improvements
 
 - 🎉 first release!
 
-
 ***
 
 ## Tags
+
+[v0.2.7] : [https://github.com/seriohub/vui-api/releases/tag/v0.2.6](https://github.com/seriohub/vui-api/releases/tag/v0.2.7)
 
 [v0.2.6] : [https://github.com/seriohub/vui-api/releases/tag/v0.2.6](https://github.com/seriohub/vui-api/releases/tag/v0.2.6)
 
