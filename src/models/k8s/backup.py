@@ -17,6 +17,7 @@ class BackupPhase(str, Enum):
     FAILED = "Failed"
     DELETING = "Deleting"
     FINALIZING = "Finalizing"
+    QUEUED = "Queued"
 
     class Config:
         extra = "allow"
