@@ -2,7 +2,7 @@
 
 Velero-API is part of the VUI project.
 
-[Read VUI project documentation](https://vui.seriohub.com/)
+[Read VUI project documentation](https://seriohub.github.io/vui-docs/)
 
 ## Acknowledgements
 
